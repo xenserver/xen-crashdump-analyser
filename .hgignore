@@ -1,0 +1,10 @@
+syntax: glob
+*~		# Emacs backup files
+.*.d		# GCC generated dependency files
+*.e		# preprocessed files
+*.o		# object files
+cscope.*	# Cscope indexes
+
+syntax: regexp
+^xen-crashdump-analyser*
+^doxygen/	# Doxygen output directory
