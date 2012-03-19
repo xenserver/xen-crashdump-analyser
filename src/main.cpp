@@ -390,7 +390,8 @@ int main(int argc, char ** argv)
     // Log the output directory
     if ( NULL == ( path_buff = realpath( outdir_path, NULL )))
     {
-        LOG_ERROR("realpath failed: %s\n", strerror(errno));
+        LOG_ERROR("realpath failed for output directory '%s': %s\n",
+                  outdir_path, strerror(errno));
         return EX_SOFTWARE;
     }
     LOG_INFO("Output directory: %s/\n", path_buff);
@@ -399,7 +400,8 @@ int main(int argc, char ** argv)
     // Log the crash file
     if ( NULL == ( path_buff = realpath( core_path, NULL )))
     {
-        LOG_ERROR("realpath failed: %s\n", strerror(errno));
+        LOG_ERROR("realpath failed for Core crash file path '%s': %s\n",
+                  core_path, strerror(errno));
         return EX_SOFTWARE;
     }
     LOG_INFO("Elf CORE crash file: %s\n", path_buff);
