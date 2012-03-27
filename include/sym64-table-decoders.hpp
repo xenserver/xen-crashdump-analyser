@@ -57,9 +57,18 @@ public:
      */
     virtual const uint64_t & get(const size_t index) const;
 
+    /**
+     * is_valid function
+     * @param index Index into the table
+     * @returns boolean indicating whether the value was present in the crash notes
+     */
+    virtual bool is_valid(const size_t index) const;
+
 protected:
     /// Actual table
     uint64_t * table;
+    /// Bitmap of validity of table entries
+    Bitmap * valid;
     /// Number of table entries
     size_t nr_entries;
 };

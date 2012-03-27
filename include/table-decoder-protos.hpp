@@ -27,6 +27,7 @@
 
 #include <cstring>
 #include <stdint.h>
+#include "bitmap.hpp"
 
 /**
  * Table decoder.
@@ -76,6 +77,13 @@ public:
      * @returns char pointer from table, or NULL if out of range or not present
      */
     virtual const char * get(const size_t index) const = 0;
+
+    /**
+     * is_valid function
+     * @param index Index into the table
+     * @returns boolean indicating whether the value was present in the crash notes
+     */
+    virtual bool is_valid(const size_t index) const = 0;
 };
 
 /// Value table decoder for 64bit values
@@ -103,8 +111,12 @@ public:
      */
     virtual const uint64_t & get(const size_t index) const = 0;
 
-    /// Value of the "invalid" value from the table
-    const static uint64_t invalid;
+    /**
+     * is_valid function
+     * @param index Index into the table
+     * @returns boolean indicating whether the value was present in the crash notes
+     */
+    virtual bool is_valid(const size_t index) const = 0;
 };
 
 /// Symbol table decoder for 64bit symbols
@@ -132,8 +144,12 @@ public:
      */
     virtual const uint64_t & get(const size_t index) const = 0;
 
-    /// Value of the "invalid" value from the table
-    const static uint64_t invalid;
+    /**
+     * is_valid function
+     * @param index Index into the table
+     * @returns boolean indicating whether the value was present in the crash notes
+     */
+    virtual bool is_valid(const size_t index) const = 0;
 };
 
 #endif /* _TABLE_DECODER_PROTOS_HPP_ */

@@ -26,6 +26,7 @@
  */
 #include <cstdio>
 
+/// We have to explicitly request the format macros...
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 

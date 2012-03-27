@@ -41,7 +41,7 @@
  */
 
 /// Version string
-static const char * version_str = "1.0.0";
+static const char * version_str = "1.1.0";
 
 // Global variables
 // SymbolTable xen_symtab, dom0_symtab;
@@ -54,12 +54,12 @@ int verbosity = 1;
 // Local variables
 
 /// Command line short options.
-const static char * short_options = "h::c::o:x:d:qv";
+const static char * short_options = "hc:o:qv";
 /// Command line long options.
 const static struct option long_options[] =
 {
     // Help
-    { "help", optional_argument, NULL, 'h' },
+    { "help", no_argument, NULL, 'h' },
     { "version", no_argument, NULL, 1 },
 
     // Logging and verbosity
@@ -67,7 +67,7 @@ const static struct option long_options[] =
     { "verbose", no_argument, NULL, 'v' },
 
     // Files and Directories
-    { "core", optional_argument , NULL, 'c' },
+    { "core", required_argument , NULL, 'c' },
     { "outdir", required_argument , NULL, 'o' },
     // { "xen-symtab", required_argument , NULL, 'x' },
     // { "dom0-symtab", required_argument , NULL, 'd' },
@@ -86,11 +86,11 @@ static const char * core_path = default_core_path;
 /// Log file path.
 static const char * log_path = "xen-crashdump-analyser.log";
 /// Path to the output directory
-static const char * outdir_path;
+static const char * outdir_path = NULL;
 /// Output directory descriptor
-static int outdirfd;
+static int outdirfd = 0;
 /// Working directory descriptor
-static int workdirfd;
+static int workdirfd = 0;
 /// xen-console-ring.log descriptor
 static FILE * xenconringfd = NULL;
 /// Log file descriptor
@@ -129,7 +129,7 @@ void __log(int severity, const char * ref, const char * fnc, const char * fmt, .
             fprintf(logfd, "%s %s", severity2str(severity), buffer);
     }
 
-    if ( ! severity && (stderr == logfd))
+    if ( ! severity && (stderr != logfd))
         fprintf(stderr, "%s %s", severity2str(severity), buffer);
 
     va_end(vargs);
@@ -138,7 +138,7 @@ void __log(int severity, const char * ref, const char * fnc, const char * fmt, .
 /// Atexit function to close the log file descriptior
 void atexit_close_log( void )
 {
-    if ( logfd && ( logfd == stderr ) )
+    if ( logfd && ( logfd != stderr ) )
     {
         fflush ( logfd );
         fclose ( logfd );
@@ -392,6 +392,7 @@ int main(int argc, char ** argv)
     {
         LOG_ERROR("realpath failed for output directory '%s': %s\n",
                   outdir_path, strerror(errno));
+        free(path_buff);
         return EX_SOFTWARE;
     }
     LOG_INFO("Output directory: %s/\n", path_buff);
@@ -402,6 +403,7 @@ int main(int argc, char ** argv)
     {
         LOG_ERROR("realpath failed for Core crash file path '%s': %s\n",
                   core_path, strerror(errno));
+        free(path_buff);
         return EX_SOFTWARE;
     }
     LOG_INFO("Elf CORE crash file: %s\n", path_buff);
@@ -449,13 +451,13 @@ int main(int argc, char ** argv)
     }
 
     // Hacks - No better place to put this while it is still so simple
-    if ( tabdec.sym64tab->get(XEN_SYMTAB_CONRING) == tabdec.sym64tab->invalid )
+    if ( ! tabdec.sym64tab->is_valid(XEN_SYMTAB_CONRING) )
     {
         LOG_ERROR("Console Ring symbol not passed by Xen.  Unable to dump the ring\n");
         return EX_IOERR;
     }
 
-    if ( tabdec.val64tab->get(XEN_VALTAB_CONRING_SIZE) == tabdec.val64tab->invalid )
+    if ( ! tabdec.val64tab->is_valid(XEN_VALTAB_CONRING_SIZE) )
     {
         LOG_ERROR("Console Ring size not passed by Xen.  Unable to dump the ring\n");
         return EX_IOERR;

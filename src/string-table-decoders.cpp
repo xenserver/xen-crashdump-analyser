@@ -36,6 +36,8 @@ x64StringTabDecoder::~x64StringTabDecoder()
     if ( this -> table )
         delete [] this -> table;
     this -> table = NULL;
+
+    this -> nr_entries = 0;
 }
 
 bool x64StringTabDecoder::decode(const char * buff, const size_t len)
@@ -72,6 +74,9 @@ bool x64StringTabDecoder::decode(const char * buff, const size_t len)
     this->nr_entries = maxid+1;
     this->table = new const char*[this->nr_entries];
 
+    // This value will be returned for ->get() of an invalid ID
+    this->table[XEN_STRINGTAB_INVALID] = NULL;
+
     ptr = buff;
 
     while ( ptr < buff + len )
@@ -90,8 +95,9 @@ bool x64StringTabDecoder::decode(const char * buff, const size_t len)
         ptr += entry_len;
     }
 
-    for ( size_t i = 0; i < this->nr_entries; ++i )
-        LOG_DEBUG("strtab[%zd]: %s\n", i, this->table[i]);
+    for ( size_t i = 1; i < this->nr_entries; ++i )
+        if ( this->is_valid(i) )
+            LOG_DEBUG("strtab[%zd]: %s\n", i, this->table[i]);
 
     return true;
 }
@@ -100,10 +106,17 @@ size_t x64StringTabDecoder::length() const { return this->nr_entries; }
 
 const char * x64StringTabDecoder::get(const size_t index) const
 {
-    if ( index < this->nr_entries )
-        return this->table[index];
-    return NULL;
+    if ( !this->table || index > this->nr_entries )
+        return NULL;
+    return this->table[index];
 }
+
+bool x64StringTabDecoder::is_valid(const size_t index) const
+{
+    if ( !this->table || index > this->nr_entries )
+        return false;
+    return this->table[index] != NULL;
+};
 
 /*
  * Local variables:

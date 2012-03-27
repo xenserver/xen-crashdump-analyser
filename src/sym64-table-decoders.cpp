@@ -37,10 +37,8 @@ typedef struct
     uint64_t addr;
 } x64sym64tab_t;
 
-const uint64_t Sym64TabDecoder::invalid = 0xffffdead0000c0deULL;
-
 x64Sym64TabDecoder::x64Sym64TabDecoder():
-    table(NULL), nr_entries(0)
+    table(NULL), valid(NULL), nr_entries(0)
 {
 }
 
@@ -49,6 +47,12 @@ x64Sym64TabDecoder::~x64Sym64TabDecoder()
     if ( this -> table )
         delete [] this -> table;
     this -> table = NULL;
+
+    if ( this -> valid )
+        delete this -> valid;
+    this -> valid = NULL;
+
+    this -> nr_entries = 0;
 }
 
 bool x64Sym64TabDecoder::decode(const char * buff, const size_t len)
@@ -64,19 +68,38 @@ bool x64Sym64TabDecoder::decode(const char * buff, const size_t len)
         maxid = std::max(maxid, symtab[i].id);
 
     this->nr_entries = maxid+1;
-    this->table = new uint64_t[this->nr_entries];
 
-    for ( size_t i = 0; i < this->nr_entries; ++i )
-        this->table[i] = this->invalid;
+    this->table = new uint64_t[this->nr_entries];
+    if ( ! this->table )
+        return false;
+
+    // This value will be returned for ->get() of an invalid ID
+    this->table[XEN_SYMTAB_INVALID] = 0ULL;
+
+    this->valid = new Bitmap(this->nr_entries);
+    if ( ! this->valid )
+        return false;
 
     for ( size_t i = 0; i < len>>4; ++i )
-        this->table[symtab[i].id] = symtab[i].addr;
-
+    {
+        uint64_t id = symtab[i].id;
+        if ( XEN_SYMTAB_INVALID != id )
+        {
+            this->table[id] = symtab[i].addr;
+            this->valid->set(id);
+        }
+    }
 
     for ( size_t i = 0; i < this->nr_entries; ++i )
-        LOG_DEBUG("sym64tab[%zd] = %#016"PRIx64"\n", i, this->table[i]);
+        if ( this->valid->get(i) )
+            LOG_DEBUG("sym64tab[%zd] = %#016"PRIx64"\n", i, this->table[i]);
 
     return true;
+}
+
+bool x64Sym64TabDecoder::is_valid(const size_t index) const
+{
+    return this->valid->get(index);
 }
 
 size_t x64Sym64TabDecoder::length() const { return this->nr_entries; }
@@ -85,7 +108,7 @@ const uint64_t & x64Sym64TabDecoder::get(const size_t index) const
 {
     if ( index < this->nr_entries )
         return this->table[index];
-    return this->invalid;
+    return this->table[XEN_SYMTAB_INVALID];
 }
 
 /*

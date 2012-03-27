@@ -57,6 +57,13 @@ public:
      */
     virtual const char * get(const size_t index) const;
 
+    /**
+     * is_valid function
+     * @param index Index into the table
+     * @returns boolean indicating whether the value was present in the crash notes
+     */
+    virtual bool is_valid(const size_t index) const;
+
 protected:
     /// Actual table
     const char ** table;

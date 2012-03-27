@@ -1,12 +1,13 @@
 # Name of the resulting executable
 APP-NAME := xen-crashdump-analyser
+APP-NAME-DEBUG := $(APP-NAME)-syms
 
 # Set the default action to build the program
 .PHONY: all
 all: $(APP-NAME)
 
 # Set up flags
-COMMON_FLAGS := -Iinclude -g -O2 -Wall -Werror -Wextra
+COMMON_FLAGS := -Iinclude -g -O2 -Wall -Werror -Wextra -fno-rtti
 CPPFLAGS := $(COMMON_FLAGS)
 CFLAGS := $(COMMON_FLAGS) -std=c99
 LDFLAGS := -g -lelf
@@ -36,10 +37,10 @@ OBJS := $(patsubst %.cpp, %.o, \
 DEPS := $(patsubst %.o, %.d, $(foreach obj, $(OBJS), $(dir $(obj)).$(notdir $(obj))))
 -include $(DEPS)
 
-$(APP-NAME)-syms: $(OBJS)
+$(APP-NAME-DEBUG): $(OBJS)
 	g++ -o $@ $(LDFLAGS) $(OBJS)
 
-$(APP-NAME) : $(APP-NAME)-syms
+$(APP-NAME) : $(APP-NAME-DEBUG)
 	cp $< $@
 	strip -s $@
 
@@ -50,7 +51,7 @@ build: $(APP-NAME)
 # Clean the project directory
 .PHONY: clean
 clean:
-	rm -f $(OBJS) $(DEPS) $(APP-NAME) $(APP-NAME)-syms dissasm
+	rm -f $(OBJS) $(DEPS) $(APP-NAME) $(APP-NAME-DEBUG) dissasm
 
 .PHONY: veryclean
 veryclean: clean
@@ -67,8 +68,8 @@ cscope:
 
 # Disassemble the program
 .PHONY: disasm
-dissasm: $(APP-NAME)
-	objdump -d $(APP-NAME) -Mintel > dissasm
+dissasm: $(APP-NAME-DEBUG)
+	objdump -d $(APP-NAME-DEBUG) -Mintel > dissasm
 
 # Makefile debugging.  VERY useful :) run "make <varname>var" to view contents of <varname>
 %var:
