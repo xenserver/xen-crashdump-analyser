@@ -42,7 +42,7 @@ $(APP-NAME-DEBUG): $(OBJS)
 
 $(APP-NAME) : $(APP-NAME-DEBUG)
 	cp $< $@
-	strip -s $@
+	#strip -s $@
 
 # The main build option
 .PHONY: build
