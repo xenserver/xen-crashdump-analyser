@@ -15,29 +15,23 @@
  *  along with the Xen Crashdump Analyser.  If not, see
  *  <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2011,2012 Citrix Inc.
+ *  Copyright (c) 2012 Citrix Inc.
  */
 
-#ifndef __TYPES_HPP__
-#define __TYPES_HPP__
-
 /**
- * @file include/types.hpp
+ * @file src/abstract/elf.cpp
  * @author Andrew Cooper
  */
 
-#include <stdint.h>
-/// We have to explicitly request the format macros...
-#define __STDC_FORMAT_MACROS
-#include <inttypes.h>
+#include "abstract/elf.hpp"
 
-/// Virtual address.  Should allow for 64bit pointers
-typedef uint64_t vaddr_t;
+Elf::Elf(){}
+Elf::~Elf(){}
 
-/// Machine address.  Should allow for 64bit pointers
-typedef uint64_t maddr_t;
-
-#endif
+Elf * Elf::create(const char * /*path*/)
+{
+    return NULL;
+}
 
 /*
  * Local variables:

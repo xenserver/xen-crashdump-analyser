@@ -18,44 +18,15 @@
  *  Copyright (c) 2011,2012 Citrix Inc.
  */
 
-#ifndef __MAIN_HPP__
-#define __MAIN_HPP__
+#ifndef __LOG_HPP__
+#define __LOG_HPP__
 
 /**
- * @file main.hpp
+ * @file include/util/log.hpp
  * @author Andrew Cooper
  */
+
 #include <cstdio>
-
-/// We have to explicitly request the format macros...
-#define __STDC_FORMAT_MACROS
-#include <inttypes.h>
-
-//#include "symbol-table.hpp"
-//#include "offset-table.hpp"
-
-#include "crashfile.hpp"
-#include "memory.hpp"
-#include "table-decoders.hpp"
-
-
-/// Xen Symbol table.
-//extern SymbolTable xen_symtab;
-
-/// Xen Offset table.
-//extern OffsetTable xen_offsets;
-
-/// Dom0 Symbol table.
-//extern SymbolTable dom0_symtab;
-
-/// ELF CORE file parser.
-extern CrashFile crash;
-
-/// Memory
-extern Memory memory;
-
-/// Crashnote table decoder
-extern TableDecoders tabdec;
 
 /**
  * Verbosity control for LOG macros.
@@ -92,6 +63,12 @@ extern int verbosity;
  * @param ... Extra parameters for printf.
  */
 void __log(int severity, const char * ref, const char * fnc, const char * fmt, ...);
+
+/**
+ * Set an additional destination for error logging.
+ * @param fd File descriptor, or NULL to cancel.
+ */
+void set_additional_log(FILE * fd);
 
 /**
  * Debug log message

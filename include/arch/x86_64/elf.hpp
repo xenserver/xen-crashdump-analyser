@@ -18,66 +18,54 @@
  *  Copyright (c) 2012 Citrix Inc.
  */
 
-#ifndef __BITMAP_HPP__
-#define __BITMAP_HPP__
-
-#include <cstddef>
+#ifndef __X86_64_ELF_HPP__
+#define __X86_64_ELF_HPP__
 
 /**
- * @file bitmap.hpp
+ * @file include/arch/x86_64/elf.hpp
  * @author Andrew Cooper
  */
 
+#include "abstract/elf.hpp"
+
 /**
- * Bitmap.
- * Represent a load of bits as bits in an unsigned long array.
+ * Parser for 64bit elf crash files
  */
-class Bitmap
+class x86_64Elf : public Elf
 {
 public:
     /**
      * Constructor.
-     * @param nr_bits Number of bits in the bitmap.
-     * @param init Whether to set the bits or clear the bits on initialisation.
+     * @param fd File descriptor to read from.
      */
-    Bitmap(const size_t nr_bits, bool init=false);
+    x86_64Elf(int fd);
 
-    /// Destructor
-    ~Bitmap();
-
-    /**
-     * Get the value of a bit in the bitmap.
-     * @param bit Bit to get.
-     * @returns bool Value of the bit.
-     */
-    bool get(const size_t bit) const;
+    /// Destructor.
+    virtual ~x86_64Elf();
 
     /**
-     * Set a bit in the bitmap.
-     * @param bit Bit to set.
+     * Parse the file headers.
+     * @returns boolean indicating success or failure.
      */
-    void set(const size_t bit);
-
-    /**
-     * Clear a bit in the bitmap.
-     * @param bit Bit to clear.
-     */
-    void clear(const size_t bit);
-
-    /**
-     * Set or clear a bit in the bitmap.
-     * @param bit Bit to alter.
-     * @param value Value to alter the bit to.
-     */
-    void update(const size_t bit, bool value);
+    virtual bool parse();
 
 protected:
-    /// Number of bits in the bitmap
-    size_t nr_bits;
-    /// The bitmap itself
-    unsigned long * map;
-};
 
+    /**
+     * Parse the elf program headers.
+     * @param size phentsize from ehdr, to verify against Elf64_Phdr
+     * @param offset phoff from ehdr.
+     * @returns boolean indicating success or failure.
+     */
+    bool parse_phdrs(const Elf64_Half & size, const Elf64_Off & offset);
+
+    /**
+     * Parse the elf notes.
+     * @param hdr Elf Program Header containing the notes.
+     * @returns boolean indicating success or failure.
+     */
+    bool parse_nhdrs(const ElfProgHdr & hdr);
+};
 
 #endif
 

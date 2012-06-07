@@ -4,7 +4,11 @@ syntax: glob
 *.e		# preprocessed files
 *.o		# object files
 cscope.*	# Cscope indexes
+System.map-*
+vmcore
+xen-*.map
 
 syntax: regexp
 ^xen-crashdump-analyser*
 ^doxygen/	# Doxygen output directory
+^outdir/        # Default output directory

@@ -15,27 +15,35 @@
  *  along with the Xen Crashdump Analyser.  If not, see
  *  <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2011,2012 Citrix Inc.
+ *  Copyright (c) 2012 Citrix Inc.
  */
 
-#ifndef __TYPES_HPP__
-#define __TYPES_HPP__
+#ifndef __X86_64_PAGETABLE_HPP__
+#define __X86_64_PAGETABLE_HPP__
 
 /**
- * @file include/types.hpp
+ * @file include/arch/x86_64/pagetable-walk.hpp
  * @author Andrew Cooper
  */
 
-#include <stdint.h>
-/// We have to explicitly request the format macros...
-#define __STDC_FORMAT_MACROS
-#include <inttypes.h>
+#include "types.hpp"
+#include "exceptions.hpp"
 
-/// Virtual address.  Should allow for 64bit pointers
-typedef uint64_t vaddr_t;
-
-/// Machine address.  Should allow for 64bit pointers
-typedef uint64_t maddr_t;
+/**
+ * Pagetable walk for 64bit mode.
+ * Long mode executing 64bit code has a 52bit physical address space and a 64bit
+ * virtual address space.
+ * @param cr3 Value of the cr3 register.
+ * @param vaddr Virtual address to look up.
+ * @param maddr Machine address result of the pagetable walk.
+ * @param page_end If non-null, variable to be filled with the last virtual address
+ * within the page which contains vaddr.
+ * @throws memseek
+ * @throws memread
+ * @throws pagefault
+ */
+void pagetable_walk_64(const maddr_t & cr3, const vaddr_t & vaddr,
+                       maddr_t & maddr, vaddr_t * page_end = NULL);
 
 #endif
 

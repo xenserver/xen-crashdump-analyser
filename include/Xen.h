@@ -18,52 +18,25 @@
  */
 
 /**
- * @file Xen.h
+ * @file include/Xen.h
  * @author Andrew Cooper
  */
 
 #ifndef __XEN_H__
 #define __XEN_H__
 
-/// These are structures taken from Xen header files
+#include <cstring>
 
+/// These are structures taken from Xen header files.
 /// @cond
-#define XEN_ELFNOTE_CRASH_INFO 0x1000001
-#define XEN_ELFNOTE_CRASH_INFO2 0x1000003
+#define STACK_SIZE (4096<<3)
+#define PAGE_SIZE (4096)
 
-typedef struct {
-    unsigned long xen_major_version;
-    unsigned long xen_minor_version;
-    unsigned long xen_extra_version;
-    unsigned long xen_changeset;
-    unsigned long xen_compiler;
-    unsigned long xen_compile_date;
-    unsigned long xen_compile_time;
-    unsigned long tainted;
-    unsigned long xen_phys_start;
-    unsigned long dom0_pfn_to_mfn_frame_list_list;
-} crash_xen_info_t;
 
-#define XEN_ELFNOTE2_CRASH_STRINGTAB            0x3000000
+#define XEN_ELFNOTE_CRASH_INFO 0x1000001U
+#define XEN_ELFNOTE_CRASH_REGS 0x1000002U
+#define XEN_ELFNOTE_CRASH_INFO2 0x1000003U
 
-#define XEN_STRINGTAB_INVALID 0
-#define XEN_STRINGTAB_VERSION 1
-#define XEN_STRINGTAB_CSET 2
-#define XEN_STRINGTAB_COMPILE_DATE 3
-#define XEN_STRINGTAB_COMPILED_BY 4
-#define XEN_STRINGTAB_COMPILER 5
-#define XEN_STRINGTAB_CMDLINE 6
-
-#define XEN_ELFNOTE2_CRASH_VAL64TAB             0x3000001
-
-#define XEN_VALTAB_INVALID 0
-#define XEN_VALTAB_MAX_PAGE 1
-#define XEN_VALTAB_CONRING_SIZE 2
-
-#define XEN_ELFNOTE2_CRASH_SYM64TAB             0x3000002
-
-#define XEN_SYMTAB_INVALID 0
-#define XEN_SYMTAB_CONRING 1
 
 /// @endcond
 

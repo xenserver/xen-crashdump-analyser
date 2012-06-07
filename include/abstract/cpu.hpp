@@ -15,54 +15,41 @@
  *  along with the Xen Crashdump Analyser.  If not, see
  *  <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2011,2012 Citrix Inc.
+ *  Copyright (c) 2012 Citrix Inc.
  */
 
-#ifndef __CRASHFILE_HPP__
-#define __CRASHFILE_HPP__
+#ifndef __CPU_HPP__
+#define __CPU_HPP__
 
 /**
- * @file crashfile.hpp
+ * @file include/abstract/cpu.hpp
  * @author Andrew Cooper
  */
 
-#include <libelf.h>
-#include <gelf.h>
+#include "types.hpp"
+#include "exceptions.hpp"
+#include <stddef.h>
+#include <cstdio>
 
 /**
- * Crash File.
- * Used to provide RAII for libelf constructs, and to parse headers
- * for /proc/vmcore.
+ * Master abstract class for all types of CPUs
  */
-class CrashFile
+class CPU
 {
 public:
     /// Constructor.
-    CrashFile();
+    CPU(){};
     /// Destructor.
-    ~CrashFile();
+    virtual ~CPU(){};
 
     /**
-     * Parse an Elf CORE file.
-     * @param path Path to the file.
-     * @return boolean indicating success or failure.
+     * Perform a pagetable lookup.
+     * @param vaddr Virtual address to look up
+     * @param maddr Machine address variable for the result.
+     * @param page_end If non-null, variable to be filled with the last virtual address
      */
-    bool parse(const char * path);
-
-    /**
-     * Parse the program notes of an Elf CORE file.
-     * @param hdr Gelf program header section
-     * @return boolean indicating success or failure.
-     */
-    bool parse_note_header(GElf_Phdr & hdr);
-
-protected:
-    /// Real file descriptor, from open().
-    int rfd;
-    /// Libelf descriptor, based on rfd.
-    Elf * efd;
-    /// Ensure parse is only called once.
-    bool once;
+    virtual void pagetable_walk(const vaddr_t & vaddr, maddr_t & maddr,
+                                vaddr_t * page_end = NULL) const = 0;
 };
 
 #endif

@@ -1,0 +1,10 @@
+Need-to-have:
+
+Nice-to-have:
+
+Need-to-have - Future:
+* per-domain symbol tables
+* Context switch accuracy. (New percpu state machine, updated through Xen's __context_switch)
+
+Nice-to-have - Future:
+* Find xenstore info and dump with domains (Xenstore data lives in (o)xenstored's address space)

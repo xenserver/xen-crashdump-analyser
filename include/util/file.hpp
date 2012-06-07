@@ -15,27 +15,30 @@
  *  along with the Xen Crashdump Analyser.  If not, see
  *  <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2011,2012 Citrix Inc.
+ *  Copyright (c) 2012 Citrix Inc.
  */
 
-#ifndef __TYPES_HPP__
-#define __TYPES_HPP__
+#ifndef __FILE_HPP__
+#define __FILE_HPP__
 
 /**
- * @file include/types.hpp
+ * @file include/util/file.hpp
  * @author Andrew Cooper
  */
 
-#include <stdint.h>
-/// We have to explicitly request the format macros...
-#define __STDC_FORMAT_MACROS
-#include <inttypes.h>
+#include <cstdio>
 
-/// Virtual address.  Should allow for 64bit pointers
-typedef uint64_t vaddr_t;
+/**
+ * fopen a file in the output directory.
+ * Because all the parameters passed in could be relative links to the
+ * required files, this program has to run from the working directory.
+ * However, it needs to put files out in the output directory.
+ * @param path Path of the file, relative to the output directory.
+ * @param flags Open mode flags for fopen.
+ * @returns fopen'd descriptor, or NULL.
+ */
+FILE * fopen_in_outdir(const char * path, const char * flags);
 
-/// Machine address.  Should allow for 64bit pointers
-typedef uint64_t maddr_t;
 
 #endif
 

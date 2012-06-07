@@ -22,15 +22,16 @@
 #define __MEMORY_HPP__
 
 /**
- * @file memory.hpp
+ * @file include/memory.hpp
  * @author Andrew Cooper
  */
 
 #include <vector>
 
 #include "types.hpp"
-
-#include <gelf.h>
+#include "exceptions.hpp"
+#include "abstract/cpu.hpp"
+#include "abstract/elf.hpp"
 
 #include <cstdio>
 
@@ -45,16 +46,16 @@ public:
     /// Constructor.
     MemRegion();
     /// Useful constructor from an ELF LOAD program header.
-    MemRegion(const GElf_Phdr & hdr);
+    MemRegion(const ElfProgHdr & hdr);
     /// Copy Constructor.
     MemRegion(const MemRegion & rhs);
 
     /// Starting physical address.
     maddr_t start;
     /// Length of region
-    size_t length;
-    /// Offset of memeory region into core file.
-    size_t offset;
+    uint64_t length;
+    /// Offset of memory region into core file.
+    uint64_t offset;
 
     /**
      * Operator < for sorting purposes.
@@ -65,7 +66,7 @@ public:
 
 /**
  * Memory
- * Provide a contigous view of memory using the ELF CORE PT_LOAD
+ * Provide a contiguous view of memory using the ELF CORE PT_LOAD
  * regions as a reference.
  */
 class Memory
@@ -77,24 +78,11 @@ public:
     ~Memory();
 
     /**
-     * Hint for the number of regions.
-     * Can only be used before the vector has been finalised.
+     * Set up the memory regions
      * @param path Path of the ELF CORE file.
-     * @param nr_regions Number of regions to expect.
+     * @param elf Elf parser.
      */
-    bool setup(const char * path, size_t nr_regions);
-
-    /**
-     * Insert a memory region.
-     * Can only insert memory regions before the vector has been finalised.
-     * @param region Region to insert.
-     */
-    void insert(const MemRegion & region);
-
-    /**
-     * Finalise the vector for increased read speed.
-     */
-    void finalise(void);
+    bool setup(const char * path, const Elf * elf);
 
     /**
      * Read a string from machine address addr.
@@ -102,9 +90,20 @@ public:
      * @param addr Machine address.
      * @param dst Destination buffer.
      * @param n Length of buffer.
-     * @returns number of bytes read.
+     * @returns strlen(dst)
      */
-    size_t read_str(maddr_t addr, char * dst, size_t n) const;
+    ssize_t read_str(const maddr_t & addr, char * dst, ssize_t n) const;
+
+    /**
+     * Read a string from virtual address addr.
+     * Reads n-1 bytes starting at addr, and places a NULL terminator position n in dst
+     * @param cpu CPU to perform a pagetable walk with.
+     * @param addr Virtual address.
+     * @param dst Destination buffer.
+     * @param n Length of buffer.
+     * @returns strlen(dst)
+     */
+    ssize_t read_str_vaddr(const CPU & cpu, const vaddr_t & addr, char * dst, ssize_t n) const;
 
     /**
      * Read a block of bytes from addr.
@@ -112,19 +111,108 @@ public:
      * @param addr Machine address.
      * @param dst Destination buffer.
      * @param n Length of buffer.
-     * @returns number of bytes read.
      */
-    size_t read_block(maddr_t addr, char * dst, size_t n) const;
+    void read_block(const maddr_t & addr, char * dst, ssize_t n) const;
 
     /**
-     * Writes a text block of from addr into the specified file
+     * Read a block of bytes from addr.
+     * Reads n bytes starting at addr into dst.
+     * @param cpu CPU to perform a pagetable walk with.
+     * @param addr Virtual address.
+     * @param dst Destination buffer.
+     * @param n Length of buffer.
+     */
+    void read_block_vaddr(const CPU & cpu, const vaddr_t & addr, char * dst, ssize_t n) const;
+
+
+    /**
+     * Read a 8 bit integer from addr.
+     * Reads 1 bytes from addr into dst.
+     * @param addr Machine address.
+     * @param dst Destination integer.
+     */
+    void read8(const maddr_t & addr, uint8_t & dst) const;
+
+    /**
+     * Read a 8 bit integer from addr.
+     * Reads 1 bytes from addr into dst.
+     * @param cpu CPU to perform a pagetable walk with.
+     * @param addr Virtual address.
+     * @param dst Destination integer.
+     */
+    void read8_vaddr(const CPU & cpu, const vaddr_t & addr, uint8_t & dst) const;
+
+    /**
+     * Read a 16 bit integer from addr.
+     * Reads 2 bytes from addr into dst.
+     * @param addr Machine address.
+     * @param dst Destination integer.
+     */
+    void read16(const maddr_t & addr, uint16_t & dst) const;
+
+    /**
+     * Read a 16 bit integer from addr.
+     * Reads 2 bytes from addr into dst.
+     * @param cpu CPU to perform a pagetable walk with.
+     * @param addr Virtual address.
+     * @param dst Destination integer.
+     */
+    void read16_vaddr(const CPU & cpu, const maddr_t & addr, uint16_t & dst) const;
+
+    /**
+     * Read a 32 bit integer from addr.
+     * Reads 4 bytes from addr into dst.
+     * @param addr Machine address.
+     * @param dst Destination integer.
+     */
+    void read32(const maddr_t & addr, uint32_t & dst) const;
+
+    /**
+     * Read a 32 bit integer from addr.
+     * Reads 4 bytes from addr into dst.
+     * @param cpu CPU to perform a pagetable walk with.
+     * @param addr Virtual address.
+     * @param dst Destination integer.
+     */
+    void read32_vaddr(const CPU & cpu, const vaddr_t & addr, uint32_t & dst) const;
+
+    /**
+     * Read a 32 bit integer from addr.
+     * Reads 8 bytes from addr into dst.
+     * @param addr Machine address.
+     * @param dst Destination integer.
+     */
+    void read64(const maddr_t & addr, uint64_t & dst) const;
+
+    /**
+     * Read a 32 bit integer from addr.
+     * Reads 8 bytes from addr into dst.
+     * @param cpu CPU to perform a pagetable walk with.
+     * @param addr Virtual address.
+     * @param dst Destination integer.
+     */
+    void read64_vaddr(const CPU & cpu, const vaddr_t & addr, uint64_t & dst) const;
+
+    /**
+     * Writes a block of from addr into the specified file.
      * Reads n bytes starting at addr into file.
      * @param addr Machine address.
      * @param file Destination file reference.
      * @param n Length of buffer.
      * @returns number of bytes read.
      */
-    size_t write_text_block_to_file(maddr_t addr, FILE * file, size_t n) const;
+    ssize_t write_block_to_file(const maddr_t & addr, FILE * file, ssize_t n) const;
+
+    /**
+     * Writes a block of from addr into the specified file.
+     * Reads n bytes starting at addr into file.
+     * @param cpu CPU to perform a pagetable walk with.
+     * @param addr Virtual address.
+     * @param file Destination file reference.
+     * @param n Length of buffer.
+     * @returns number of bytes read.
+     */
+    ssize_t write_block_vaddr_to_file(const CPU & cpu, const vaddr_t & addr, FILE * file, ssize_t n) const;
 
 protected:
 
@@ -133,7 +221,7 @@ protected:
      * @param addr Machine address to seek to.
      * @returns boolean indicating success or failure.
      */
-    bool seek(maddr_t addr) const;
+    void seek(const maddr_t & addr) const;
 
     /// Vector of memory regions.
     std::vector<MemRegion> regions;
@@ -142,6 +230,9 @@ protected:
     /// Core File reference
     int fd;
 };
+
+/// Memory
+extern Memory memory;
 
 #endif
 
