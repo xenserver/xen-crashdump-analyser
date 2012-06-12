@@ -33,7 +33,10 @@
  * @author Andrew Cooper
  */
 
-x86_64Domain::x86_64Domain(){}
+x86_64Domain::x86_64Domain()
+{
+    memset(this->handle, 0, sizeof this->handle);
+}
 
 x86_64Domain::~x86_64Domain()
 {
@@ -73,6 +76,9 @@ bool x86_64Domain::parse_basic(const CPU & cpu, const vaddr_t & domain_ptr) thro
         memory.read32_vaddr(cpu, this->domain_ptr + DOMAIN_tot_pages, this->tot_pages);
         memory.read32_vaddr(cpu, this->domain_ptr + DOMAIN_max_pages, this->max_pages);
         memory.read32_vaddr(cpu, this->domain_ptr + DOMAIN_shr_pages, (uint32_t&)this->shr_pages);
+
+        memory.read_block_vaddr(cpu, this->domain_ptr + DOMAIN_handle,
+                                (char*)this->handle, sizeof this->handle);
 
         memory.read64_vaddr(cpu, this->domain_ptr + DOMAIN_next, this->next_domain_ptr);
 
@@ -143,6 +149,15 @@ int x86_64Domain::print_state(FILE * o) const throw ()
                    PAGES_TO_MB(this->max_pages), PAGES_TO_KB(this->max_pages));
     len += fprintf(o, "  Current Pages: %"PRIu32"\n", this->tot_pages);
     len += fprintf(o, "  Shared Pages: %"PRId32"\n", this->shr_pages);
+
+    len += fprintf(o, "  Handle: %02"PRIx8"%02"PRIx8"%02"PRIx8"%02"PRIx8"-%02"PRIx8
+                   "%02"PRIx8"-%02"PRIx8"%02"PRIx8"-""%02"PRIx8"%02"PRIx8"-%02"PRIx8
+                   "%02"PRIx8"%02"PRIx8"%02"PRIx8"%02"PRIx8"%02"PRIx8"\n",
+                   this->handle[ 0], this->handle[ 1], this->handle[ 2], this->handle[ 3],
+                   this->handle[ 4], this->handle[ 5], this->handle[ 6], this->handle[ 7],
+                   this->handle[ 8], this->handle[ 9], this->handle[10], this->handle[11],
+                   this->handle[12], this->handle[13], this->handle[14], this->handle[15] );
+
 
     len += fprintf(o, "\n");
 

@@ -113,6 +113,8 @@ public:
     uint32_t max_cpus;
     /// Pointer to VCPU* array.
     vaddr_t vcpus_ptr;
+    /// Handle (Toolstack domain reference).
+    uint8_t handle[16];
 
     /// VCPUs for this domain.
     VCPU ** vcpus;

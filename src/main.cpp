@@ -46,7 +46,7 @@
  */
 
 /// Version string
-static const char * version_str = "2.0.0";
+static const char * version_str = "2.1.0";
 
 // Global variables
 int verbosity = 1;

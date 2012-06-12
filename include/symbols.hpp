@@ -94,6 +94,8 @@ extern vaddr_t DOMAIN_tot_pages;
 extern vaddr_t DOMAIN_max_pages;
 /// Offset of shr_pages in Xen's struct domain.
 extern vaddr_t DOMAIN_shr_pages;
+/// Offset of handle in Xen's struct domain.
+extern vaddr_t DOMAIN_handle;
 /// Xen's domain_list symbol.
 extern vaddr_t domain_list;
 /// Bitmask of Xen's struct domain related offsets from the symbol table.
