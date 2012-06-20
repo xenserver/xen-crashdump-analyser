@@ -117,7 +117,7 @@ static const char * severity2str(int severity)
 static FILE * log_error = NULL;
 void set_additional_log(FILE * fd) { log_error = fd; }
 
-void __log(int severity, const char * ref, const char * fnc, const char * fmt, ...)
+void __log(int severity, const char * file, int line, const char * fnc, const char * fmt, ...)
 {
     static char buffer[256];
     va_list vargs;
@@ -129,11 +129,11 @@ void __log(int severity, const char * ref, const char * fnc, const char * fmt, .
     {
         if ( verbosity > 2 )
         {
-            fprintf(logfd, "%s (%s:%s()) %s", severity2str(severity),
-                    ref, fnc, buffer);
+            fprintf(logfd, "%s (%s:%d %s()) %s", severity2str(severity),
+                    file, line, fnc, buffer);
             if ( log_error && ! severity )
-                fprintf(log_error, "%s (%s:%s()) %s", severity2str(severity),
-                    ref, fnc, buffer);
+                fprintf(log_error, "%s (%s:%d %s()) %s", severity2str(severity),
+                        file, line, fnc, buffer);
         }
         else
         {

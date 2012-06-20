@@ -39,30 +39,16 @@
 extern int verbosity;
 
 /**
- * QuoteMe macro wrapper.
- * Preprocessor hackary to turn __LINE__ into a string.
- */
-#define QM(x) QM2(x)
-
-/**
- * QuoteMe macro.
- * Preprocessor hackary to turn __LINE__ into a string.
- */
-#define QM2(x) #x
-
-/// file:line reference for logging
-#define REF __FILE__ ":" QM(__LINE__)
-
-/**
  * Log function.
  * @param severity Severity of the log message.  Interacts with verbosity to work
  * out whether it should be logged or not.
- * @param ref file:line reference.
+ * @param file File string (__FILE__).
+ * @param line File line (__LINE__).
  * @param fnc Function reference (because __FUNCTION__ is not a preprocessor macro).
  * @param fmt String format, as per printf.
  * @param ... Extra parameters for printf.
  */
-void __log(int severity, const char * ref, const char * fnc, const char * fmt, ...);
+void __log(int severity, const char * file, int line, const char * fnc, const char * fmt, ...);
 
 /**
  * Set an additional destination for error logging.
@@ -75,21 +61,24 @@ void set_additional_log(FILE * fd);
  * @param fmt String format, as per printf.
  * @param args Extra arguments, as per printf.
  */
-#define LOG_DEBUG(fmt, args...) do { __log(2, REF, __FUNCTION__, (fmt) , ##args); } while(0)
+#define LOG_DEBUG(fmt, args...) do { __log(2, __FILE__, __LINE__, __FUNCTION__, \
+                                           (fmt) , ##args); } while(0)
 
 /**
  * Info log message
  * @param fmt String format, as per printf.
  * @param args Extra arguments, as per printf.
  */
-#define LOG_INFO(fmt, args...) do { __log(1, REF, __FUNCTION__, (fmt) , ##args); } while(0)
+#define LOG_INFO(fmt, args...) do { __log(1, __FILE__, __LINE__ , __FUNCTION__, \
+                                          (fmt) , ##args); } while(0)
 
 /**
  * Error log message
  * @param fmt String format, as per printf.
  * @param args Extra arguments, as per printf.
  */
-#define LOG_ERROR(fmt, args...) do { __log(0, REF, __FUNCTION__, (fmt) , ##args); } while(0)
+#define LOG_ERROR(fmt, args...) do { __log(0, __FILE__, __LINE__ , __FUNCTION__, \
+                                           (fmt) , ##args); } while(0)
 
 #endif
 
