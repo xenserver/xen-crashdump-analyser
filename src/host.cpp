@@ -40,6 +40,7 @@
 
 #include <new>
 #include <sysexits.h>
+#include <errno.h>
 
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE
@@ -256,13 +257,21 @@ bool Host::decode_xen() throw ()
     return false;
 }
 
-int Host::print_xen(FILE * o) throw()
+bool Host::print_xen() throw()
 {
     int len = 0;
+    bool success = false;
     const CPU & cpu = *static_cast<const CPU*>(this->pcpus[0]);
     char * cmdline = NULL;
+    FILE * o = NULL;
 
-    LOG_INFO("Writing Xen information to file\n");
+    // Try to open the xen.log file
+    if ( NULL == (o = fopen_in_outdir("xen.log", "w")))
+    {
+        LOG_ERROR("Unable to open xen.log in output directory: %s\n", strerror(errno));
+        return false;
+    }
+    LOG_INFO("Opened xen.log for host information\n");
 
     set_additional_log(o);
 
@@ -343,12 +352,15 @@ int Host::print_xen(FILE * o) throw()
         }
         else
             len += fprintf(o, "    Missing conring symbols\n");
+
+        success = true;
     }
     CATCH_COMMON
 
     SAFE_DELETE_ARRAY(cmdline);
     set_additional_log(NULL);
-    return len;
+    fclose(o);
+    return success;
 }
 
 int Host::print_domains() throw ()

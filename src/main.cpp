@@ -91,8 +91,6 @@ static const char * outdir_path = NULL;
 static int outdirfd = 0;
 /// Working directory descriptor
 static int workdirfd = 0;
-/// xen.log descriptor
-static FILE * xenfd = NULL;
 /// Log file descriptor
 static FILE * logfd = stderr;
 
@@ -509,20 +507,12 @@ int main(int argc, char ** argv)
 
         SAFE_DELETE(elf);
 
-        // Try to open the xen-console-ring.log file
-        if ( NULL == (xenfd = fopen_in_outdir("xen.log", "w")))
-        {
-            LOG_ERROR("Unable to open xen.log in output directory: %s\n", strerror(errno));
-            return EX_IOERR;
-        }
-        LOG_INFO("Opened xen.log for host information\n");
-
         /* This ordering looks a little suspect, but it allows processing of the
          * subsequent work iff the previous work succeeds, along with fallthrough
          * error logic without gotos or returns. */
         if ( ! host.decode_xen() )
             LOG_ERROR("  Failed to decode xen structures\n");
-        else if ( ! host.print_xen(xenfd) )
+        else if ( ! host.print_xen() )
             LOG_ERROR("  Failed to print xen information\n");
         else
         {
@@ -542,7 +532,6 @@ int main(int argc, char ** argv)
         abort();
     }
 
-    fclose(xenfd);
     LOG_INFO("COMPLETE\n");
     return EX_OK;
 }

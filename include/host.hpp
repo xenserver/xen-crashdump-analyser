@@ -67,10 +67,9 @@ public:
 
     /**
      * Print host information to stream.
-     * @param stream Stream to print to.
-     * @return number of bytes written.
+     * @return boolean indicating success or failure.
      */
-    int print_xen(FILE * stream) throw ();
+    bool print_xen() throw ();
 
     /**
      * Decode and print domain information.
