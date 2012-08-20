@@ -263,8 +263,8 @@ int SymbolTable::print_symbol64(FILE * o, const vaddr_t & addr, bool brackets) c
         len += fprintf(o, "\n");
     }
     else
-        LOG_ERROR("Strange resulting iterators printing symbol 0x%016"PRIx64"\n",
-                  addr);
+        LOG_WARN("Strange resulting iterators printing symbol 0x%016"PRIx64"\n", addr);
+
     return len;
 }
 int SymbolTable::print_symbol32(FILE * o, const vaddr_t & addr, bool brackets) const
@@ -309,8 +309,8 @@ int SymbolTable::print_symbol32(FILE * o, const vaddr_t & addr, bool brackets) c
         len += fprintf(o, "\n");
     }
     else
-        LOG_ERROR("Strange resulting iterators printing symbol 0x%016"PRIx64"\n",
-                  addr);
+        LOG_WARN("Strange resulting iterators printing symbol 0x%016"PRIx64"\n", addr);
+
     return len;
 }
 

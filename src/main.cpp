@@ -120,8 +120,8 @@ static const char * severity2str(int severity)
 }
 
 /// Additional error file descriptor for logging.
-static FILE * log_error = NULL;
-void set_additional_log(FILE * fd) { log_error = fd; }
+static FILE * additional_log = NULL;
+void set_additional_log(FILE * fd) { additional_log = fd; }
 
 void __log(int severity, const char * file, int line, const char * fnc, const char * fmt, ...)
 {
@@ -139,15 +139,15 @@ void __log(int severity, const char * file, int line, const char * fnc, const ch
         if ( verbosity >= LOG_LEVEL_DEBUG_EXTRA )
         {
             fprintf(logfd, "%s (%s:%d %s()) %s", sev_str, file, line, fnc, buffer);
-            if ( log_error && ! severity )
-                fprintf(log_error, "%s (%s:%d %s()) %s", sev_str, file, line, fnc, buffer);
+            if ( additional_log && severity <= LOG_LEVEL_WARN )
+                fprintf(additional_log, "%s (%s:%d %s()) %s", sev_str, file, line, fnc, buffer);
         }
         // or just the severity
         else
         {
             fprintf(logfd, "%s %s", sev_str, buffer);
-            if ( log_error && ! severity )
-                fprintf(log_error, "%s %s", sev_str, buffer);
+            if ( additional_log && severity <= LOG_LEVEL_WARN )
+                fprintf(additional_log, "%s %s", sev_str, buffer);
         }
     }
 

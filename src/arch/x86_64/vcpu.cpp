@@ -144,7 +144,7 @@ bool x86_64VCPU::parse_regs(const vaddr_t & regs, const maddr_t & cr3) throw ()
     catch ( const std::bad_alloc & )
     {
         LOG_ERROR("Bad alloc of %"PRIu64" bytes for parsing vcpu structure "
-                  "at 0x%016"PRIx64"\n", VCPU_sizeof, this->vcpu_ptr);
+                  "at 0x%016"PRIx64"\n", sizeof *uregs, this->vcpu_ptr);
     }
     CATCH_COMMON
 

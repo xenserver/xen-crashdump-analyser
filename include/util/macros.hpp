@@ -39,26 +39,26 @@
 #define CATCH_COMMON                                                    \
     catch ( const memseek & e )                                         \
     {                                                                   \
-        LOG_ERROR("memseek exception for address 0x%016"PRIx64"\n", e.addr); \
+        LOG_WARN("memseek error for address 0x%016"PRIx64"\n", e.addr); \
     }                                                                   \
     catch ( const memread & e )                                         \
     {                                                                   \
     if ( e.count == -1 )                                                \
-        LOG_ERROR("memread exception for address 0x%016"PRIx64" - %s\n", \
-                  e.addr, strerror(e.errno));                           \
+        LOG_WARN("memread error for address 0x%016"PRIx64" - %s\n",     \
+                 e.addr, strerror(e.errno));                            \
     else                                                                \
-        LOG_ERROR("memread exception for address 0x%016"PRIx64" - "     \
-                  "Read %zu of intended %zu bytes\n", e.addr, e.count, e.total); \
+        LOG_WARN("memread error for address 0x%016"PRIx64" - "          \
+                 "Read %zu of intended %zu bytes\n", e.addr, e.count, e.total); \
     }                                                                   \
     catch ( const pagefault & e )                                       \
     {                                                                   \
-        LOG_ERROR("pagefault exception for address 0x%016"PRIx64" - "   \
-                  "level %d, cr3 %016"PRIx64"\n", e.vaddr, e.level, e.cr3); \
+        LOG_WARN("paging error trying to follow 0x%016"PRIx64" - "      \
+                 "level %d, cr3 %016"PRIx64"\n", e.vaddr, e.level, e.cr3); \
     }                                                                   \
     catch ( const validate & e )                                        \
     {                                                                   \
-        LOG_ERROR("validation exception for address 0x%016"PRIx64"\n",  \
-                  e.vaddr);                                             \
+        LOG_WARN("validation error for address 0x%016"PRIx64"\n",       \
+                 e.vaddr);                                              \
     }                                                                   \
 
 

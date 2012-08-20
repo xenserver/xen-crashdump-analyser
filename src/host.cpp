@@ -222,7 +222,7 @@ bool Host::decode_xen() throw ()
         LOG_DEBUG("  Reading PCPUs vcpus\n");
         for (int x=0; x < nr_pcpus; ++x)
             if ( ! this->pcpus[x]->decode_extended_state() )
-                LOG_ERROR("  Failed to decode extended state for pcpu %d\n", x);
+                LOG_WARN("  Failed to decode extended state for pcpu %d\n", x);
 
         this->active_vcpus.reserve(nr_pcpus);
         LOG_DEBUG("  Generating active vcpu list\n");
@@ -390,7 +390,7 @@ int Host::print_domains() throw ()
             host.validate_xen_vaddr(dom_ptr);
             if ( ! dom->parse_basic(cpuref, dom_ptr) )
             {
-                LOG_ERROR("  Failed to parse domain basics.  Cant continue\n");
+                LOG_WARN("  Failed to parse domain basics.  Cant continue with this domain\n");
                 break;
             }
 

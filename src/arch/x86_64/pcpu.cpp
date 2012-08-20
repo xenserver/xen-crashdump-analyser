@@ -59,8 +59,8 @@ bool x86_64PCPU::parse_pr_status(const char * buff, const size_t len) throw ()
 
     if ( len != sizeof *ptr )
     {
-        LOG_ERROR("Wrong size for pr_status note.  Expected %zu, got %zu\n",
-                  sizeof *ptr, len);
+        LOG_WARN("Wrong size for pr_status note.  Expected %zu, got %zu\n",
+                 sizeof *ptr, len);
         return false;
     }
 
@@ -100,8 +100,8 @@ bool x86_64PCPU::parse_xen_crash_core(const char * buff, const size_t len) throw
 
     if ( len != sizeof *ptr )
     {
-        LOG_ERROR("Wrong size for crash_xen_core note.  Expected %zu, got %zu\n",
-                  sizeof *ptr, len);
+        LOG_WARN("Wrong size for crash_xen_core note.  Expected %zu, got %zu\n",
+                 sizeof *ptr, len);
         return false;
     }
 

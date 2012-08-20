@@ -313,15 +313,15 @@ void Memory::seek(const maddr_t & addr) const
             int64_t foffset = addr - it->start + it->offset;
             if ( (-(off64_t)1) == lseek64(this->fd, foffset, SEEK_SET) )
             {
-                LOG_ERROR("Failure to seek: maddr 0x%016"PRIx64", foffset 0x"PRIx64": %s\n",
-                          addr, foffset, strerror(errno));
+                LOG_WARN("Failure to seek: maddr 0x%016"PRIx64", foffset 0x"PRIx64": %s\n",
+                         addr, foffset, strerror(errno));
                 throw memseek(addr, foffset);
             }
             return;
         }
     }
 
-    LOG_ERROR("Memory region for %#016"PRIx64" not found\n", addr);
+    LOG_WARN("Memory region for 0x%016"PRIx64" not found\n", addr);
     throw memseek(addr, 0);
 }
 
