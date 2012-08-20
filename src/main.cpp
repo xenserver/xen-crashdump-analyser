@@ -49,7 +49,7 @@
 static const char * version_str = "2.1.0";
 
 // Global variables
-int verbosity = 1;
+int verbosity = LOG_LEVEL_INFO;
 
 // Local variables
 
@@ -105,11 +105,17 @@ static const char * severity2str(int severity)
 {
     switch ( severity )
     {
-    case 0: return "ERROR";
-    case 1: return "INFO ";
+    case LOG_LEVEL_ERROR:
+        return "ERROR";
+    case LOG_LEVEL_WARN:
+        return "WARN ";
+    case LOG_LEVEL_INFO:
+        return "INFO ";
     default:
-    case 2: return "DEBUG";
-    case 3: return "DEBUG(refs)";
+    case LOG_LEVEL_DEBUG:
+        return "DEBUG";
+    case LOG_LEVEL_DEBUG_EXTRA:
+        return "DEBUG(refs)";
     }
 }
 
@@ -120,33 +126,34 @@ void set_additional_log(FILE * fd) { log_error = fd; }
 void __log(int severity, const char * file, int line, const char * fnc, const char * fmt, ...)
 {
     static char buffer[256];
+    const char * sev_str = severity2str(severity);
     va_list vargs;
-    va_start(vargs, fmt);
 
+    va_start(vargs, fmt);
     vsnprintf(buffer, sizeof buffer - 1, fmt, vargs);
+    va_end(vargs);
 
     if ( severity <= verbosity )
     {
-        if ( verbosity > 2 )
+        // Should we include __FILE__, __LINE__ and __fuct__ references?
+        if ( verbosity >= LOG_LEVEL_DEBUG_EXTRA )
         {
-            fprintf(logfd, "%s (%s:%d %s()) %s", severity2str(severity),
-                    file, line, fnc, buffer);
+            fprintf(logfd, "%s (%s:%d %s()) %s", sev_str, file, line, fnc, buffer);
             if ( log_error && ! severity )
-                fprintf(log_error, "%s (%s:%d %s()) %s", severity2str(severity),
-                        file, line, fnc, buffer);
+                fprintf(log_error, "%s (%s:%d %s()) %s", sev_str, file, line, fnc, buffer);
         }
+        // or just the severity
         else
         {
-            fprintf(logfd, "%s %s", severity2str(severity), buffer);
+            fprintf(logfd, "%s %s", sev_str, buffer);
             if ( log_error && ! severity )
-                fprintf(log_error, "%s %s", severity2str(severity), buffer);
+                fprintf(log_error, "%s %s", sev_str, buffer);
         }
     }
 
-    if ( ! severity && (stderr != logfd))
-        fprintf(stderr, "%s %s", severity2str(severity), buffer);
-
-    va_end(vargs);
+    // If this is an error message, send it stderr (if we havn't already)
+    if ( severity == LOG_LEVEL_ERROR && (stderr != logfd))
+        fprintf(stderr, "%s %s", sev_str, buffer);
 }
 
 /// Atexit function to close the log file descriptor
@@ -291,11 +298,13 @@ static bool parse_commandline(int argc, char ** argv)
             break;
 
         case 'q': // quiet
-            verbosity = verbosity ? verbosity - 1 : verbosity;
+            if ( verbosity > 0 )
+                --verbosity;
             break;
 
         case 'v': // verbose
-            verbosity = verbosity - 3 ? verbosity + 1 : verbosity;
+            if ( verbosity < LOG_LEVEL_MAX )
+                ++verbosity;
             break;
 
         case 'h': // Help

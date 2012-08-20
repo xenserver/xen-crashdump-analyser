@@ -28,6 +28,23 @@
 
 #include <cstdio>
 
+/// Logging level enumeration
+enum LOG_VERBOSITY
+{
+    /// Error
+    LOG_LEVEL_ERROR = 0,
+    /// Warning
+    LOG_LEVEL_WARN = 1,
+    /// Information
+    LOG_LEVEL_INFO = 2,
+    /// Debug
+    LOG_LEVEL_DEBUG = 3,
+    /// Debug with extra references
+    LOG_LEVEL_DEBUG_EXTRA = 4,
+    /// Max level
+    LOG_LEVEL_MAX = 4
+};
+
 /**
  * Verbosity control for LOG macros.
  * Valid values are:
@@ -61,24 +78,36 @@ void set_additional_log(FILE * fd);
  * @param fmt String format, as per printf.
  * @param args Extra arguments, as per printf.
  */
-#define LOG_DEBUG(fmt, args...) do { __log(2, __FILE__, __LINE__, __FUNCTION__, \
-                                           (fmt) , ##args); } while(0)
+#define LOG_DEBUG(fmt, args...) \
+    do { __log(LOG_LEVEL_DEBUG, __FILE__, __LINE__, __FUNCTION__,   \
+               (fmt) , ##args); } while(0)
 
 /**
  * Info log message
  * @param fmt String format, as per printf.
  * @param args Extra arguments, as per printf.
  */
-#define LOG_INFO(fmt, args...) do { __log(1, __FILE__, __LINE__ , __FUNCTION__, \
-                                          (fmt) , ##args); } while(0)
+#define LOG_INFO(fmt, args...) \
+    do { __log(LOG_LEVEL_INFO, __FILE__, __LINE__ , __FUNCTION__,   \
+               (fmt) , ##args); } while(0)
+
+/**
+ * Warning log message
+ * @param fmt String format, as per printf.
+ * @param args Extra arguments, as per printf.
+ */
+#define LOG_WARN(fmt, args...) \
+    do { __log(LOG_LEVEL_WARN, __FILE__, __LINE__ , __FUNCTION__,   \
+               (fmt) , ##args); } while(0)
 
 /**
  * Error log message
  * @param fmt String format, as per printf.
  * @param args Extra arguments, as per printf.
  */
-#define LOG_ERROR(fmt, args...) do { __log(0, __FILE__, __LINE__ , __FUNCTION__, \
-                                           (fmt) , ##args); } while(0)
+#define LOG_ERROR(fmt, args...) \
+    do { __log(LOG_LEVEL_ERROR, __FILE__, __LINE__ , __FUNCTION__,  \
+               (fmt) , ##args); } while(0)
 
 #endif
 
