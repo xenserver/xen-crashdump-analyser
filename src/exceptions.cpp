@@ -40,8 +40,8 @@ bool memseek::outside_64GB() const throw() { return this->addr > (1ULL << 36); }
 
 
 memread::memread(const maddr_t & addr, const ssize_t count, const ssize_t total,
-    const int errno) throw():
-    addr(addr), count(count), total(total), errno(errno)
+    const int error) throw():
+    addr(addr), count(count), total(total), error(error)
 {}
 
 memread::~memread() throw() {}

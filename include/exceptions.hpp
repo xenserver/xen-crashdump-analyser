@@ -79,9 +79,9 @@ public:
      * @param addr Read location causing the failure.
      * @param count Number of bytes read.
      * @param total Intended number of bytes read.
-     * @param errno Error number (valid if count is -1).
+     * @param error Error number (valid if count is -1).
      */
-    memread(const maddr_t & addr, const ssize_t count, const ssize_t total, const int errno) throw();
+    memread(const maddr_t & addr, const ssize_t count, const ssize_t total, const int error) throw();
 
     /// Destructor.
     virtual ~memread() throw();
@@ -104,8 +104,8 @@ public:
     ssize_t count;
     /// Intended number of bytes read.
     ssize_t total;
-    /// Errno (valid if count is -1)
-    int errno;
+    /// Error (valid if count is -1)
+    int error;
 };
 
 /**

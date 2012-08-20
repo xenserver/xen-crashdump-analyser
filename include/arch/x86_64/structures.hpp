@@ -103,7 +103,7 @@ typedef struct
 {
 	int32_t signo;			/* signal number */
 	int32_t code;			/* extra code */
-	int32_t errno;			/* errno */
+	int32_t err_no;			/* errno */
 } ELF_Signifo;
 
 typedef int32_t ELF_Pid;

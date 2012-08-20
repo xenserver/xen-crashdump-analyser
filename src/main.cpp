@@ -170,6 +170,7 @@ void atexit_close_log( void )
 FILE * fopen_in_outdir(const char * path, const char * flags)
 {
     FILE * fd = NULL;
+    int error;
 
     if ( -1 == fchdir( outdirfd ) )
     {
@@ -179,6 +180,7 @@ FILE * fopen_in_outdir(const char * path, const char * flags)
     }
 
     fd = fopen(path, flags);
+    error = errno;
 
     if ( -1 == fchdir( workdirfd ) )
     {
@@ -186,6 +188,7 @@ FILE * fopen_in_outdir(const char * path, const char * flags)
                   strerror(errno));
     }
 
+    errno = error;
     return fd;
 }
 

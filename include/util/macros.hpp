@@ -45,7 +45,7 @@
     {                                                                   \
     if ( e.count == -1 )                                                \
         LOG_WARN("memread error for address 0x%016"PRIx64" - %s\n",     \
-                 e.addr, strerror(e.errno));                            \
+                 e.addr, strerror(e.error));                            \
     else                                                                \
         LOG_WARN("memread error for address 0x%016"PRIx64" - "          \
                  "Read %zu of intended %zu bytes\n", e.addr, e.count, e.total); \
