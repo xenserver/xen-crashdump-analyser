@@ -22,6 +22,7 @@
 #include "util/macros.hpp"
 #include "host.hpp"
 #include "memory.hpp"
+#include "system.hpp"
 #include "abstract/elf.hpp"
 
 #include <getopt.h>
@@ -468,6 +469,8 @@ int main(int argc, char ** argv)
         }
         LOG_INFO("Dom0 symbol table: %s\n", path_buff);
         free(path_buff);
+
+        gather_system_information();
 
         // Parse dom0s symbol file
         if ( ! host.dom0_symtab.parse(dom0_symtab_path) )
