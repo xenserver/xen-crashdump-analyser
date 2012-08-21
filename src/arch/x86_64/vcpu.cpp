@@ -83,6 +83,15 @@ bool x86_64VCPU::parse_basic(const vaddr_t & addr, const CPU & cpu) throw ()
                            is_32bit);
         this->flags |= is_32bit ? CPU_PV_COMPAT : 0;
 
+        uint32_t paging_mode;
+        memory.read32_vaddr(cpu, this->domain_ptr + DOMAIN_paging_mode, paging_mode);
+        if ( paging_mode == 0 )
+            this->paging_support = VCPU::PAGING_NONE;
+        else if ( paging_mode & (1U<<20) )
+            this->paging_support = VCPU::PAGING_SHADOW;
+        else if ( paging_mode & (1U<<21) )
+            this->paging_support = VCPU::PAGING_HAP;
+
         memory.read32_vaddr(cpu, this->vcpu_ptr + VCPU_pause_flags,
                             this->pause_flags);
 
@@ -257,7 +266,10 @@ int x86_64VCPU::print_state(FILE * o) const throw ()
     len += fprintf(o, "\n");
 
     if ( this->flags & CPU_CORE_STATE &&
-        this->flags & CPU_EXTD_STATE )
+         this->flags & CPU_EXTD_STATE &&
+         ( this->paging_support == VCPU::PAGING_NONE ||
+           this->paging_support == VCPU::PAGING_SHADOW )
+        )
     {
         len += fprintf(o, "\tStack at %16"PRIx64":", this->regs.rsp);
         len += print_64bit_stack(o, *static_cast<const CPU*>(this), this->regs.rsp);

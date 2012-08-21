@@ -62,6 +62,15 @@ int print_rflags(FILE * stream, const uint64_t & rflags);
  */
 int print_pause_flags(FILE * stream, const uint32_t & pause_flags);
 
+/**
+ * Bitwise decode a domains paging mode assistance flags to stream.
+ *
+ * @param stream Stream to print to.
+ * @param paging_mode to decode.
+ * @return number of bytes written.
+ */
+int print_paging_mode(FILE * stream, const uint32_t & paging_mode);
+
 /*
  * Local variables:
  * mode: C++

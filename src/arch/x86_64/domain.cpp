@@ -24,6 +24,7 @@
 #include "memory.hpp"
 #include "host.hpp"
 #include "util/print-structures.hpp"
+#include "util/print-bitwise.hpp"
 #include "util/log.hpp"
 #include "util/macros.hpp"
 #include "util/symbol.hpp"
@@ -73,6 +74,7 @@ bool x86_64Domain::parse_basic(const CPU & cpu, const vaddr_t & domain_ptr) thro
         memory.read32_vaddr(cpu, this->domain_ptr + DOMAIN_max_vcpus, this->max_cpus);
         memory.read64_vaddr(cpu, this->domain_ptr + DOMAIN_vcpus, this->vcpus_ptr);
 
+        memory.read32_vaddr(cpu, this->domain_ptr + DOMAIN_paging_mode, this->paging_mode);
         memory.read32_vaddr(cpu, this->domain_ptr + DOMAIN_tot_pages, this->tot_pages);
         memory.read32_vaddr(cpu, this->domain_ptr + DOMAIN_max_pages, this->max_pages);
         memory.read32_vaddr(cpu, this->domain_ptr + DOMAIN_shr_pages, (uint32_t&)this->shr_pages);
@@ -139,6 +141,11 @@ int x86_64Domain::print_state(FILE * o) const throw ()
                    this->is_32bit_pv ? " 32BIT-PV" : "",
                    this->is_hvm ? " HVM" : ""
         );
+
+    len += fprintf(o, "  Paging assistance: ");
+    len += print_paging_mode(o, this->paging_mode);
+    len += fprintf(o, "\n");
+
 ///@cond
 #define PAGES_TO_GB(p) ((double)((p)<<12) / (1024.0 * 1024.0 * 1024.0))
 #define PAGES_TO_MB(p) ((double)((p)<<12) / (1024.0 * 1024.0))

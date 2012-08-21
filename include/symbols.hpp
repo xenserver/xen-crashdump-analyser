@@ -96,6 +96,8 @@ extern vaddr_t DOMAIN_max_pages;
 extern vaddr_t DOMAIN_shr_pages;
 /// Offset of handle in Xen's struct domain.
 extern vaddr_t DOMAIN_handle;
+/// Offset of arch.paging.mode in Xen's struct domain.
+extern vaddr_t DOMAIN_paging_mode;
 /// Size of Xen's struct domain.
 extern uint64_t DOMAIN_sizeof;
 /// Xen's domain_list symbol.

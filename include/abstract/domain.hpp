@@ -41,7 +41,7 @@ public:
     Domain():
         domain_ptr(0), next_domain_ptr(0), domain_id(0), is_32bit_pv(0), is_hvm(0),
         is_privileged(0), tot_pages(0), max_pages(0), shr_pages(0), max_cpus(0),
-        vcpus_ptr(0), vcpus(NULL)
+        vcpus_ptr(0), paging_mode(0), vcpus(NULL)
     {};
 
     /// Destructor.
@@ -124,6 +124,8 @@ public:
     vaddr_t vcpus_ptr;
     /// Handle (Toolstack domain reference).
     uint8_t handle[16];
+    /// Paging mode flags
+    uint32_t paging_mode;
 
     /// VCPUs for this domain.
     VCPU ** vcpus;

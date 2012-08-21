@@ -120,7 +120,22 @@ int print_pause_flags(FILE * o, const uint32_t & reg)
     return len;
 }
 
+int print_paging_mode(FILE * o, const uint32_t & reg)
+{
+    int len = 0;
 
+    if ( reg == 0 )
+        return len + fputs("None", o);
+
+    BIT(21, HAP);
+    BIT(20, Shadow);
+    BIT(14, external);
+    BIT(13, translate);
+    BIT(12, log_dirty);
+    BIT(11, refcounts);
+
+    return len;
+}
 
 #undef BIT
 

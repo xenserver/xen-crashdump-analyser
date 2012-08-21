@@ -40,7 +40,8 @@ public:
     /// Constructor.
     VCPU():
         vcpu_ptr(0), domain_ptr(0), vcpu_id(-1), domid(-1), processor(0),
-        pause_flags(-1), flags(0), runstate(RST_UNKNOWN) {};
+        pause_flags(-1), flags(0), runstate(RST_UNKNOWN),
+        paging_support(PAGING_UNKNOWN){};
 
     /// Destructor
     virtual ~VCPU(){};
@@ -170,6 +171,20 @@ public:
         /// VCPU was being context switched from.
         RST_CTX_SWITCH
     } runstate;
+
+    /// Paging support which this VCPU has from Xen.
+    enum VCPUPagingSupport
+    {
+        /// Unknown support.
+        PAGING_UNKNOWN,
+        /// No paging support.
+        PAGING_NONE,
+        /// Shadow paging support.
+        PAGING_SHADOW,
+        /// Hardware Assisted Paging support.
+        PAGING_HAP
+    } paging_support;
+
 };
 
 #endif
