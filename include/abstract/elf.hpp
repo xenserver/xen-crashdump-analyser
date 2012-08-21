@@ -120,6 +120,12 @@ public:
 protected:
     /// File descriptor
     int fd;
+
+private:
+    // @cond
+    Elf(const Elf &);
+    Elf & operator= (const Elf &);
+    // @endcond
 };
 
 #endif

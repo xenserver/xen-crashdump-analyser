@@ -7,8 +7,8 @@ APP-NAME-DEBUG := $(APP-NAME)-syms
 all: $(APP-NAME)
 
 # Set up flags
-COMMON_FLAGS := -Iinclude -g -Os -Wall -Werror -Wextra -fno-rtti
-CPPFLAGS := $(COMMON_FLAGS)
+COMMON_FLAGS := -Iinclude -g -Os -Wall -Werror -Wextra
+CPPFLAGS := $(COMMON_FLAGS) -std=c++98 -fno-rtti -Weffc++
 CFLAGS := $(COMMON_FLAGS) -std=c99
 LDFLAGS := -g
 

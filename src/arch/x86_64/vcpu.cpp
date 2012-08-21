@@ -36,7 +36,8 @@
 #include "util/log.hpp"
 #include "util/macros.hpp"
 
-x86_64VCPU::x86_64VCPU()
+x86_64VCPU::x86_64VCPU():
+    regs()
 {
     memset(&this->regs, 0, sizeof this->regs);
 }

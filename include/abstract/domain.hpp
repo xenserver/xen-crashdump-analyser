@@ -118,6 +118,12 @@ public:
 
     /// VCPUs for this domain.
     VCPU ** vcpus;
+
+private:
+    // @cond
+    Domain(const Domain & );
+    Domain & operator= (const Domain &);
+    // @endcond
 };
 
 #endif

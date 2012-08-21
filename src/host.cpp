@@ -49,6 +49,7 @@
 Host::Host():
     once(false), arch(Elf::ELF_Unknown), nr_pcpus(0),
     pcpus(NULL), idle_vcpus(NULL),
+    symtab(), dom0_symtab(),
     active_vcpus(),
     xen_major(0), xen_minor(0), xen_extra(NULL),
     xen_changeset(NULL), xen_compiler(NULL),

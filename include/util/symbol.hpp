@@ -77,6 +77,11 @@ public:
      * same virtual address in a symbol table.
      */
     char * name;
+
+private:
+    // @cond
+    Symbol & operator=(const Symbol &);
+    // @endcond
 };
 
 #endif

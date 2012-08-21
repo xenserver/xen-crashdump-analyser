@@ -138,6 +138,12 @@ public:
         /// Context switch occurring.
         CTX_SWITCH
     } vcpu_state;
+
+private:
+    // @cond
+    PCPU(const PCPU &);
+    PCPU & operator= (const PCPU &);
+    // @endcond
 };
 
 #endif

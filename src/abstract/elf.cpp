@@ -38,7 +38,7 @@ Elf::Elf(int fd):
     arch(Elf::ELF_Unknown),
     nr_phdrs(0), phdrs(NULL),
     notedata(NULL), nr_notes(0), notes(NULL),
-    fd(fd)
+    nr_cpus(0), fd(fd)
 {}
 
 Elf::~Elf()

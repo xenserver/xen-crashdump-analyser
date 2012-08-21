@@ -28,7 +28,7 @@
  */
 
 Symbol::Symbol(const vaddr_t a, const char t,  const char* n)
-    :address(a), type(t)
+    :address(a), type(t), name(NULL)
 {
     size_t nlen = strlen(n);
     this->name = new char[nlen+1];
@@ -40,7 +40,7 @@ Symbol::Symbol(const vaddr_t a, const char t,  const char* n)
 }
 
 Symbol::Symbol(const Symbol & rhs)
-    :address(rhs.address), type(rhs.type)
+    :address(rhs.address), type(rhs.type), name(NULL)
 {
     size_t nlen = strlen(rhs.name);
     this->name = new char[nlen+1];

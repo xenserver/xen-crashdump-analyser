@@ -125,6 +125,12 @@ public:
         *xen_compiler,
     /// Xen compile date string.
         *xen_compile_date;
+
+private:
+    // @cond
+    Host(const Host &);
+    Host & operator= (const Host &);
+    // @endcond
 };
 
 /// Host container

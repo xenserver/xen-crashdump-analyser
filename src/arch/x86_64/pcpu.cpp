@@ -40,7 +40,8 @@
 
 #include <new>
 
-x86_64PCPU::x86_64PCPU()
+x86_64PCPU::x86_64PCPU():
+    regs()
 {
     memset(&this->regs, 0, sizeof this->regs );
 }
