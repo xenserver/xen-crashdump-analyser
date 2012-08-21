@@ -73,6 +73,41 @@ int print_console_ring(FILE * stream, const CPU & cpu, const vaddr_t & ring,
                        const uint64_t & length, const uint64_t & prod,
                        const uint64_t & cons) throw ();
 
+/**
+ * Dump a data region.
+ * @param stream Stream to print to.
+ * @param word_size Size of words (4 or 8) in bytes.
+ * @param cpu CPU to do a pagetable lookup with.
+ * @param start Virtual address to start dumping from.
+ * @param length Total length of data to dump in bytes.
+ */
+int dump_data(FILE * stream, size_t word_size, const CPU & cpu, const vaddr_t & start,
+              const uint64_t & length) throw ();
+
+/**
+ * Dump a 32bit data region.
+ * @param stream Stream to print to.
+ * @param cpu CPU to do a pagetable lookup with.
+ * @param start Virtual address to start dumping from.
+ * @param length Total length of data to dump in bytes.
+ */
+static inline int dump_32bit_data(
+    FILE * stream, const CPU & cpu, const vaddr_t & start,
+    const uint64_t & length) throw ()
+{ return dump_data(stream, 4, cpu, start, length); }
+
+/**
+ * Dump a 64bit data region.
+ * @param stream Stream to print to.
+ * @param cpu CPU to do a pagetable lookup with.
+ * @param start Virtual address to start dumping from.
+ * @param length Total length of data to dump in bytes.
+ */
+static inline int dump_64bit_data(
+    FILE * stream, const CPU & cpu, const vaddr_t & start,
+    const uint64_t & length) throw ()
+{ return dump_data(stream, 8, cpu, start, length); }
+
 /*
  * Local variables:
  * mode: C++

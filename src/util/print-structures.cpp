@@ -236,6 +236,76 @@ int print_console_ring(FILE * o, const CPU & cpu,
     return len;
 }
 
+int dump_data(FILE * o, size_t ws, const CPU & cpu, const vaddr_t & start,
+              const uint64_t & length) throw ()
+{
+    int len = 0;
+
+    // Only support 32 and 64 bit dumps at the moment
+    if ( ! ( ws == 4 || ws == 8 ) )
+    {
+        LOG_WARN("Unsupported word size '%zu' for dump_data()\n", ws);
+        return 0;
+    }
+
+    // Verify that start + length does not overflow
+    if ( ((-(uint64_t)1) - start) < length )
+        return len + fprintf(o, "dump_data(): start (0x%016"PRIx64") and length "
+                             "(0x%016"PRIx64") overflow the address space.\n",
+                             start, length);
+
+
+    for ( vaddr_t addr = start; addr < (start+length); addr += ws * 2 )
+    {
+        try
+        {
+            len += fprintf(o, "%04"PRIx64": ", addr - start);
+
+            if ( ws == 4 )
+            {
+                union { uint32_t _32; unsigned char _8 [sizeof (uint32_t)]; } data[2];
+
+                memory.read32_vaddr(cpu, addr, data[0]._32);
+
+                for ( size_t x = 0; x < sizeof data[0]._8; ++x )
+                    len += fprintf(o, "%02x ", data[0]._8[x]);
+                len += fprintf(o, " ");
+
+                memory.read32_vaddr(cpu, addr+ws, data[1]._32);
+
+                for ( size_t x = 0; x < sizeof data[1]._8; ++x )
+                    len += fprintf(o, "%02x ", data[1]._8[x]);
+                len += fprintf(o, " ");
+
+                len += fprintf(o, "0x%08"PRIx32" 0x%08"PRIx32"\n",
+                               data[0]._32, data[1]._32);
+            }
+            else
+            {
+                union { uint64_t _64; unsigned char _8 [sizeof (uint64_t)]; } data[2];
+
+                memory.read64_vaddr(cpu, addr, data[0]._64);
+
+                for ( size_t x = 0; x < sizeof data[0]._8; ++x )
+                    len += fprintf(o, "%02x ", data[0]._8[x]);
+                len += fprintf(o, " ");
+
+                memory.read64_vaddr(cpu, addr+ws, data[1]._64);
+
+                for ( size_t x = 0; x < sizeof data[1]._8; ++x )
+                    len += fprintf(o, "%02x ", data[1]._8[x]);
+                len += fprintf(o, " ");
+
+                len += fprintf(o, "0x%016"PRIx64" 0x%016"PRIx64"\n",
+                               data[0]._64, data[1]._64);
+            }
+        }
+        CATCH_COMMON
+    }
+
+    return 0;
+}
+
 /*
  * Local variables:
  * mode: C++
