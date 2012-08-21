@@ -116,6 +116,14 @@ public:
      */
     virtual int print_state(FILE * stream) const throw () = 0;
 
+    /**
+     * Dump Xen structures for this vcpu.
+     *
+     * @param stream Stream to write to.
+     * @return Number of bytes written to stream.
+     */
+    virtual int dump_structures(FILE * stream) const throw () = 0;
+
     /// Xen pointer to this struct vcpu.
     vaddr_t vcpu_ptr;
     /// Xen pointer to the struct domain, to which this vcpu belongs.  From struct vcpu.

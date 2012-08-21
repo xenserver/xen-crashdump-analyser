@@ -394,6 +394,25 @@ int x86_64VCPU::print_state_compat(FILE * o) const throw ()
     return len;
 }
 
+int x86_64VCPU::dump_structures(FILE * o) const throw ()
+{
+    const CPU & cpu = *static_cast<const CPU*>(this);
+    int len = 0;
+
+    if ( required_vcpu_symbols != 0 )
+    {
+        LOG_ERROR("Missing required domain symbols. %#x\n",
+                  required_domain_symbols);
+        return len;
+    }
+
+    len += fprintf(o, "struct vcpu (0x%016"PRIx64") for vcpu %"PRId32"\n",
+                   this->vcpu_ptr, this->vcpu_id);
+    len += dump_64bit_data(o, cpu, this->vcpu_ptr, VCPU_sizeof);
+    return len;
+}
+
+
 /*
  * Local variables:
  * mode: C++

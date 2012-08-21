@@ -67,15 +67,17 @@ public:
 
     /**
      * Print host information to stream.
+     * @param dump_structures boolean indicating whether the Xen structures should be dumped.
      * @return boolean indicating success or failure.
      */
-    bool print_xen() throw ();
+    bool print_xen(bool dump_structures) throw ();
 
     /**
      * Decode and print domain information.
+     * @param dump_structures boolean indicating whether the Xen structures should be dumped.
      * @return number of domains successfully printed.
      */
-    int print_domains() throw ();
+    int print_domains(bool dump_structures) throw ();
 
     /**
      * Validate a Xen virtual address.

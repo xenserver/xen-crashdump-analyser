@@ -54,7 +54,7 @@ int verbosity = LOG_LEVEL_INFO;
 // Local variables
 
 /// Command line short options.
-const static char * short_options = "hc:o:x:d:qv";
+const static char * short_options = "hc:o:x:d:qvs";
 /// Command line long options.
 const static struct option long_options[] =
 {
@@ -71,6 +71,9 @@ const static struct option long_options[] =
     { "outdir", required_argument , NULL, 'o' },
     { "xen-symtab", required_argument , NULL, 'x' },
     { "dom0-symtab", required_argument , NULL, 'd' },
+
+    // Additional debugging options
+    { "dump-structures", no_argument, NULL, 's' },
 
     // EoL
     { NULL, 0, NULL, 0 }
@@ -93,6 +96,8 @@ static int outdirfd = 0;
 static int workdirfd = 0;
 /// Log file descriptor
 static FILE * logfd = stderr;
+/// Should we dump the Xen structures ?
+static bool dump_structures = false;
 
 /**
  * Convert a severity value to string
@@ -214,7 +219,7 @@ static void usage(char * argv0, FILE * stream = stdout)
 
 // @cond - Doxygen ought to ignore these macros.
 //         They are for pretty-printing the command line parameters
-#define WL 12
+#define WL 15
 #define L_REQ(l,d)    fprintf(stream, "    --%-*s    * %s\n", WL, l, d);
 #define LS_REQ(l,s,d) fprintf(stream, "    --%-*s -%c * %s\n", WL, l, s, d);
 #define L_OPT(l,d)    fprintf(stream, "    --%-*s      %s\n", WL, l, d);
@@ -232,6 +237,10 @@ static void usage(char * argv0, FILE * stream = stdout)
 
     LS_OPT("quite", 'q', "Less logging.");
     LS_OPT("verbose", 'v', "More logging, accepted multiple times for extra debug logging.");
+    putc('\n', stream);
+
+    LS_OPT("dump-structures", 's', "Hex dump key structures.");
+
     putc('\n', stream);
 
 #undef L_REQ
@@ -306,6 +315,10 @@ static bool parse_commandline(int argc, char ** argv)
         case 'v': // verbose
             if ( verbosity < LOG_LEVEL_MAX )
                 ++verbosity;
+            break;
+
+        case 's': // Dump structures
+            dump_structures = true;
             break;
 
         case 'h': // Help
@@ -512,11 +525,11 @@ int main(int argc, char ** argv)
          * error logic without gotos or returns. */
         if ( ! host.decode_xen() )
             LOG_ERROR("  Failed to decode xen structures\n");
-        else if ( ! host.print_xen() )
+        else if ( ! host.print_xen(dump_structures) )
             LOG_ERROR("  Failed to print xen information\n");
         else
         {
-            int s = host.print_domains();
+            int s = host.print_domains(dump_structures);
             LOG_DEBUG("Successfully printed %d domains\n", s);
         }
     }

@@ -118,6 +118,14 @@ public:
     virtual int print_state(FILE * stream) const throw ();
 
     /**
+     * Dump Xen structures for this vcpu.
+     *
+     * @param stream Stream to write to.
+     * @return Number of bytes written to stream.
+     */
+    virtual int dump_structures(FILE * stream) const throw ();
+
+    /**
      * Print the information about this vcpu to the provided stream, if this
      * vcpu is running in 32bit PV Compatibility mode.
      *

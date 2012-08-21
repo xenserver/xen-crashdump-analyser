@@ -187,6 +187,35 @@ int x86_64Domain::print_state(FILE * o) const throw ()
     return len;
 }
 
+int x86_64Domain::dump_structures(FILE * o) const throw ()
+{
+    const CPU & cpu = *static_cast<const CPU*>(this->vcpus[0]);
+    int len = 0;
+
+    if ( required_domain_symbols != 0 )
+    {
+        LOG_ERROR("Missing required domain symbols. %#x\n",
+                  required_domain_symbols);
+        return len;
+    }
+
+    len += fprintf(o, "Xen structures for Domain %"PRId16"\n\n", this->domain_id);
+
+    len += fprintf(o, "struct domain (0x%016"PRIx64")\n", this->domain_ptr);
+    len += dump_64bit_data(o, cpu, this->domain_ptr, DOMAIN_sizeof);
+
+    for ( uint32_t x = 0; x < this->max_cpus; ++x )
+        if ( this->vcpus[x] )
+        {
+            len += fprintf(o, "\n");
+            len += this->vcpus[x]->dump_structures(o);
+        }
+        else
+            len += fprintf(o, "Nothing to dump for vcpu%"PRIu32"\n\n", x);
+
+    return len;
+}
+
 int x86_64Domain::print_console(FILE * o) const throw ()
 {
     int len = 0;

@@ -257,7 +257,7 @@ bool Host::decode_xen() throw ()
     return false;
 }
 
-bool Host::print_xen() throw()
+bool Host::print_xen(bool dump_structures) throw()
 {
     int len = 0;
     bool success = false;
@@ -360,10 +360,29 @@ bool Host::print_xen() throw()
 
     set_additional_log(NULL);
     fclose(o);
+
+    // If we dont wish to dump the structures, return now
+    if ( ! dump_structures )
+        return success;
+
+#if 0 // No Xen structures to dump at the moment, but leave the code here for the future
+
+    // Try to open the xen.structures.log file
+    if ( NULL == (o = fopen_in_outdir("xen.structures.log", "w")))
+    {
+        LOG_ERROR("Unable to open xen.structures.log in output directory: %s\n",
+                  strerror(errno));
+        return false;
+    }
+    LOG_INFO("Opened xen.structures.log for foobar\n");
+
+    fclose(o);
+#endif
+
     return success;
 }
 
-int Host::print_domains() throw ()
+int Host::print_domains(bool dump_structures) throw ()
 {
     const CPU & cpuref = *static_cast<const CPU*>(this->pcpus[0]);
     int success = 0;
@@ -471,6 +490,28 @@ int Host::print_domains() throw ()
             }
 
             dom->print_state(fd);
+
+            // We are going to dump the xen structures...
+            if ( dump_structures )
+            {
+                // so start off by cleaning up
+                set_additional_log(NULL);
+                SAFE_FCLOSE(fd);
+
+                // and open up some newer files
+                snprintf(fname, sizeof fname, "dom%d.structures.log", dom->domain_id);
+                if ( ! (fd = fopen_in_outdir(fname, "w")) )
+                {
+                    LOG_ERROR("    Failed to open file '%s' in output directory\n",
+                              fname);
+                    goto loop_cont;
+                }
+                LOG_DEBUG("    Dumping structures to '%s'\n", fname);
+                set_additional_log(fd);
+
+                dom->dump_structures(fd);
+            }
+
             ++success;
 
         loop_cont:

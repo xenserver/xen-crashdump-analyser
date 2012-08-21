@@ -52,9 +52,9 @@ REQUIRE(vcpu, 8);
 
 vaddr_t DOMAIN_id, DOMAIN_is_32bit_pv, DOMAIN_is_hvm, DOMAIN_is_privileged,
     DOMAIN_max_vcpus, DOMAIN_vcpus, DOMAIN_next, DOMAIN_tot_pages, DOMAIN_max_pages,
-    DOMAIN_shr_pages, DOMAIN_handle, domain_list;
+    DOMAIN_shr_pages, DOMAIN_handle, DOMAIN_sizeof, domain_list;
 /// Required domain symbols
-REQUIRE(domain, 12);
+REQUIRE(domain, 13);
 
 vaddr_t __per_cpu_offset, idle_vcpu;
 vaddr_t per_cpu__curr_vcpu;
@@ -118,7 +118,8 @@ required_symbols [] =
     SYMBOL(domain,  9, DOMAIN_max_pages),
     SYMBOL(domain, 10, DOMAIN_shr_pages),
     SYMBOL(domain, 11, DOMAIN_handle),
-    SYMBOL(domain, 12, domain_list),
+    SYMBOL(domain, 12, DOMAIN_sizeof),
+    SYMBOL(domain, 13, domain_list),
 
     SYMBOL(per_cpu, 1, __per_cpu_offset),
     SYMBOL(per_cpu, 2, idle_vcpu),

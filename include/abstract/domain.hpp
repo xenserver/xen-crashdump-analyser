@@ -76,6 +76,15 @@ public:
     virtual int print_state(FILE * stream) const throw () = 0;
 
     /**
+     * Dump Xen structures for this domain.  Includes Xen's struct domain
+     * and each struct vcpu.
+     *
+     * @param stream Stream to write to.
+     * @return Number of bytes written to stream.
+     */
+    virtual int dump_structures(FILE * stream) const throw () = 0;
+
+    /**
      * Print the console ring.
      *
      * @param stream Stream to write to.
