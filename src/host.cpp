@@ -312,6 +312,7 @@ bool Host::print_xen() throw()
                 LOG_ERROR("Bad Alloc exception.  Out of memory\n");
             }
             CATCH_COMMON
+            SAFE_DELETE_ARRAY(cmdline);
         }
 
         len += fprintf(o, "\n");
@@ -357,7 +358,6 @@ bool Host::print_xen() throw()
     }
     CATCH_COMMON
 
-    SAFE_DELETE_ARRAY(cmdline);
     set_additional_log(NULL);
     fclose(o);
     return success;
@@ -475,7 +475,7 @@ int Host::print_domains() throw ()
 
         loop_cont:
             set_additional_log(NULL);
-            if ( fd )  { fclose(fd); fd = NULL;  }
+            SAFE_FCLOSE(fd);
             SAFE_DELETE(dom);
         }
     }
@@ -486,7 +486,7 @@ int Host::print_domains() throw ()
     CATCH_COMMON
 
     set_additional_log(NULL);
-    if ( fd )  { fclose(fd); fd = NULL;  }
+    SAFE_FCLOSE(fd);
     SAFE_DELETE(dom);
 
     return success;

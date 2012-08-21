@@ -32,6 +32,9 @@
 /// Safe delete an array
 #define SAFE_DELETE_ARRAY(a) do { if ((a)) delete [] (a); (a) = NULL; } while (0)
 
+/// Safe fclose a FILE
+#define SAFE_FCLOSE(f) do { if ((f)) fclose(f); (f) = NULL; } while (0)
+
 /**
  * Common catch statements.  Presented as a macro only for code brevity in
  * otherwise large and complex functions.
