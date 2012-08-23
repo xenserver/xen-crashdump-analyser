@@ -134,7 +134,7 @@ ssize_t Memory::read_str_vaddr(const CPU & cpu, const vaddr_t & vaddr, char * ds
             cpu.pagetable_walk(addr, maddr, &end);
             n -= nr;
         } while ( n );
-        dst[n] = 0;
+        dst[index] = 0;
         return strlen(dst);
     }
 }
