@@ -197,7 +197,7 @@ int print_console_ring(FILE * o, const CPU & cpu,
         }
         else
         {
-            if ( cons > prod )
+            if ( cons >= prod )
             {
                 written = memory.write_block_vaddr_to_file(cpu, ring + cons,
                                                            o, length - cons);
