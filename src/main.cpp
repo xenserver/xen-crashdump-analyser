@@ -61,20 +61,22 @@ const static struct option long_options[] =
 {
     // Help
     { "help", no_argument, NULL, 'h' },
-    { "version", no_argument, NULL, 1 },
+    { "version", no_argument, NULL, 0x100 },
 
     // Logging and verbosity
     { "quiet", no_argument, NULL, 'q' },
     { "verbose", no_argument, NULL, 'v' },
 
-    // Files and Directories
-    { "core", required_argument , NULL, 'c' },
-    { "outdir", required_argument , NULL, 'o' },
-    { "xen-symtab", required_argument , NULL, 'x' },
-    { "dom0-symtab", required_argument , NULL, 'd' },
+    // Files
+    { "core", required_argument, NULL, 'c' },
+    { "xen-symtab", required_argument, NULL, 'x' },
+    { "dom0-symtab", required_argument, NULL, 'd' },
+
+    // Directories
+    { "outdir", required_argument, NULL, 'o' },
 
     // Additional debugging options
-    { "dump-structures", no_argument, NULL, 's' },
+    { "dump-structures", no_argument, NULL, 0x101 },
 
     // EoL
     { NULL, 0, NULL, 0 }
@@ -214,8 +216,8 @@ static void version(FILE * stream = stdout)
 static void usage(char * argv0, FILE * stream = stdout)
 {
     version(stream);
-    fprintf(stream, "Usage: %s [options]\n\n", argv0);
-    fprintf(stream, "Analyse a Xen crash in the kdump environment\n\n");
+    fprintf(stream, "  Analyse a Xen crash from a core dump\n\n");
+    fprintf(stream, "Usage: %s [options]\n", argv0);
     fprintf(stream, "Options: (* indicates required)\n\n");
 
 // @cond - Doxygen ought to ignore these macros.
@@ -226,22 +228,25 @@ static void usage(char * argv0, FILE * stream = stdout)
 #define L_OPT(l,d)    fprintf(stream, "    --%-*s      %s\n", WL, l, d);
 #define LS_OPT(l,s,d) fprintf(stream, "    --%-*s -%c   %s\n", WL, l, s, d);
 
+    fputs("Files:\n", stream);
     LS_OPT("core", 'c', "Core crash file.  Defaults to /proc/vmcore.");
-    LS_REQ("outdir", 'o', "Directory for output files.");
     LS_REQ("xen-symtab", 'x', "Xen Symbol Table file.");
     LS_REQ("dom0-symtab", 'd', "Dom0 Symbol Table file.");
     putc('\n', stream);
 
-    LS_OPT("help", 'h', "This description.");
-    L_OPT("version", "Display version and exit.");
+    fputs("Directories:\n", stream);
+    LS_REQ("outdir", 'o', "Directory for output files.");
     putc('\n', stream);
 
+    fputs("General:\n", stream);
+    LS_OPT("help", 'h', "This description.");
+    L_OPT("version", "Display version and exit.");
     LS_OPT("quite", 'q', "Less logging.");
     LS_OPT("verbose", 'v', "More logging, accepted multiple times for extra debug logging.");
     putc('\n', stream);
 
-    LS_OPT("dump-structures", 's', "Hex dump key structures.");
-
+    fputs("Debugging:\n", stream);
+    L_OPT("dump-structures", "Hex dump key structures.");
     putc('\n', stream);
 
 #undef L_REQ
@@ -284,7 +289,7 @@ static bool parse_commandline(int argc, char ** argv)
         case -1: // No more options
             break;
 
-        case 1: // --version
+        case 0x100: // --version
             version();
             return false;
             break;
@@ -318,13 +323,15 @@ static bool parse_commandline(int argc, char ** argv)
                 ++verbosity;
             break;
 
-        case 's': // Dump structures
+        case 0x101: // Dump structures
             dump_structures = true;
             break;
 
         case 'h': // Help
         default: // Unrecognised
             usage(argv[0]);
+        case '?': // Missing argument
+        case ':': // Missing argument
             return false;
         }
     }
