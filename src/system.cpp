@@ -47,14 +47,14 @@ uint64_t physaddrmask = 0;
  */
 static void cpuid(uint32_t & eax, uint32_t & ebx, uint32_t & ecx, uint32_t & edx)
 {
-    asm ("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) :
-         "a"(eax), "b"(ebx), "c"(ecx), "d"(edx) );
+    asm volatile ("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx):
+                  "a"(eax), "b"(ebx), "c"(ecx), "d"(edx) );
 }
 
 void gather_system_information()
 {
     uint32_t eax, ebx, ecx, edx;
-    union { char name[12]; uint32_t regs[3]; } vendor_string;
+    union { uint32_t regs[3]; char name[12]; } vendor_string = { {0, 0, 0} };
 
     /* Check the vendor string.  This is needed to distinguish between EPT or NPT
      * when trying to read guests address spaces with HAP enabled .*/
