@@ -147,9 +147,9 @@ int x86_64Domain::print_state(FILE * o) const throw ()
     len += fprintf(o, "\n");
 
 ///@cond
-#define PAGES_TO_GB(p) ((double)((p)<<12) / (1024.0 * 1024.0 * 1024.0))
-#define PAGES_TO_MB(p) ((double)((p)<<12) / (1024.0 * 1024.0))
-#define PAGES_TO_KB(p) ((double)((p)<<12) / (1024.0))
+#define PAGES_TO_GB(p) (((double)(p)) * 4096.0 / (1024.0 * 1024.0 * 1024.0))
+#define PAGES_TO_MB(p) (((double)(p)) * 4096.0 / (1024.0 * 1024.0))
+#define PAGES_TO_KB(p) (((double)(p)) * 4096.0 / (1024.0))
 
     len += fprintf(o, "  Max Pages: %"PRIu32" (%.3fGB, %.3fMB, %.fKB)\n",
                    this->max_pages, PAGES_TO_GB(this->max_pages),
