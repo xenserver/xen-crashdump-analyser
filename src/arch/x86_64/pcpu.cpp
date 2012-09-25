@@ -381,7 +381,7 @@ int x86_64PCPU::print_state(FILE * o) const throw ()
 
     if ( vcpu_to_print )
     {
-        len += fprintf(o, "  PCPU %"PRIx32" Guest state (DOM%"PRIu16" VCPU%"PRIu32"):\n",
+        len += fprintf(o, "  PCPU %"PRIu32" Guest state (DOM%"PRIu16" VCPU%"PRIu32"):\n",
                        vcpu_to_print->processor, vcpu_to_print->domid, vcpu_to_print->vcpu_id);
         len += vcpu_to_print->print_state(o);
     }
