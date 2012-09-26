@@ -156,7 +156,7 @@ bool x86_64PCPU::decode_extended_state() throw ()
                             pid);
         this->processor_id = pid;
 
-        LOG_INFO("  Processor ID %"PRIu64"\n", this->processor_id);
+        LOG_INFO("  Processor ID %u\n", this->processor_id);
 
         if ( this->processor_id > host.nr_pcpus )
         {
