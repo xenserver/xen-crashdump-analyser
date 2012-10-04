@@ -64,43 +64,38 @@ Elf * Elf::create(const char * path)
     if ( (fd = open(path, O_RDONLY, NULL)) == -1 )
     {
         LOG_ERROR("open() failed: %s\n", strerror(errno));
-        return NULL;
+        goto error;
     }
 
     if ( (r = read(fd, ident, sizeof ident)) == -1 )
     {
         LOG_ERROR("Failed to read elf ident: %s\n", strerror(errno));
-        close(fd);
-        return NULL;
+        goto error_close;
     }
 
     if ( r != sizeof ident )
     {
         LOG_ERROR("Failed to read all of the elf ident.  Read %zu bytes instead of %zu\n",
                   r, sizeof ident);
-        close(fd);
-        return NULL;
+        goto error_close;
     }
 
     if ( 0 != std::strncmp(ELFMAG, ident, SELFMAG) )
     {
         LOG_ERROR("File is not an elf file\n");
-        close(fd);
-        return NULL;
+        goto error_close;
     }
 
     if ( ident[EI_DATA] != ELFDATA2LSB )
     {
         LOG_ERROR("Expected little endian elf file\n");
-        close(fd);
-        return NULL;
+        goto error_close;
     }
 
     if ( ident[EI_VERSION] != EV_CURRENT )
     {
         LOG_ERROR("Expected version to be current\n");
-        close(fd);
-        return NULL;
+        goto error_close;
     }
 
     if ( ident[EI_CLASS] == ELFCLASS64 )
@@ -111,9 +106,14 @@ Elf * Elf::create(const char * path)
     else
     {
         LOG_ERROR("Unexpected class %d\n", ident[EI_CLASS]);
-        close(fd);
-        return NULL;
+        goto error_close;
     }
+
+error_close:
+    if ( -1 == close(fd) )
+        LOG_ERROR("close() failed: %s\n", strerror(errno));
+error:
+    return NULL;
 }
 
 /*

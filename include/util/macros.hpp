@@ -26,14 +26,34 @@
  * @author Andrew Cooper
  */
 
+// Header files included because of function calls in the macros
+#include <cstdio>
+#include <cstring>
+#include <cerrno>
+
 /// Safe delete an object
 #define SAFE_DELETE(o) do { if ((o)) delete (o); (o) = NULL; } while (0)
 
 /// Safe delete an array
 #define SAFE_DELETE_ARRAY(a) do { if ((a)) delete [] (a); (a) = NULL; } while (0)
 
-/// Safe fclose a FILE
-#define SAFE_FCLOSE(f) do { if ((f)) fclose(f); (f) = NULL; } while (0)
+/**
+ * Log an error in the case that fclose has failed.
+ * For the common case (-ENOSPC), log only once to prevent console spam.
+ * @param err errno from fclose().
+ */
+void fclose_failure(int err);
+
+/**
+ * Safe fclose a FILE.
+ * Logs an error in the case that the call to fclose() is not successful.
+ */
+#define SAFE_FCLOSE(f)                      \
+    do {                                    \
+        if ((f) && (0 != fclose(f)) )       \
+            fclose_failure(errno);          \
+        (f) = NULL;                         \
+    } while (0)
 
 /**
  * Common catch statements.  Presented as a macro only for code brevity in

@@ -196,10 +196,13 @@ void atexit_close_log( void )
 {
     if ( logfd && ( logfd != stderr ) )
     {
-        fflush ( logfd );
-        fclose ( logfd );
+        if ( 0 != fclose ( logfd ) )
+            fprintf(stderr, "ERROR Closing the log file: %s\n", strerror(errno));
         logfd = NULL;
     }
+
+    // Attempt to ensure the log file is completely on disk.
+    sync();
 }
 
 FILE * fopen_in_outdir(const char * path, const char * flags)
@@ -225,6 +228,23 @@ FILE * fopen_in_outdir(const char * path, const char * flags)
 
     errno = error;
     return fd;
+}
+
+void fclose_failure(int err)
+{
+    static bool enospc_once = true;
+
+    if ( ! err )
+        return;
+
+    if ( err != ENOSPC )
+        LOG_ERROR("fclose failed: %s\n", strerror(err));
+    else
+    {
+        if ( enospc_once )
+            LOG_ERROR("fclose failed: %s\n", strerror(err));
+        enospc_once = false;
+    }
 }
 
 /**
@@ -444,7 +464,8 @@ int main(int argc, char ** argv)
         if ( atexit(atexit_close_log) )
         {
             LOG_ERROR("call to atexit failed.  Something is very wrong\n");
-            fclose(logfd);
+            SAFE_FCLOSE(logfd);
+            sync();
             return EX_SOFTWARE;
         }
 
@@ -585,6 +606,7 @@ int main(int argc, char ** argv)
     }
 
     LOG_INFO("COMPLETE\n");
+    SAFE_FCLOSE(logfd);
     return EX_OK;
 }
 

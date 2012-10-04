@@ -23,6 +23,7 @@
  */
 #include "symbol-table.hpp"
 #include "util/log.hpp"
+#include "util/macros.hpp"
 
 #include <cstring>
 #include <cstdio>
@@ -171,7 +172,7 @@ bool SymbolTable::parse(const char * file, bool offsets)
 
         if ( nr_read != 3 )
         {
-            fclose(fd);
+            SAFE_FCLOSE(fd);
             return false;
         }
 
@@ -188,7 +189,7 @@ bool SymbolTable::parse(const char * file, bool offsets)
         }
     }
 
-    fclose(fd);
+    SAFE_FCLOSE(fd);
 
     this->symbols.sort(&SymbolTable::addrcmp);
 

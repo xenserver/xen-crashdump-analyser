@@ -359,7 +359,7 @@ bool Host::print_xen(bool dump_structures) throw()
     CATCH_COMMON
 
     set_additional_log(NULL);
-    fclose(o);
+    SAFE_FCLOSE(o);
 
     // If we dont wish to dump the structures, return now
     if ( ! dump_structures )
@@ -376,7 +376,7 @@ bool Host::print_xen(bool dump_structures) throw()
     }
     LOG_INFO("Opened xen.structures.log for foobar\n");
 
-    fclose(o);
+    SAFE_FCLOSE(o);
 #endif
 
     return success;
