@@ -132,6 +132,9 @@ void set_additional_log(FILE * fd) { additional_log = fd; }
 void __log(int severity, const char * file, int line, const char * fnc, const char * fmt, ...)
 {
     static char buffer[256];
+    static bool warn_once = true;
+    static bool enospc_once = true;
+    int log_write_error = 0;
     const char * sev_str = severity2str(severity);
     va_list vargs;
 
@@ -144,14 +147,16 @@ void __log(int severity, const char * file, int line, const char * fnc, const ch
         // Should we include __FILE__, __LINE__ and __fuct__ references?
         if ( verbosity >= LOG_LEVEL_DEBUG_EXTRA )
         {
-            fprintf(logfd, "%s (%s:%d %s()) %s", sev_str, file, line, fnc, buffer);
+            if ( fprintf(logfd, "%s (%s:%d %s()) %s", sev_str, file, line, fnc, buffer) < 0 )
+                log_write_error = errno;
             if ( additional_log && severity <= LOG_LEVEL_WARN )
                 fprintf(additional_log, "%s (%s:%d %s()) %s", sev_str, file, line, fnc, buffer);
         }
         // or just the severity
         else
         {
-            fprintf(logfd, "%s %s", sev_str, buffer);
+            if ( fprintf(logfd, "%s %s", sev_str, buffer) < 0 )
+                log_write_error = errno;
             if ( additional_log && severity <= LOG_LEVEL_WARN )
                 fprintf(additional_log, "%s %s", sev_str, buffer);
         }
@@ -160,6 +165,30 @@ void __log(int severity, const char * file, int line, const char * fnc, const ch
     // If this is an error message, send it stderr (if we havn't already)
     if ( severity == LOG_LEVEL_ERROR && (stderr != logfd))
         fprintf(stderr, "%s %s", sev_str, buffer);
+
+    // Warn directly to stderr on the first error writing to logfd
+    if ( warn_once && log_write_error )
+    {
+        warn_once = false;
+        fprintf(stderr, "Error writing to log file: %s\n", strerror(log_write_error));
+    }
+
+    /* In the case of ENOSPC, the chances are good that we still have
+       inodes free and the directory file still has space for entries,
+       so try and leave behind a 0-length file indicating that the
+       system is full, which a bugtool will pick up. */
+    if ( enospc_once && log_write_error == ENOSPC && outdirfd && workdirfd )
+    {
+        FILE * tmp;
+        enospc_once = false;
+
+        // Poor mans `touch` in outdir, without any error checking.
+        fchdir(outdirfd);
+        tmp = fopen("fs-full", "w");
+        if ( tmp )
+            fclose(tmp);
+        fchdir(workdirfd);
+    }
 }
 
 /// Atexit function to close the log file descriptor
