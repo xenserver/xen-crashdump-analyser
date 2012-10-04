@@ -139,7 +139,7 @@ void __log(int severity, const char * file, int line, const char * fnc, const ch
     vsnprintf(buffer, sizeof buffer - 1, fmt, vargs);
     va_end(vargs);
 
-    if ( severity <= verbosity )
+    if ( severity <= verbosity && logfd )
     {
         // Should we include __FILE__, __LINE__ and __fuct__ references?
         if ( verbosity >= LOG_LEVEL_DEBUG_EXTRA )
