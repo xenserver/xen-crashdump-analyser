@@ -259,6 +259,7 @@ bool Host::decode_xen() throw ()
 
 bool Host::print_xen(bool dump_structures) throw()
 {
+    static const char * xen_log_file = "xen.log";
     int len = 0;
     bool success = false;
     const CPU & cpu = *static_cast<const CPU*>(this->pcpus[0]);
@@ -266,12 +267,13 @@ bool Host::print_xen(bool dump_structures) throw()
     FILE * o = NULL;
 
     // Try to open the xen.log file
-    if ( NULL == (o = fopen_in_outdir("xen.log", "w")))
+    if ( NULL == (o = fopen_in_outdir(xen_log_file, "w")))
     {
-        LOG_ERROR("Unable to open xen.log in output directory: %s\n", strerror(errno));
+        LOG_ERROR("Unable to open %s in output directory: %s\n",
+                  xen_log_file, strerror(errno));
         return false;
     }
-    LOG_INFO("Opened xen.log for host information\n");
+    LOG_INFO("Opened for host information\n", xen_log_file);
 
     set_additional_log(o);
 
@@ -357,6 +359,7 @@ bool Host::print_xen(bool dump_structures) throw()
         success = true;
     }
     CATCH_COMMON
+    CATCH_FILEWRITE(xen_log_file)
 
     set_additional_log(NULL);
     SAFE_FCLOSE(o);
@@ -489,7 +492,11 @@ int Host::print_domains(bool dump_structures) throw ()
                 }
             }
 
-            dom->print_state(fd);
+            try
+            {
+                dom->print_state(fd);
+            }
+            CATCH_FILEWRITE(fname)
 
             // We are going to dump the xen structures...
             if ( dump_structures )
@@ -509,7 +516,11 @@ int Host::print_domains(bool dump_structures) throw ()
                 LOG_DEBUG("    Dumping structures to '%s'\n", fname);
                 set_additional_log(fd);
 
-                dom->dump_structures(fd);
+                try
+                {
+                    dom->dump_structures(fd);
+                }
+                CATCH_FILEWRITE(fname)
             }
 
             ++success;
