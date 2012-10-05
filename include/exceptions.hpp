@@ -168,6 +168,35 @@ public:
     vaddr_t vaddr;
 };
 
+
+/**
+ * File write exception
+ *
+ * Thrown from FPRINTF (& friends) wrapper functions to catch and deal with
+ * write errors to the stream.
+ */
+class filewrite: public std::exception
+{
+public:
+    /**
+     * Constructor.
+     * @param error errno of the error.
+     */
+    filewrite(const int error) throw();
+
+    /// Destructor.
+    virtual ~filewrite() throw();
+
+    /**
+     * What is this exception.
+     * @return string "validate"
+     */
+    virtual const char * what() const throw();
+
+    /// Errno from error
+    int error;
+};
+
 #endif
 
 /*

@@ -78,6 +78,18 @@ const char * validate::what() const throw()
     return "validate";
 }
 
+
+filewrite::filewrite(const int error) throw():
+    error(error)
+{}
+
+filewrite::~filewrite() throw() {}
+
+const char * filewrite::what() const throw()
+{
+    return "filewrite";
+}
+
 /*
  * Local variables:
  * mode: C++
