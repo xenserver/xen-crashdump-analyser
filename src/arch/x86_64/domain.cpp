@@ -28,6 +28,7 @@
 #include "util/log.hpp"
 #include "util/macros.hpp"
 #include "util/symbol.hpp"
+#include "util/stdio-wrapper.hpp"
 
 /**
  * @file src/arch/x86_64/domain.cpp
@@ -134,30 +135,30 @@ int x86_64Domain::print_state(FILE * o) const
 {
     int len = 0;
 
-    len += fprintf(o, "Domain %"PRIu16": (%d vcpus)\n", this->domain_id, this->max_cpus);
+    len += FPRINTF(o, "Domain %"PRIu16": (%d vcpus)\n", this->domain_id, this->max_cpus);
 
-    len += fprintf(o, "  Flags:%s%s%s\n",
+    len += FPRINTF(o, "  Flags:%s%s%s\n",
                    this->is_privileged ? " PRIVILEGED" : "",
                    this->is_32bit_pv ? " 32BIT-PV" : "",
                    this->is_hvm ? " HVM" : ""
         );
 
-    len += fprintf(o, "  Paging assistance: ");
+    len += FPUTS("  Paging assistance: ", o);
     len += print_paging_mode(o, this->paging_mode);
-    len += fprintf(o, "\n");
+    len += FPUTS("\n", o);
 
 ///@cond
 #define PAGES_TO_GB(p) (((double)(p)) * 4096.0 / (1024.0 * 1024.0 * 1024.0))
 #define PAGES_TO_MB(p) (((double)(p)) * 4096.0 / (1024.0 * 1024.0))
 #define PAGES_TO_KB(p) (((double)(p)) * 4096.0 / (1024.0))
 
-    len += fprintf(o, "  Max Pages: %"PRIu32" (%.3fGB, %.3fMB, %.fKB)\n",
+    len += FPRINTF(o, "  Max Pages: %"PRIu32" (%.3fGB, %.3fMB, %.fKB)\n",
                    this->max_pages, PAGES_TO_GB(this->max_pages),
                    PAGES_TO_MB(this->max_pages), PAGES_TO_KB(this->max_pages));
-    len += fprintf(o, "  Current Pages: %"PRIu32"\n", this->tot_pages);
-    len += fprintf(o, "  Shared Pages: %"PRId32"\n", this->shr_pages);
+    len += FPRINTF(o, "  Current Pages: %"PRIu32"\n", this->tot_pages);
+    len += FPRINTF(o, "  Shared Pages: %"PRId32"\n", this->shr_pages);
 
-    len += fprintf(o, "  Handle: %02"PRIx8"%02"PRIx8"%02"PRIx8"%02"PRIx8"-%02"PRIx8
+    len += FPRINTF(o, "  Handle: %02"PRIx8"%02"PRIx8"%02"PRIx8"%02"PRIx8"-%02"PRIx8
                    "%02"PRIx8"-%02"PRIx8"%02"PRIx8"-""%02"PRIx8"%02"PRIx8"-%02"PRIx8
                    "%02"PRIx8"%02"PRIx8"%02"PRIx8"%02"PRIx8"%02"PRIx8"\n",
                    this->handle[ 0], this->handle[ 1], this->handle[ 2], this->handle[ 3],
@@ -166,7 +167,7 @@ int x86_64Domain::print_state(FILE * o) const
                    this->handle[12], this->handle[13], this->handle[14], this->handle[15] );
 
 
-    len += fprintf(o, "\n");
+    len += FPUTS("\n", o);
 
     if ( this->domain_id == 0 )
         this->print_cmdline(o);
@@ -174,18 +175,18 @@ int x86_64Domain::print_state(FILE * o) const
     for ( uint32_t x = 0; x < this->max_cpus; ++ x )
         if ( this->vcpus[x] )
         {
-            len += fprintf(o, "  VCPU%"PRIu32":\n", this->vcpus[x]->vcpu_id);
+            len += FPRINTF(o, "  VCPU%"PRIu32":\n", this->vcpus[x]->vcpu_id);
             len += this->vcpus[x]->print_state(o);
         }
         else
-            len += fprintf(o, "No information for vcpu%"PRIu32"\n", x);
+            len += FPRINTF(o, "No information for vcpu%"PRIu32"\n", x);
 
-    len += fprintf(o, "\n  Console Ring:\n");
+    len += FPUTS("\n  Console Ring:\n", o);
 
     if ( this->domain_id == 0 )
         this->print_console(o);
     else
-        len += fprintf(o, "    No Symbol Table\n");
+        len += FPUTS("    No Symbol Table\n", o);
 
 #undef PAGES_TO_KB
 #undef PAGES_TO_MB
@@ -206,19 +207,19 @@ int x86_64Domain::dump_structures(FILE * o) const
         return len;
     }
 
-    len += fprintf(o, "Xen structures for Domain %"PRId16"\n\n", this->domain_id);
+    len += FPRINTF(o, "Xen structures for Domain %"PRId16"\n\n", this->domain_id);
 
-    len += fprintf(o, "struct domain (0x%016"PRIx64")\n", this->domain_ptr);
+    len += FPRINTF(o, "struct domain (0x%016"PRIx64")\n", this->domain_ptr);
     len += dump_64bit_data(o, cpu, this->domain_ptr, DOMAIN_sizeof);
 
     for ( uint32_t x = 0; x < this->max_cpus; ++x )
         if ( this->vcpus[x] )
         {
-            len += fprintf(o, "\n");
+            len += FPUTS("\n", o);
             len += this->vcpus[x]->dump_structures(o);
         }
         else
-            len += fprintf(o, "Nothing to dump for vcpu%"PRIu32"\n\n", x);
+            len += FPRINTF(o, "Nothing to dump for vcpu%"PRIu32"\n\n", x);
 
     return len;
 }
@@ -246,8 +247,8 @@ int x86_64Domain::print_console(FILE * o) const
     if ( log_end_sym == NULL ||
          log_buf_sym == NULL || log_buf_len_sym == NULL )
     {
-        len += fprintf(o, "\tUnavailable, the following symbols are not available:\n");
-        len += fprintf(o, "  %s%s%s.\n\n",
+        len += FPUTS("\tUnavailable, the following symbols are not available:\n", o);
+        len += FPRINTF(o, "  %s%s%s.\n\n",
                        log_end_sym     == NULL ? " log_end"     : "",
                        log_buf_sym     == NULL ? " log_buf"     : "",
                        log_buf_len_sym == NULL ? " log_buf_len" : "");
@@ -273,7 +274,7 @@ int x86_64Domain::print_console(FILE * o) const
 
         if ( length > (1<<21) )
         {
-            len += fprintf(o, "\tLength of 0x%"PRIx64" looks abnormally long.  Truncating to"
+            len += FPRINTF(o, "\tLength of 0x%"PRIx64" looks abnormally long.  Truncating to"
                            "0x%x.\n", length, 1<<16);
             length = 1<<16;
         }
@@ -300,7 +301,7 @@ int x86_64Domain::print_cmdline(FILE * o) const
 
     const Symbol * cmdline_sym = host.dom0_symtab.find("saved_command_line");
     if ( ! cmdline_sym )
-        len += fprintf(o, "Missing symbol for command line\n");
+        len += FPUTS("Missing symbol for command line\n", o);
     else
     {
         try
@@ -315,7 +316,7 @@ int x86_64Domain::print_cmdline(FILE * o) const
                 memory.read64_vaddr(cpu, cmdline_sym->address, cmdline_vaddr.val64);
 
             memory.read_str_vaddr(cpu, cmdline_vaddr.val64, cmdline, 2047);
-            len += fprintf(o, "  Command line: %s\n", cmdline);
+            len += FPRINTF(o, "  Command line: %s\n", cmdline);
 
             SAFE_DELETE_ARRAY(cmdline);
         }
@@ -326,7 +327,7 @@ int x86_64Domain::print_cmdline(FILE * o) const
         CATCH_COMMON;
     }
 
-    len += fprintf(o, "\n");
+    len += FPUTS("\n", o);
     SAFE_DELETE_ARRAY(cmdline);
     return len;
 }

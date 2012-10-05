@@ -24,6 +24,7 @@
 #include "symbol-table.hpp"
 #include "util/log.hpp"
 #include "util/macros.hpp"
+#include "util/stdio-wrapper.hpp"
 
 #include <cstring>
 #include <cstdio>
@@ -244,13 +245,13 @@ int SymbolTable::print_symbol64(FILE * o, const vaddr_t & addr, bool brackets) c
 
     if ( (*before)->address <= addr && (*after)->address > addr )
     {
-        len += fprintf(o, "\t ");
+        len += FPUTS("\t ", o);
         if ( brackets )
-            len += fprintf(o, "[%016"PRIx64"]", addr);
+            len += FPRINTF(o, "[%016"PRIx64"]", addr);
         else
-            len += fprintf(o, " %016"PRIx64" ", addr);
+            len += FPRINTF(o, " %016"PRIx64" ", addr);
 
-        len += fprintf(o, " %s+%#"PRIx64"/%#"PRIx64,
+        len += FPRINTF(o, " %s+%#"PRIx64"/%#"PRIx64,
                        (*before)->name,
                        addr - (*before)->address,
                        (*after)->address - (*before)->address );
@@ -258,10 +259,10 @@ int SymbolTable::print_symbol64(FILE * o, const vaddr_t & addr, bool brackets) c
         if ( ! std::strcmp((*before)->name, "hypercall_page") )
         {
             unsigned int nr = (unsigned int)((addr - (*before)->address)/32);
-            len += fprintf(o, " (%d, %s)", nr, hypercall_name(nr));
+            len += FPRINTF(o, " (%d, %s)", nr, hypercall_name(nr));
         }
 
-        len += fprintf(o, "\n");
+        len += FPUTS("\n", o);
     }
     else
         LOG_WARN("Strange resulting iterators printing symbol 0x%016"PRIx64"\n", addr);
@@ -290,13 +291,13 @@ int SymbolTable::print_symbol32(FILE * o, const vaddr_t & addr, bool brackets) c
 
     if ( (*before)->address <= addr && (*after)->address > addr )
     {
-        len += fprintf(o, "\t ");
+        len += FPUTS("\t ", o);
         if ( brackets )
-            len += fprintf(o, "[%08"PRIx64"]", addr);
+            len += FPRINTF(o, "[%08"PRIx64"]", addr);
         else
-            len += fprintf(o, " %08"PRIx64" ", addr);
+            len += FPRINTF(o, " %08"PRIx64" ", addr);
 
-        len += fprintf(o, " %s+%#"PRIx64"/%#"PRIx64,
+        len += FPRINTF(o, " %s+%#"PRIx64"/%#"PRIx64,
                        (*before)->name,
                        addr - (*before)->address,
                        (*after)->address - (*before)->address );
@@ -304,10 +305,10 @@ int SymbolTable::print_symbol32(FILE * o, const vaddr_t & addr, bool brackets) c
         if ( ! std::strcmp((*before)->name, "hypercall_page") )
         {
             unsigned int nr = (unsigned int)((addr - (*before)->address)/32);
-            len += fprintf(o, " (%d, %s)", nr, hypercall_name(nr));
+            len += FPRINTF(o, " (%d, %s)", nr, hypercall_name(nr));
         }
 
-        len += fprintf(o, "\n");
+        len += FPUTS("\n", o);
     }
     else
         LOG_WARN("Strange resulting iterators printing symbol 0x%016"PRIx64"\n", addr);

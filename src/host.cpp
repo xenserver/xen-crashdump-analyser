@@ -37,6 +37,7 @@
 #include "memory.hpp"
 #include "util/file.hpp"
 #include "util/macros.hpp"
+#include "util/stdio-wrapper.hpp"
 
 #include <new>
 #include <sysexits.h>
@@ -281,21 +282,21 @@ bool Host::print_xen(bool dump_structures)
     {
         // Print some header information for the host
         if ( this->xen_extra )
-            len += fprintf(o, "Xen version:      %d.%d%s\n", this->xen_major,
+            len += FPRINTF(o, "Xen version:      %d.%d%s\n", this->xen_major,
                            this->xen_minor, this->xen_extra);
         if ( this->xen_changeset )
-            len += fprintf(o, "Xen changeset:    %s\n", this->xen_changeset);
+            len += FPRINTF(o, "Xen changeset:    %s\n", this->xen_changeset);
         if ( this->xen_compiler )
-            len += fprintf(o, "Xen compiler:     %s\n", this->xen_compiler);
+            len += FPRINTF(o, "Xen compiler:     %s\n", this->xen_compiler);
         if ( this->xen_compile_date )
-            len += fprintf(o, "Xen compile date: %s\n", this->xen_compile_date);
+            len += FPRINTF(o, "Xen compile date: %s\n", this->xen_compile_date);
 
-        len += fprintf(o, "\n");
+        len += FPUTS("\n", o);
 
         // Try to find and print the saved command line string
         const Symbol * cmdline_sym = this->symtab.find("saved_cmdline");
         if ( ! cmdline_sym )
-            len += fprintf(o, "Missing symbol for command line\n");
+            len += FPUTS("Missing symbol for command line\n", o);
         else
         {
             try
@@ -305,7 +306,7 @@ bool Host::print_xen(bool dump_structures)
 
                 host.validate_xen_vaddr(cmdline_sym->address);
                 memory.read_str_vaddr(cpu, cmdline_sym->address, cmdline, 1023);
-                len += fprintf(o, "Xen command line: %s\n", cmdline);
+                len += FPRINTF(o, "Xen command line: %s\n", cmdline);
 
                 SAFE_DELETE_ARRAY(cmdline);
             }
@@ -317,12 +318,12 @@ bool Host::print_xen(bool dump_structures)
             SAFE_DELETE_ARRAY(cmdline);
         }
 
-        len += fprintf(o, "\n");
+        len += FPUTS("\n", o);
 
         for (int x=0; x < nr_pcpus; ++x)
             len += this->pcpus[x]->print_state(o);
 
-        len += fprintf(o, "\n  Console Ring:\n");
+        len += FPUTS("\n  Console Ring:\n", o);
 
         if ( required_console_symbols == 0 )
         {
@@ -354,7 +355,7 @@ bool Host::print_xen(bool dump_structures)
                 len += print_console_ring(o, cpu, conring_ptr, length, 0, 0);
         }
         else
-            len += fprintf(o, "    Missing conring symbols\n");
+            len += FPUTS("    Missing conring symbols\n", o);
 
         success = true;
     }

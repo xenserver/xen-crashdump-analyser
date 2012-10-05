@@ -35,6 +35,7 @@
 #include "util/print-structures.hpp"
 #include "util/log.hpp"
 #include "util/macros.hpp"
+#include "util/stdio-wrapper.hpp"
 
 x86_64VCPU::x86_64VCPU():
     regs()
@@ -197,73 +198,73 @@ int x86_64VCPU::print_state(FILE * o) const
     int len = 0;
 
     if ( ! this->is_up() )
-        return len + fprintf(o, "\tVCPU Offline\n\n");
+        return len + FPUTS("\tVCPU Offline\n\n", o);
 
     if ( this->flags & CPU_PV_COMPAT )
         return len + this->print_state_compat(o);
 
     if ( this->flags & CPU_CORE_STATE )
     {
-        len += fprintf(o, "\tRIP:    %04x:[<%016"PRIx64">] Ring %d\n",
+        len += FPRINTF(o, "\tRIP:    %04x:[<%016"PRIx64">] Ring %d\n",
                        this->regs.cs, this->regs.rip, this->regs.cs & 0x3);
-        len += fprintf(o, "\tRFLAGS: %016"PRIx64" ", this->regs.rflags);
+        len += FPRINTF(o, "\tRFLAGS: %016"PRIx64" ", this->regs.rflags);
         len += print_rflags(o, this->regs.rflags);
-        len += fprintf(o, "\n\n");
+        len += FPUTS("\n\n", o);
 
-        len += fprintf(o, "\trax: %016"PRIx64"   rbx: %016"PRIx64"   rcx: %016"PRIx64"\n",
+        len += FPRINTF(o, "\trax: %016"PRIx64"   rbx: %016"PRIx64"   rcx: %016"PRIx64"\n",
                        this->regs.rax, this->regs.rbx, this->regs.rcx);
-        len += fprintf(o, "\trdx: %016"PRIx64"   rsi: %016"PRIx64"   rdi: %016"PRIx64"\n",
+        len += FPRINTF(o, "\trdx: %016"PRIx64"   rsi: %016"PRIx64"   rdi: %016"PRIx64"\n",
                        this->regs.rdx, this->regs.rsi, this->regs.rdi);
-        len += fprintf(o, "\trbp: %016"PRIx64"   rsp: %016"PRIx64"   r8:  %016"PRIx64"\n",
+        len += FPRINTF(o, "\trbp: %016"PRIx64"   rsp: %016"PRIx64"   r8:  %016"PRIx64"\n",
                        this->regs.rbp, this->regs.rsp, this->regs.r8);
-        len += fprintf(o, "\tr9:  %016"PRIx64"   r10: %016"PRIx64"   r11: %016"PRIx64"\n",
+        len += FPRINTF(o, "\tr9:  %016"PRIx64"   r10: %016"PRIx64"   r11: %016"PRIx64"\n",
                        this->regs.r9,  this->regs.r10, this->regs.r11);
-        len += fprintf(o, "\tr12: %016"PRIx64"   r13: %016"PRIx64"   r14: %016"PRIx64"\n",
+        len += FPRINTF(o, "\tr12: %016"PRIx64"   r13: %016"PRIx64"   r14: %016"PRIx64"\n",
                        this->regs.r12, this->regs.r13, this->regs.r14);
-        len += fprintf(o, "\tr15: %016"PRIx64"\n",
+        len += FPRINTF(o, "\tr15: %016"PRIx64"\n",
                        this->regs.r15);
     }
 
     if ( this->flags & CPU_EXTD_STATE )
     {
-        len += fprintf(o, "\n");
-        len += fprintf(o, "\tcr3: %016"PRIx64"\n", this->regs.cr3);
+        len += FPUTS("\n", o);
+        len += FPRINTF(o, "\tcr3: %016"PRIx64"\n", this->regs.cr3);
     }
 
     if ( this->flags & CPU_CORE_STATE )
     {
-        len += fprintf(o, "\n");
-        len += fprintf(o, "\tds: %04"PRIx16"   es: %04"PRIx16"   "
+        len += FPUTS("\n", o);
+        len += FPRINTF(o, "\tds: %04"PRIx16"   es: %04"PRIx16"   "
                        "fs: %04"PRIx16"   gs: %04"PRIx16"   "
                        "ss: %04"PRIx16"   cs: %04"PRIx16"\n",
                        this->regs.ds, this->regs.es, this->regs.fs,
                        this->regs.gs, this->regs.ss, this->regs.cs);
     }
 
-    len += fprintf(o, "\n");
+    len += FPUTS("\n", o);
 
-    len += fprintf(o, "\tPause Flags: 0x%"PRIx32" ", this->pause_flags);
+    len += FPRINTF(o, "\tPause Flags: 0x%"PRIx32" ", this->pause_flags);
     len += print_pause_flags(o, this->pause_flags);
-    len += fprintf(o, "\n");
+    len += FPUTS("\n", o);
 
     switch ( this->runstate )
     {
     case RST_NONE:
-        len += fprintf(o, "\tNot running:  Last run on PCPU%"PRIu32"\n", this->processor);
+        len += FPRINTF(o, "\tNot running:  Last run on PCPU%"PRIu32"\n", this->processor);
         break;
     case RST_RUNNING:
-        len += fprintf(o, "\tCurrently running on PCPU%"PRIu32"\n", this->processor);
+        len += FPRINTF(o, "\tCurrently running on PCPU%"PRIu32"\n", this->processor);
         break;
     case RST_CTX_SWITCH:
-        len += fprintf(o, "\tBeing Context Switched:  State unreliable\n");
+        len += FPUTS("\tBeing Context Switched:  State unreliable\n", o);
         break;
     default:
-        len += fprintf(o, "\tUnknown runstate\n");
+        len += FPUTS("\tUnknown runstate\n", o);
         break;
     }
-    len += fprintf(o, "\tStruct vcpu at %016"PRIx64"\n", this->vcpu_ptr);
+    len += FPRINTF(o, "\tStruct vcpu at %016"PRIx64"\n", this->vcpu_ptr);
 
-    len += fprintf(o, "\n");
+    len += FPUTS("\n", o);
 
     if ( this->flags & CPU_CORE_STATE &&
          this->flags & CPU_EXTD_STATE &&
@@ -271,13 +272,13 @@ int x86_64VCPU::print_state(FILE * o) const
            this->paging_support == VCPU::PAGING_SHADOW )
         )
     {
-        len += fprintf(o, "\tStack at %16"PRIx64":", this->regs.rsp);
+        len += FPRINTF(o, "\tStack at %16"PRIx64":", this->regs.rsp);
         len += print_64bit_stack(o, *static_cast<const CPU*>(this), this->regs.rsp);
 
-        len += fprintf(o, "\n\tCode:\n");
+        len += FPUTS("\n\tCode:\n", o);
         len += print_code(o, *static_cast<const CPU*>(this), this->regs.rip);
 
-        len += fprintf(o, "\n\tCall Trace:\n");
+        len += FPUTS("\n\tCall Trace:\n", o);
         if ( this->domid == 0 )
         {
             vaddr_t sp = this->regs.rsp;
@@ -298,9 +299,9 @@ int x86_64VCPU::print_state(FILE * o) const
             CATCH_COMMON
         }
         else
-            len += fprintf(o, "\t  No symbol table for domain\n");
+            len += FPUTS("\t  No symbol table for domain\n", o);
 
-        len += fprintf(o, "\n");
+        len += FPUTS("\n", o);
     }
     return len;
 }
@@ -311,30 +312,30 @@ int x86_64VCPU::print_state_compat(FILE * o) const
 
     if ( this->flags & CPU_CORE_STATE )
     {
-        len += fprintf(o, "\tEIP:    %04"PRIx16":[<%08"PRIx32">] Ring %d\n",
+        len += FPRINTF(o, "\tEIP:    %04"PRIx16":[<%08"PRIx32">] Ring %d\n",
                        this->regs.cs, this->regs.eip, this->regs.cs & 0x3);
-        len += fprintf(o, "\tEFLAGS: %08"PRIx32" ", this->regs.eflags);
+        len += FPRINTF(o, "\tEFLAGS: %08"PRIx32" ", this->regs.eflags);
         len += print_rflags(o, this->regs.rflags & -((uint32_t)1));
-        len += fprintf(o, "\n");
+        len += FPUTS("\n", o);
 
-        len += fprintf(o, "\teax: %08"PRIx32"   ebx: %08"PRIx32"   ",
+        len += FPRINTF(o, "\teax: %08"PRIx32"   ebx: %08"PRIx32"   ",
                        this->regs.eax, this->regs.ebx);
-        len += fprintf(o, "ecx: %08"PRIx32"   edx: %08"PRIx32"\n",
+        len += FPRINTF(o, "ecx: %08"PRIx32"   edx: %08"PRIx32"\n",
                        this->regs.ecx, this->regs.edx);
-        len += fprintf(o, "\tesi: %08"PRIx32"   edi: %08"PRIx32"   ",
+        len += FPRINTF(o, "\tesi: %08"PRIx32"   edi: %08"PRIx32"   ",
                        this->regs.esi, this->regs.edi);
-        len += fprintf(o, "ebp: %08"PRIx32"   esp: %08"PRIx32"\n",
+        len += FPRINTF(o, "ebp: %08"PRIx32"   esp: %08"PRIx32"\n",
                        this->regs.ebp, this->regs.esp);
     }
 
     if ( this->flags & CPU_EXTD_STATE )
     {
-        len += fprintf(o, "\tcr3: %016"PRIx64"\n", this->regs.cr3);
+        len += FPRINTF(o, "\tcr3: %016"PRIx64"\n", this->regs.cr3);
     }
 
     if ( this->flags & CPU_CORE_STATE )
     {
-        len += fprintf(o, "\tds: %04"PRIx16"   es: %04"PRIx16"   "
+        len += FPRINTF(o, "\tds: %04"PRIx16"   es: %04"PRIx16"   "
                        "fs: %04"PRIx16"   gs: %04"PRIx16"   "
                        "ss: %04"PRIx16"   cs: %04"PRIx16"\n",
                        this->regs.ds, this->regs.es, this->regs.fs,
@@ -342,41 +343,41 @@ int x86_64VCPU::print_state_compat(FILE * o) const
 
     }
 
-    len += fprintf(o, "\n");
+    len += FPUTS("\n", o);
 
-    len += fprintf(o, "\tPause Flags: 0x%"PRIx32" ", this->pause_flags);
+    len += FPRINTF(o, "\tPause Flags: 0x%"PRIx32" ", this->pause_flags);
     len += print_pause_flags(o, this->pause_flags);
-    len += fprintf(o, "\n");
+    len += FPUTS("\n", o);
 
     switch ( this->runstate )
     {
     case RST_NONE:
-        len += fprintf(o, "\tNot running:  Last run on PCPU%"PRIu32"\n", this->processor);
+        len += FPRINTF(o, "\tNot running:  Last run on PCPU%"PRIu32"\n", this->processor);
         break;
     case RST_RUNNING:
-        len += fprintf(o, "\tCurrently running on PCPU%"PRIu32"\n", this->processor);
+        len += FPRINTF(o, "\tCurrently running on PCPU%"PRIu32"\n", this->processor);
         break;
     case RST_CTX_SWITCH:
-        len += fprintf(o, "\tBeing Context Switched:  State unreliable\n");
+        len += FPUTS("\tBeing Context Switched:  State unreliable\n", o);
         break;
     default:
-        len += fprintf(o, "\tUnknown runstate\n");
+        len += FPUTS("\tUnknown runstate\n", o);
         break;
     }
-    len += fprintf(o, "\tStruct vcpu at %016"PRIx64"\n", this->vcpu_ptr);
+    len += FPRINTF(o, "\tStruct vcpu at %016"PRIx64"\n", this->vcpu_ptr);
 
-    len += fprintf(o, "\n");
+    len += FPUTS("\n", o);
 
     if ( this->flags & CPU_CORE_STATE &&
         this->flags & CPU_EXTD_STATE )
     {
-        len += fprintf(o, "\tStack at %08"PRIx32":", this->regs.esp);
+        len += FPRINTF(o, "\tStack at %08"PRIx32":", this->regs.esp);
         len += print_32bit_stack(o, *static_cast<const CPU*>(this), this->regs.rsp);
 
-        len += fprintf(o, "\n\tCode:\n");
+        len += FPUTS("\n\tCode:\n", o);
         len += print_code(o, *static_cast<const CPU*>(this), this->regs.rip);
 
-        len += fprintf(o, "\n\tCall Trace:\n");
+        len += FPUTS("\n\tCall Trace:\n", o);
         if ( this->domid == 0 )
         {
             vaddr_t sp = this->regs.rsp;
@@ -398,11 +399,11 @@ int x86_64VCPU::print_state_compat(FILE * o) const
             CATCH_COMMON
         }
         else
-            len += fprintf(o, "\t  No symbol table for domain\n");
+            len += FPUTS("\t  No symbol table for domain\n", o);
 
     }
 
-    len += fprintf(o, "\n");
+    len += FPUTS("\n", o);
     return len;
 }
 
@@ -418,7 +419,7 @@ int x86_64VCPU::dump_structures(FILE * o) const
         return len;
     }
 
-    len += fprintf(o, "struct vcpu (0x%016"PRIx64") for vcpu %"PRId32"\n",
+    len += FPRINTF(o, "struct vcpu (0x%016"PRIx64") for vcpu %"PRId32"\n",
                    this->vcpu_ptr, this->vcpu_id);
     len += dump_64bit_data(o, cpu, this->vcpu_ptr, VCPU_sizeof);
     return len;

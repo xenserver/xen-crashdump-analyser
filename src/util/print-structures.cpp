@@ -28,6 +28,7 @@
 #include "util/print-structures.hpp"
 #include "util/log.hpp"
 #include "util/macros.hpp"
+#include "util/stdio-wrapper.hpp"
 #include "memory.hpp"
 
 #include <limits.h>
@@ -46,7 +47,7 @@ int print_64bit_stack(FILE * o, const CPU & cpu, const vaddr_t & rsp,
     uint64_t align;
 
     if ( rsp & (WS-1) )
-        return len + fprintf(o, "\n\t  Stack pointer mis-aligned\n");
+        return len + FPUTS("\n\t  Stack pointer mis-aligned\n", o);
 
     if ( ! count )
         end = ((rsp | (PAGE_SIZE-1))+1);
@@ -56,9 +57,9 @@ int print_64bit_stack(FILE * o, const CPU & cpu, const vaddr_t & rsp,
     align = (sp & mask)/WS;
     if ( align )
     {
-        len += fprintf(o, "\n\t  %016"PRIx64":", sp & ~mask);
+        len += FPRINTF(o, "\n\t  %016"PRIx64":", sp & ~mask);
         while ( align-- )
-            len += fprintf(o, " %16s", "");
+            len += FPRINTF(o, " %16s", "");
     }
 
     try
@@ -66,14 +67,14 @@ int print_64bit_stack(FILE * o, const CPU & cpu, const vaddr_t & rsp,
         for ( ; sp < end; sp += WS )
         {
             if ( !(sp & mask) )
-                len += fprintf(o, "\n\t  %016"PRIx64":", sp);
+                len += FPRINTF(o, "\n\t  %016"PRIx64":", sp);
             memory.read64_vaddr(cpu, sp, val);
-            len += fprintf(o, " %016"PRIx64, val);
+            len += FPRINTF(o, " %016"PRIx64, val);
         }
     }
     CATCH_COMMON
 
-    len += fprintf(o, "\n");
+    len += FPUTS("\n", o);
     return len;
 }
 
@@ -91,7 +92,7 @@ int print_32bit_stack(FILE * o, const CPU & cpu, const vaddr_t & rsp,
     uint64_t align;
 
     if ( rsp & (WS-1) )
-        return len + fprintf(o, "\t  Stack pointer mis-aligned\n");
+        return len + FPUTS("\t  Stack pointer mis-aligned\n", o);
 
     if ( ! count )
         end = ((rsp | (PAGE_SIZE-1))+1);
@@ -100,17 +101,17 @@ int print_32bit_stack(FILE * o, const CPU & cpu, const vaddr_t & rsp,
 
     if ( ((rsp | sp | end) & 0xffffffff00000000ULL) )
     {
-        len += fprintf(o, "%016"PRIx64" %016"PRIx64" %016"PRIx64"\n", rsp, sp, end);
-        return len + fprintf(o, "\t Stack pointer out of range for 32bit "
-                             "Virtual Address space\n");
+        len += FPRINTF(o, "%016"PRIx64" %016"PRIx64" %016"PRIx64"\n", rsp, sp, end);
+        return len + FPUTS("\t Stack pointer out of range for 32bit "
+                           "Virtual Address space\n", o);
     }
 
     align = (sp & mask)/WS;
     if ( align )
     {
-        len += fprintf(o, "\n\t  %08"PRIx64":", sp & ~mask);
+        len += FPRINTF(o, "\n\t  %08"PRIx64":", sp & ~mask);
         while ( align-- )
-            len += fprintf(o, " %8s", "");
+            len += FPRINTF(o, " %8s", "");
 
     }
 
@@ -119,14 +120,14 @@ int print_32bit_stack(FILE * o, const CPU & cpu, const vaddr_t & rsp,
         for ( ; sp < end; sp += WS )
         {
             if ( !(sp & mask) )
-                len += fprintf(o, "\n\t  %08"PRIx64":", sp);
+                len += FPRINTF(o, "\n\t  %08"PRIx64":", sp);
             memory.read32_vaddr(cpu, sp, val);
-            len += fprintf(o, " %08"PRIx32, val);
+            len += FPRINTF(o, " %08"PRIx32, val);
         }
     }
     CATCH_COMMON
 
-    len += fprintf(o, "\n");
+    len += FPUTS("\n", o);
     return len;
 }
 
@@ -136,7 +137,7 @@ int print_code(FILE * o, const CPU & cpu, const vaddr_t & rip)
     vaddr_t ip = rip - 15;
     uint8_t d;
 
-    len += fprintf(o, "\t  ");
+    len += FPUTS("\t  ", o);
 
     try
     {
@@ -144,14 +145,14 @@ int print_code(FILE * o, const CPU & cpu, const vaddr_t & rip)
         {
             memory.read8_vaddr(cpu, ip + i, d);
             if ( (ip + i) == rip )
-                len += fprintf(o, " <%02"PRIx8">", d);
+                len += FPRINTF(o, " <%02"PRIx8">", d);
             else
-                len += fprintf(o, " %02"PRIx8, d);
+                len += FPRINTF(o, " %02"PRIx8, d);
         }
     }
     CATCH_COMMON
 
-    len += fprintf(o, "\n");
+    len += FPUTS("\n", o);
 
     return len;
 }
@@ -165,7 +166,7 @@ int print_console_ring(FILE * o, const CPU & cpu,
     ssize_t written;
 
     if ( _length > SSIZE_MAX )
-        return len + fprintf(o, "Length(%"PRIu64") exceeds SSIZE_MAX(%zd)\n",
+        return len + FPRINTF(o, "Length(%"PRIu64") exceeds SSIZE_MAX(%zd)\n",
                              _length, (ssize_t)SSIZE_MAX);
 
     if ( (length & (length-1)) == 0 )
@@ -175,14 +176,14 @@ int print_console_ring(FILE * o, const CPU & cpu,
     }
 
     if ( prod > length )
-        return len + fprintf(o, "Producer index %"PRIu64" outside ring length %"PRIu64"\n",
+        return len + FPRINTF(o, "Producer index %"PRIu64" outside ring length %"PRIu64"\n",
                              prod, length);
 
     if ( cons > length )
-        return len + fprintf(o, "Consumer index %"PRIu64" outside ring length %"PRIu64"\n",
+        return len + FPRINTF(o, "Consumer index %"PRIu64" outside ring length %"PRIu64"\n",
                              cons, length);
 
-    len += fprintf(o, "\n");
+    len += FPUTS("\n", o);
 
     try
     {
@@ -232,7 +233,7 @@ int print_console_ring(FILE * o, const CPU & cpu,
     }
     CATCH_COMMON
 
-    len += fprintf(o, "\n");
+    len += FPUTS("\n", o);
     return len;
 }
 
@@ -250,7 +251,7 @@ int dump_data(FILE * o, size_t ws, const CPU & cpu, const vaddr_t & start,
 
     // Verify that start + length does not overflow
     if ( ((-(uint64_t)1) - start) < length )
-        return len + fprintf(o, "dump_data(): start (0x%016"PRIx64") and length "
+        return len + FPRINTF(o, "dump_data(): start (0x%016"PRIx64") and length "
                              "(0x%016"PRIx64") overflow the address space.\n",
                              start, length);
 
@@ -259,7 +260,7 @@ int dump_data(FILE * o, size_t ws, const CPU & cpu, const vaddr_t & start,
     {
         try
         {
-            len += fprintf(o, "%04"PRIx64": ", addr - start);
+            len += FPRINTF(o, "%04"PRIx64": ", addr - start);
 
             if ( ws == 4 )
             {
@@ -268,16 +269,16 @@ int dump_data(FILE * o, size_t ws, const CPU & cpu, const vaddr_t & start,
                 memory.read32_vaddr(cpu, addr, data[0]._32);
 
                 for ( size_t x = 0; x < sizeof data[0]._8; ++x )
-                    len += fprintf(o, "%02x ", data[0]._8[x]);
-                len += fprintf(o, " ");
+                    len += FPRINTF(o, "%02x ", data[0]._8[x]);
+                len += FPUTS(" ", o);
 
                 memory.read32_vaddr(cpu, addr+ws, data[1]._32);
 
                 for ( size_t x = 0; x < sizeof data[1]._8; ++x )
-                    len += fprintf(o, "%02x ", data[1]._8[x]);
-                len += fprintf(o, " ");
+                    len += FPRINTF(o, "%02x ", data[1]._8[x]);
+                len += FPUTS(" ", o);
 
-                len += fprintf(o, "0x%08"PRIx32" 0x%08"PRIx32"\n",
+                len += FPRINTF(o, "0x%08"PRIx32" 0x%08"PRIx32"\n",
                                data[0]._32, data[1]._32);
             }
             else
@@ -287,16 +288,16 @@ int dump_data(FILE * o, size_t ws, const CPU & cpu, const vaddr_t & start,
                 memory.read64_vaddr(cpu, addr, data[0]._64);
 
                 for ( size_t x = 0; x < sizeof data[0]._8; ++x )
-                    len += fprintf(o, "%02x ", data[0]._8[x]);
-                len += fprintf(o, " ");
+                    len += FPRINTF(o, "%02x ", data[0]._8[x]);
+                len += FPUTS(" ", o);
 
                 memory.read64_vaddr(cpu, addr+ws, data[1]._64);
 
                 for ( size_t x = 0; x < sizeof data[1]._8; ++x )
-                    len += fprintf(o, "%02x ", data[1]._8[x]);
-                len += fprintf(o, " ");
+                    len += FPRINTF(o, "%02x ", data[1]._8[x]);
+                len += FPUTS(" ", o);
 
-                len += fprintf(o, "0x%016"PRIx64" 0x%016"PRIx64"\n",
+                len += FPRINTF(o, "0x%016"PRIx64" 0x%016"PRIx64"\n",
                                data[0]._64, data[1]._64);
             }
         }

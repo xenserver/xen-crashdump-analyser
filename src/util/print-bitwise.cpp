@@ -25,12 +25,14 @@
 
 #include "util/print-bitwise.hpp"
 
+#include "util/stdio-wrapper.hpp"
+
 /**
  * Macro to help with bitwise decoding of registers.
  * @param b Bit number of the register.
  * @param n Symbolic name of the specified bit.
  */
-#define BIT(b, n) do { if (reg & (1<<(b))) len+=fputs(" "#n, o); } while(0)
+#define BIT(b, n) do { if (reg & (1<<(b))) len+=FPUTS(" "#n, o); } while(0)
 
 int print_cr0(FILE * o, const uint64_t & reg)
 {
@@ -90,10 +92,10 @@ int print_rflags(FILE * o, const uint64_t & reg)
     BIT(16, RF); // Resume
 
     BIT(14, NT); // Nested Task
-    len += fprintf(o, " IOPL%"PRIu64, reg & (3<<12));
+    len += FPRINTF(o, " IOPL%"PRIu64, reg & (3<<12));
     BIT(8 , TF); // Trap
 
-    len += fputs("   ", o);
+    len += FPUTS("   ", o);
 
     BIT(11, OF); // Overflow flag
     BIT(10, DF); // Direction flag
@@ -125,7 +127,7 @@ int print_paging_mode(FILE * o, const uint32_t & reg)
     int len = 0;
 
     if ( reg == 0 )
-        return len + fputs("None", o);
+        return len + FPUTS("None", o);
 
     BIT(21, HAP);
     BIT(20, Shadow);
