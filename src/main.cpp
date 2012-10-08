@@ -513,7 +513,7 @@ int main(int argc, char ** argv)
         // Parse Xens symbol file
         if ( ! host.symtab.parse(xen_symtab_path, true) )
         {
-            LOG_ERROR("  Failed to parse the Xen symbol table file\n");
+            LOG_ERROR("Failed to parse the Xen symbol table file\n");
             return EX_IOERR;
         }
 
@@ -532,7 +532,7 @@ int main(int argc, char ** argv)
         // Parse dom0s symbol file
         if ( ! host.dom0_symtab.parse(dom0_symtab_path) )
         {
-            LOG_ERROR("  Failed to parse the Xen symbol table file\n");
+            LOG_ERROR("Failed to parse the Xen symbol table file\n");
             return EX_IOERR;
         }
 
@@ -550,14 +550,14 @@ int main(int argc, char ** argv)
         // Evaluate what kind of elf file we have
         if ( NULL == (elf = Elf::create(core_path)) )
         {
-            LOG_ERROR("  Failed to parse the crash file\n");
+            LOG_ERROR("Failed to parse the crash file\n");
             return EX_IOERR;
         }
 
         // Parse the program headers and notes
         if ( ! elf->parse() )
         {
-            LOG_ERROR("  Failed to parse the crash file\n");
+            LOG_ERROR("Failed to parse the crash file\n");
             SAFE_DELETE(elf);
             return EX_IOERR;
         }
@@ -565,7 +565,7 @@ int main(int argc, char ** argv)
         // Populate the memory regions
         if ( ! memory.setup(core_path, elf) )
         {
-            LOG_ERROR("  Failed to set up memory regions from crash file\n");
+            LOG_ERROR("Failed to set up memory regions from crash file\n");
             SAFE_DELETE(elf);
             return EX_SOFTWARE;
         }
@@ -573,7 +573,7 @@ int main(int argc, char ** argv)
         // Set up the host structures
         if ( ! host.setup(elf) )
         {
-            LOG_ERROR("  Failed to set up host structures\n");
+            LOG_ERROR("Failed to set up host structures\n");
             SAFE_DELETE(elf);
             return EX_SOFTWARE;
         }
@@ -584,9 +584,9 @@ int main(int argc, char ** argv)
          * subsequent work iff the previous work succeeds, along with fallthrough
          * error logic without gotos or returns. */
         if ( ! host.decode_xen() )
-            LOG_ERROR("  Failed to decode xen structures\n");
+            LOG_ERROR("Failed to decode xen structures\n");
         else if ( ! host.print_xen(dump_structures) )
-            LOG_ERROR("  Failed to print xen information\n");
+            LOG_ERROR("Failed to print xen information\n");
         else
         {
             int s = host.print_domains(dump_structures);
