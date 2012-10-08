@@ -47,7 +47,7 @@
  */
 
 /// Version string
-static const char * version_str = "2.2.0";
+static const char * version_str = "2.3.0";
 
 // Global variables
 int verbosity = LOG_LEVEL_INFO;
