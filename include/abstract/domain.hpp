@@ -54,7 +54,7 @@ public:
      * @param domain_ptr Xen struct domain pointer.
      * @return boolean indicating success or failure.
      */
-    virtual bool parse_basic(const CPU & cpu, const vaddr_t & domain_ptr) throw() = 0;
+    virtual bool parse_basic(const CPU & cpu, const vaddr_t & domain_ptr) = 0;
 
     /**
      * Parse basic VCPU information, based on domain information.
@@ -62,7 +62,7 @@ public:
      * @param cpu CPU to perform pagetable lookups with.
      * @return boolean indicating success or failure.
      */
-    virtual bool parse_vcpus_basic(const CPU & cpu) throw () = 0;
+    virtual bool parse_vcpus_basic(const CPU & cpu) = 0;
 
     /**
      * Print the information about this domain.
@@ -73,7 +73,7 @@ public:
      * @param stream Stream to write to.
      * @return Number of bytes written to stream.
      */
-    virtual int print_state(FILE * stream) const throw () = 0;
+    virtual int print_state(FILE * stream) const = 0;
 
     /**
      * Dump Xen structures for this domain.  Includes Xen's struct domain
@@ -82,7 +82,7 @@ public:
      * @param stream Stream to write to.
      * @return Number of bytes written to stream.
      */
-    virtual int dump_structures(FILE * stream) const throw () = 0;
+    virtual int dump_structures(FILE * stream) const = 0;
 
     /**
      * Print the console ring.
@@ -90,7 +90,7 @@ public:
      * @param stream Stream to write to.
      * @return Number of bytes written to stream.
      */
-    virtual int print_console(FILE * stream) const throw () = 0;
+    virtual int print_console(FILE * stream) const = 0;
 
     /**
      * Print the command line.
@@ -98,7 +98,7 @@ public:
      * @param stream Stream to write to.
      * @return Number of bytes written to stream.
      */
-    virtual int print_cmdline(FILE * stream) const throw () = 0;
+    virtual int print_cmdline(FILE * stream) const = 0;
 
     /// Xen struct domain pointer.
     vaddr_t domain_ptr;

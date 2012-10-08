@@ -63,7 +63,7 @@ public:
      * @param cpu CPU with which pagetable lookups can be performed.
      * @return boolean indicating success or failure.
      */
-    virtual bool parse_basic(const vaddr_t & addr, const CPU & cpu) throw ();
+    virtual bool parse_basic(const vaddr_t & addr, const CPU & cpu);
 
     /**
      * Parse register information from a Xen per-cpu structure.
@@ -77,7 +77,7 @@ public:
      * @param cr3 CR3 for this VCPU.
      * @return boolean indicating success or failure.
      */
-    virtual bool parse_regs_from_stack(const vaddr_t & addr, const maddr_t & cr3) throw ();
+    virtual bool parse_regs_from_stack(const vaddr_t & addr, const maddr_t & cr3);
 
     /**
      * Parse register information from Xen's struct vcpu.
@@ -88,20 +88,20 @@ public:
      *
      * @return boolean indicating success or failure.
      */
-    virtual bool parse_regs_from_struct() throw ();
+    virtual bool parse_regs_from_struct();
 
     /**
      * Parse register information from other VCPU
      *
      * @return boolean indicating success or failure.
      */
-    virtual bool parse_regs_from_active(const VCPU* active) throw ();
+    virtual bool parse_regs_from_active(const VCPU* active);
 
     /**
      * Is this VCPU up?
      * @returns boolean testing flags against Xen's _VCPU_Down
      */
-    virtual bool is_up() const throw ();
+    virtual bool is_up() const;
 
     /**
      * Print the information about this vcpu to the provided stream.
@@ -115,7 +115,7 @@ public:
      * @param stream Stream to write to.
      * @return Number of bytes written to stream.
      */
-    virtual int print_state(FILE * stream) const throw ();
+    virtual int print_state(FILE * stream) const;
 
     /**
      * Dump Xen structures for this vcpu.
@@ -123,7 +123,7 @@ public:
      * @param stream Stream to write to.
      * @return Number of bytes written to stream.
      */
-    virtual int dump_structures(FILE * stream) const throw ();
+    virtual int dump_structures(FILE * stream) const;
 
     /**
      * Print the information about this vcpu to the provided stream, if this
@@ -139,7 +139,7 @@ public:
      * @param stream Stream to write to.
      * @return Number of bytes written to stream.
      */
-    virtual int print_state_compat(FILE * stream) const throw ();
+    virtual int print_state_compat(FILE * stream) const;
 
 protected:
 
@@ -150,7 +150,7 @@ protected:
      * @param cr3 CR3 for this VCPU.
      * @return boolean indicating success or failure.
      */
-    virtual bool parse_regs(const vaddr_t & addr, const maddr_t & cr3) throw();
+    virtual bool parse_regs(const vaddr_t & addr, const maddr_t & cr3);
 
     /// Register values
     x86_64regs regs;

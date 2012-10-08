@@ -51,7 +51,7 @@ x86_64Domain::~x86_64Domain()
     }
 }
 
-bool x86_64Domain::parse_basic(const CPU & cpu, const vaddr_t & domain_ptr) throw ()
+bool x86_64Domain::parse_basic(const CPU & cpu, const vaddr_t & domain_ptr)
 {
     if ( required_domain_symbols != 0 )
     {
@@ -91,7 +91,7 @@ bool x86_64Domain::parse_basic(const CPU & cpu, const vaddr_t & domain_ptr) thro
     return false;
 }
 
-bool x86_64Domain::parse_vcpus_basic(const CPU & cpu) throw ()
+bool x86_64Domain::parse_vcpus_basic(const CPU & cpu)
 {
     try
     {
@@ -130,7 +130,7 @@ bool x86_64Domain::parse_vcpus_basic(const CPU & cpu) throw ()
 }
 
 
-int x86_64Domain::print_state(FILE * o) const throw ()
+int x86_64Domain::print_state(FILE * o) const
 {
     int len = 0;
 
@@ -194,7 +194,7 @@ int x86_64Domain::print_state(FILE * o) const throw ()
     return len;
 }
 
-int x86_64Domain::dump_structures(FILE * o) const throw ()
+int x86_64Domain::dump_structures(FILE * o) const
 {
     const CPU & cpu = *static_cast<const CPU*>(this->vcpus[0]);
     int len = 0;
@@ -223,7 +223,7 @@ int x86_64Domain::dump_structures(FILE * o) const throw ()
     return len;
 }
 
-int x86_64Domain::print_console(FILE * o) const throw ()
+int x86_64Domain::print_console(FILE * o) const
 {
     int len = 0;
 
@@ -287,7 +287,7 @@ int x86_64Domain::print_console(FILE * o) const throw ()
     return len;
 }
 
-int x86_64Domain::print_cmdline(FILE * o) const throw ()
+int x86_64Domain::print_cmdline(FILE * o) const
 {
     int len = 0;
     char * cmdline = NULL;

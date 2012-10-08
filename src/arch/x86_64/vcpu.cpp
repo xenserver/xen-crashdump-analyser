@@ -44,7 +44,7 @@ x86_64VCPU::x86_64VCPU():
 
 x86_64VCPU::~x86_64VCPU(){}
 
-bool x86_64VCPU::parse_basic(const vaddr_t & addr, const CPU & cpu) throw ()
+bool x86_64VCPU::parse_basic(const vaddr_t & addr, const CPU & cpu)
 {
     if ( required_vcpu_symbols != 0 )
     {
@@ -105,7 +105,7 @@ bool x86_64VCPU::parse_basic(const vaddr_t & addr, const CPU & cpu) throw ()
     return false;
 }
 
-bool x86_64VCPU::parse_regs(const vaddr_t & regs, const maddr_t & cr3) throw ()
+bool x86_64VCPU::parse_regs(const vaddr_t & regs, const maddr_t & cr3)
 {
     x86_64_cpu_user_regs * uregs = NULL;
     const CPU & cpu = *static_cast<const CPU*>(this);
@@ -161,17 +161,17 @@ bool x86_64VCPU::parse_regs(const vaddr_t & regs, const maddr_t & cr3) throw ()
     return false;
 }
 
-bool x86_64VCPU::parse_regs_from_struct() throw ()
+bool x86_64VCPU::parse_regs_from_struct()
 {
     return this->parse_regs(this->vcpu_ptr + VCPU_user_regs, this->regs.cr3);
 }
 
-bool x86_64VCPU::parse_regs_from_stack(const vaddr_t & regs, const maddr_t & cr3) throw ()
+bool x86_64VCPU::parse_regs_from_stack(const vaddr_t & regs, const maddr_t & cr3)
 {
     return this->parse_regs(regs, cr3);
 }
 
-bool x86_64VCPU::parse_regs_from_active(const VCPU* active) throw ()
+bool x86_64VCPU::parse_regs_from_active(const VCPU* active)
 {
     // Dangerous, but safe.  We will only actually be handed a 64bit vcpu;
     const x86_64VCPU * vcpu = reinterpret_cast<const x86_64VCPU *>(active);
@@ -190,9 +190,9 @@ void x86_64VCPU::pagetable_walk(const vaddr_t & vaddr, maddr_t & maddr, vaddr_t 
     pagetable_walk_64(this->regs.cr3, vaddr, maddr, page_end);
 }
 
-bool x86_64VCPU::is_up() const throw () { return ! (this->pause_flags & 0x2); }
+bool x86_64VCPU::is_up() const { return ! (this->pause_flags & 0x2); }
 
-int x86_64VCPU::print_state(FILE * o) const throw ()
+int x86_64VCPU::print_state(FILE * o) const
 {
     int len = 0;
 
@@ -305,7 +305,7 @@ int x86_64VCPU::print_state(FILE * o) const throw ()
     return len;
 }
 
-int x86_64VCPU::print_state_compat(FILE * o) const throw ()
+int x86_64VCPU::print_state_compat(FILE * o) const
 {
     int len = 0;
 
@@ -406,7 +406,7 @@ int x86_64VCPU::print_state_compat(FILE * o) const throw ()
     return len;
 }
 
-int x86_64VCPU::dump_structures(FILE * o) const throw ()
+int x86_64VCPU::dump_structures(FILE * o) const
 {
     const CPU & cpu = *static_cast<const CPU*>(this);
     int len = 0;

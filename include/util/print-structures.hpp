@@ -36,7 +36,7 @@
  * @return Number of bytes written.
  */
 int print_64bit_stack(FILE * stream, const CPU & cpu, const vaddr_t & rsp,
-                      const size_t count=0) throw ();
+                      const size_t count=0);
 
 /**
  * Print a 32bit stack dump.
@@ -47,7 +47,7 @@ int print_64bit_stack(FILE * stream, const CPU & cpu, const vaddr_t & rsp,
  * @return Number of bytes written.
  */
 int print_32bit_stack(FILE * stream, const CPU & cpu, const vaddr_t & rsp,
-                      const size_t count=0) throw ();
+                      const size_t count=0);
 
 /**
  * Print a code dump
@@ -56,7 +56,7 @@ int print_32bit_stack(FILE * stream, const CPU & cpu, const vaddr_t & rsp,
  * @param rip Instruction pointer.
  * @return Number of bytes written.
  */
-int print_code(FILE * stream, const CPU & cpu, const vaddr_t & rip) throw ();
+int print_code(FILE * stream, const CPU & cpu, const vaddr_t & rip);
 
 
 /**
@@ -71,7 +71,7 @@ int print_code(FILE * stream, const CPU & cpu, const vaddr_t & rip) throw ();
  */
 int print_console_ring(FILE * stream, const CPU & cpu, const vaddr_t & ring,
                        const uint64_t & length, const uint64_t & prod,
-                       const uint64_t & cons) throw ();
+                       const uint64_t & cons);
 
 /**
  * Dump a data region.
@@ -82,7 +82,7 @@ int print_console_ring(FILE * stream, const CPU & cpu, const vaddr_t & ring,
  * @param length Total length of data to dump in bytes.
  */
 int dump_data(FILE * stream, size_t word_size, const CPU & cpu, const vaddr_t & start,
-              const uint64_t & length) throw ();
+              const uint64_t & length);
 
 /**
  * Dump a 32bit data region.
@@ -93,7 +93,7 @@ int dump_data(FILE * stream, size_t word_size, const CPU & cpu, const vaddr_t & 
  */
 static inline int dump_32bit_data(
     FILE * stream, const CPU & cpu, const vaddr_t & start,
-    const uint64_t & length) throw ()
+    const uint64_t & length)
 { return dump_data(stream, 4, cpu, start, length); }
 
 /**
@@ -105,7 +105,7 @@ static inline int dump_32bit_data(
  */
 static inline int dump_64bit_data(
     FILE * stream, const CPU & cpu, const vaddr_t & start,
-    const uint64_t & length) throw ()
+    const uint64_t & length)
 { return dump_data(stream, 8, cpu, start, length); }
 
 /*

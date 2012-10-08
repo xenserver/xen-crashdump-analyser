@@ -63,7 +63,7 @@ public:
      * @param cpu CPU with which pagetable lookups can be performed.
      * @return boolean indicating success or failure.
      */
-    virtual bool parse_basic(const vaddr_t & addr, const CPU & cpu) throw () = 0;
+    virtual bool parse_basic(const vaddr_t & addr, const CPU & cpu) = 0;
 
     /**
      * Parse register information from a Xen per-cpu structure.
@@ -77,7 +77,7 @@ public:
      * @param cr3 CR3 for this VCPU.
      * @return boolean indicating success or failure.
      */
-    virtual bool parse_regs_from_stack(const vaddr_t & addr, const maddr_t & cr3) throw () = 0;
+    virtual bool parse_regs_from_stack(const vaddr_t & addr, const maddr_t & cr3) = 0;
 
     /**
      * Parse register information from Xen's struct vcpu.
@@ -88,20 +88,20 @@ public:
      *
      * @return boolean indicating success or failure.
      */
-    virtual bool parse_regs_from_struct() throw () = 0;
+    virtual bool parse_regs_from_struct() = 0;
 
     /**
      * Parse register information from other VCPU
      *
      * @return boolean indicating success or failure.
      */
-    virtual bool parse_regs_from_active(const VCPU* active) throw ()= 0;
+    virtual bool parse_regs_from_active(const VCPU* active)= 0;
 
     /**
      * Is this VCPU up?
      * @returns boolean testing flags against Xen's _VCPU_Down
      */
-    virtual bool is_up() const throw () = 0;
+    virtual bool is_up() const = 0;
 
     /**
      * Print the information about this vcpu to the provided stream.
@@ -115,7 +115,7 @@ public:
      * @param stream Stream to write to.
      * @return Number of bytes written to stream.
      */
-    virtual int print_state(FILE * stream) const throw () = 0;
+    virtual int print_state(FILE * stream) const = 0;
 
     /**
      * Dump Xen structures for this vcpu.
@@ -123,7 +123,7 @@ public:
      * @param stream Stream to write to.
      * @return Number of bytes written to stream.
      */
-    virtual int dump_structures(FILE * stream) const throw () = 0;
+    virtual int dump_structures(FILE * stream) const = 0;
 
     /// Xen pointer to this struct vcpu.
     vaddr_t vcpu_ptr;

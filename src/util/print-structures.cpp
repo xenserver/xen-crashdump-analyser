@@ -33,7 +33,7 @@
 #include <limits.h>
 
 int print_64bit_stack(FILE * o, const CPU & cpu, const vaddr_t & rsp,
-                      const size_t count) throw ()
+                      const size_t count)
 {
     int len = 0;
     const int WS = 8; // Word size in bytes
@@ -78,7 +78,7 @@ int print_64bit_stack(FILE * o, const CPU & cpu, const vaddr_t & rsp,
 }
 
 int print_32bit_stack(FILE * o, const CPU & cpu, const vaddr_t & rsp,
-                      const size_t count) throw ()
+                      const size_t count)
 {
     int len = 0;
     const int WS = 4; // Word size in bytes
@@ -130,7 +130,7 @@ int print_32bit_stack(FILE * o, const CPU & cpu, const vaddr_t & rsp,
     return len;
 }
 
-int print_code(FILE * o, const CPU & cpu, const vaddr_t & rip) throw ()
+int print_code(FILE * o, const CPU & cpu, const vaddr_t & rip)
 {
     int len = 0;
     vaddr_t ip = rip - 15;
@@ -158,7 +158,7 @@ int print_code(FILE * o, const CPU & cpu, const vaddr_t & rip) throw ()
 
 int print_console_ring(FILE * o, const CPU & cpu,
                        const maddr_t & ring, const uint64_t & _length,
-                       const uint64_t & producer, const uint64_t & consumer) throw ()
+                       const uint64_t & producer, const uint64_t & consumer)
 {
     int len = 0;
     int64_t prod = producer, cons = consumer, length = _length;
@@ -237,7 +237,7 @@ int print_console_ring(FILE * o, const CPU & cpu,
 }
 
 int dump_data(FILE * o, size_t ws, const CPU & cpu, const vaddr_t & start,
-              const uint64_t & length) throw ()
+              const uint64_t & length)
 {
     int len = 0;
 

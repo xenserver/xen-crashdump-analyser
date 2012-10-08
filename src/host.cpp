@@ -74,7 +74,7 @@ Host::~Host()
     SAFE_DELETE_ARRAY(this->xen_compile_date);
 }
 
-bool Host::setup(const Elf * elf) throw ()
+bool Host::setup(const Elf * elf)
 {
     if ( this -> once )
         return false;
@@ -137,7 +137,7 @@ bool Host::setup(const Elf * elf) throw ()
     return true;
 }
 
-bool Host::parse_crash_xen_info(const char * buff, const size_t len) throw ()
+bool Host::parse_crash_xen_info(const char * buff, const size_t len)
 {
     char * tmp = NULL;
 
@@ -190,7 +190,7 @@ bool Host::parse_crash_xen_info(const char * buff, const size_t len) throw ()
 }
 
 
-bool Host::decode_xen() throw ()
+bool Host::decode_xen()
 {
     const CPU & cpu = *static_cast<const CPU*>(this->pcpus[0]);
 
@@ -257,7 +257,7 @@ bool Host::decode_xen() throw ()
     return false;
 }
 
-bool Host::print_xen(bool dump_structures) throw()
+bool Host::print_xen(bool dump_structures)
 {
     static const char * xen_log_file = "xen.log";
     int len = 0;
@@ -385,7 +385,7 @@ bool Host::print_xen(bool dump_structures) throw()
     return success;
 }
 
-int Host::print_domains(bool dump_structures) throw ()
+int Host::print_domains(bool dump_structures)
 {
     const CPU & cpuref = *static_cast<const CPU*>(this->pcpus[0]);
     int success = 0;

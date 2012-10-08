@@ -48,7 +48,7 @@ public:
      * @param buff Buffer containing data.
      * @param len Length of the buffer in bytes.
      */
-    virtual bool parse_pr_status(const char * buff, const size_t len) throw ();
+    virtual bool parse_pr_status(const char * buff, const size_t len);
 
     /**
      * Parse a Xen crash core note.
@@ -56,13 +56,13 @@ public:
      * @param buff Buffer containing data.
      * @param len Length of the buffer in bytes.
      */
-    virtual bool parse_xen_crash_core(const char * buff, const size_t len) throw ();
+    virtual bool parse_xen_crash_core(const char * buff, const size_t len);
 
     /**
      * Decode extended state, given information obtained from PR_STATUS and
      * Xen crash core notes.
      */
-    virtual bool decode_extended_state() throw ();
+    virtual bool decode_extended_state();
 
     /**
      * Translate a virtual address to a physical address using this cpus cr3 value.
@@ -85,7 +85,7 @@ public:
      * @param stream Stream to write to.
      * @return Number of bytes written to stream.
      */
-    virtual int print_state(FILE * stream) const throw ();
+    virtual int print_state(FILE * stream) const;
 
 protected:
     /// PCPU Registers
@@ -98,7 +98,7 @@ protected:
      * @param stream Stream to write to.
      * @param stack Xen's per-cpu stack pointer.
      */
-    int print_stack(FILE * stream, const vaddr_t & stack) const throw ();
+    int print_stack(FILE * stream, const vaddr_t & stack) const;
 
 };
 

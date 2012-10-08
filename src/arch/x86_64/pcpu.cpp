@@ -53,7 +53,7 @@ x86_64PCPU::~x86_64PCPU()
     SAFE_DELETE(this->vcpu);
 }
 
-bool x86_64PCPU::parse_pr_status(const char * buff, const size_t len) throw ()
+bool x86_64PCPU::parse_pr_status(const char * buff, const size_t len)
 {
     ELF_Prstatus * ptr = (ELF_Prstatus *)buff;
 
@@ -94,7 +94,7 @@ bool x86_64PCPU::parse_pr_status(const char * buff, const size_t len) throw ()
     return true;
 }
 
-bool x86_64PCPU::parse_xen_crash_core(const char * buff, const size_t len) throw ()
+bool x86_64PCPU::parse_xen_crash_core(const char * buff, const size_t len)
 {
     x86_64_crash_xen_core_t * ptr = (x86_64_crash_xen_core_t*)buff;
 
@@ -115,7 +115,7 @@ bool x86_64PCPU::parse_xen_crash_core(const char * buff, const size_t len) throw
     return true;
 }
 
-bool x86_64PCPU::decode_extended_state() throw ()
+bool x86_64PCPU::decode_extended_state()
 {
     if ( ! (this->flags & CPU_EXTD_STATE) )
     {
@@ -258,7 +258,7 @@ void x86_64PCPU::pagetable_walk(const vaddr_t & vaddr, maddr_t & maddr, vaddr_t 
     pagetable_walk_64(this->regs.cr3, vaddr, maddr, page_end);
 }
 
-int x86_64PCPU::print_state(FILE * o) const throw ()
+int x86_64PCPU::print_state(FILE * o) const
 {
     int len = 0;
     VCPU * vcpu_to_print = NULL;
@@ -389,7 +389,7 @@ int x86_64PCPU::print_state(FILE * o) const throw ()
     return len;
 }
 
-int x86_64PCPU::print_stack(FILE * o, const vaddr_t & stack) const throw ()
+int x86_64PCPU::print_stack(FILE * o, const vaddr_t & stack) const
 {
     int len = 0;
     const CPU & cpu = *static_cast<const CPU*>(this);

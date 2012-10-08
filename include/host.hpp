@@ -50,34 +50,34 @@ public:
      * @param elf Elf file
      * @return boolean indicating success or failure.
      */
-    bool setup(const Elf * elf) throw();
+    bool setup(const Elf * elf);
 
     /**
      * Parse a Xen crash_xen_info note.
      * @param buff Buffer containing data.
      * @param len Length of the buffer in bytes.
      */
-    bool parse_crash_xen_info(const char * buff, const size_t len) throw ();
+    bool parse_crash_xen_info(const char * buff, const size_t len);
 
     /**
      * Decode host information.
      * @return boolean indicating success or failure.
      */
-    bool decode_xen() throw ();
+    bool decode_xen();
 
     /**
      * Print host information to stream.
      * @param dump_structures boolean indicating whether the Xen structures should be dumped.
      * @return boolean indicating success or failure.
      */
-    bool print_xen(bool dump_structures) throw ();
+    bool print_xen(bool dump_structures);
 
     /**
      * Decode and print domain information.
      * @param dump_structures boolean indicating whether the Xen structures should be dumped.
      * @return number of domains successfully printed.
      */
-    int print_domains(bool dump_structures) throw ();
+    int print_domains(bool dump_structures);
 
     /**
      * Validate a Xen virtual address.
