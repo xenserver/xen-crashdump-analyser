@@ -22,7 +22,7 @@
 #define __STDIO_WRAPPER_HPP__
 
 /**
- * @file include/util/stdio_wrapper.hpp
+ * @file include/util/stdio-wrapper.hpp
  * @author Andrew Cooper
  */
 

@@ -158,7 +158,7 @@ int print_code(FILE * o, const CPU & cpu, const vaddr_t & rip)
 }
 
 int print_console_ring(FILE * o, const CPU & cpu,
-                       const maddr_t & ring, const uint64_t & _length,
+                       const vaddr_t & ring, const uint64_t & _length,
                        const uint64_t & producer, const uint64_t & consumer)
 {
     int len = 0;

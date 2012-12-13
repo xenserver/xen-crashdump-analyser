@@ -157,7 +157,7 @@ public:
      * @param addr Virtual address.
      * @param dst Destination integer.
      */
-    void read16_vaddr(const CPU & cpu, const maddr_t & addr, uint16_t & dst) const;
+    void read16_vaddr(const CPU & cpu, const vaddr_t & addr, uint16_t & dst) const;
 
     /**
      * Read a 32 bit integer from addr.
