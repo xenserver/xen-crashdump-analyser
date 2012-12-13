@@ -41,7 +41,7 @@ public:
     /// Constructor.
     PCPU():flags(0),processor_id(-1),per_cpu_offset(0),current_vcpu_ptr(0),
            per_cpu_current_vcpu_ptr(0),ctx_from(NULL),ctx_to(NULL),vcpu(NULL),
-           vcpu_state(CTX_UNKNOWN)
+           online(true),vcpu_state(CTX_UNKNOWN)
         {};
 
     /// Destructor.
@@ -68,6 +68,12 @@ public:
      * Xen crash core notes.
      */
     virtual bool decode_extended_state() = 0;
+
+    /**
+     * Is this PCPU online?
+     * @returns boolean
+     */
+    virtual bool is_online() const = 0;
 
     /**
      * Translate a virtual address to a physical address using this cpus cr3 value.
@@ -109,6 +115,9 @@ public:
         *ctx_to,
     /// VCPU active or idle on this PCPU.  Possibly NULL.
         *vcpu;
+
+    /// Is this PCPU online?
+    bool online;
 
     /**
      * Bitmask flags for what information has been decoded for this PCPU.

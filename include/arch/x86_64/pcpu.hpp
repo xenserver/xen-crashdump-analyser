@@ -65,6 +65,12 @@ public:
     virtual bool decode_extended_state();
 
     /**
+     * Is this PCPU online?
+     * @returns boolean
+     */
+    virtual bool is_online() const;
+
+    /**
      * Translate a virtual address to a physical address using this cpus cr3 value.
      * @param vaddr Virtual address to translate
      * @param maddr Machine address result of translation

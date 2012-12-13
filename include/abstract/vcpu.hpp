@@ -98,10 +98,10 @@ public:
     virtual bool parse_regs_from_active(const VCPU* active)= 0;
 
     /**
-     * Is this VCPU up?
+     * Is this VCPU online?
      * @returns boolean testing flags against Xen's _VCPU_Down
      */
-    virtual bool is_up() const = 0;
+    virtual bool is_online() const = 0;
 
     /**
      * Print the information about this vcpu to the provided stream.

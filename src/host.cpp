@@ -466,7 +466,7 @@ int Host::print_domains(bool dump_structures)
             {
                 unsigned int p; bool found;
 
-                if ( ! dom->vcpus[v]->is_up() )
+                if ( ! dom->vcpus[v]->is_online() )
                 {
                     LOG_DEBUG("    Dom%"PRIu16" vcpu%"PRIu32" was not up\n", dom->domain_id, v);
                     continue;

@@ -43,6 +43,12 @@ public:
     virtual ~CPU(){};
 
     /**
+     * Is this CPU online?
+     * @returns boolean
+     */
+    virtual bool is_online() const = 0;
+
+    /**
      * Perform a pagetable lookup.
      * @param vaddr Virtual address to look up
      * @param maddr Machine address variable for the result.

@@ -192,13 +192,13 @@ void x86_64VCPU::pagetable_walk(const vaddr_t & vaddr, maddr_t & maddr, vaddr_t 
     pagetable_walk_64(this->regs.cr3, vaddr, maddr, page_end);
 }
 
-bool x86_64VCPU::is_up() const { return ! (this->pause_flags & 0x2); }
+bool x86_64VCPU::is_online() const { return ! (this->pause_flags & 0x2); }
 
 int x86_64VCPU::print_state(FILE * o) const
 {
     int len = 0;
 
-    if ( ! this->is_up() )
+    if ( ! this->is_online() )
         return len + FPUTS("\tVCPU Offline\n\n", o);
 
     if ( this->flags & CPU_PV_COMPAT )

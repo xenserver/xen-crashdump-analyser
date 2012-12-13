@@ -254,6 +254,8 @@ bool x86_64PCPU::decode_extended_state()
     return false;
 }
 
+bool x86_64PCPU::is_online() const { return this->online; }
+
 void x86_64PCPU::pagetable_walk(const vaddr_t & vaddr, maddr_t & maddr, vaddr_t * page_end) const
 {
     pagetable_walk_64(this->regs.cr3, vaddr, maddr, page_end);
