@@ -532,7 +532,7 @@ int main(int argc, char ** argv)
         // Parse dom0s symbol file
         if ( ! host.dom0_symtab.parse(dom0_symtab_path) )
         {
-            LOG_ERROR("Failed to parse the Xen symbol table file\n");
+            LOG_ERROR("Failed to parse the dom0 symbol table file\n");
             return EX_IOERR;
         }
 
