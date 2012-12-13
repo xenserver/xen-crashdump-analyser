@@ -224,28 +224,38 @@ bool Host::decode_xen()
 
         LOG_DEBUG("  Reading PCPUs vcpus\n");
         for (int x=0; x < nr_pcpus; ++x)
+        {
+            if ( ! this->pcpus[x]->is_online() )
+            {
+                LOG_DEBUG("  Skipping pcpu%d - offline\n", x);
+                continue;
+            }
             if ( ! this->pcpus[x]->decode_extended_state() )
-                LOG_WARN("  Failed to decode extended state for pcpu %d\n", x);
+                LOG_WARN("  Failed to decode extended state for pcpu%d\n", x);
+        }
 
         this->active_vcpus.reserve(nr_pcpus);
         LOG_DEBUG("  Generating active vcpu list\n");
 
         for (int x=0; x < nr_pcpus; ++x)
-            switch(this->pcpus[x]->vcpu_state)
+            if ( this->pcpus[x]->is_online() )
             {
-            case PCPU::CTX_IDLE:
-            case PCPU::CTX_RUNNING:
-                this->active_vcpus.push_back(
-                    vcpu_pair(this->pcpus[x]->vcpu->vcpu_ptr,
-                              this->pcpus[x]->vcpu));
-                break;
-            case PCPU::CTX_SWITCH:
-                this->active_vcpus.push_back(
-                    vcpu_pair(this->pcpus[x]->ctx_from->vcpu_ptr,
-                              this->pcpus[x]->ctx_from));
-                break;
-            default:
-                break;
+                switch(this->pcpus[x]->vcpu_state)
+                {
+                case PCPU::CTX_IDLE:
+                case PCPU::CTX_RUNNING:
+                    this->active_vcpus.push_back(
+                        vcpu_pair(this->pcpus[x]->vcpu->vcpu_ptr,
+                                  this->pcpus[x]->vcpu));
+                    break;
+                case PCPU::CTX_SWITCH:
+                    this->active_vcpus.push_back(
+                        vcpu_pair(this->pcpus[x]->ctx_from->vcpu_ptr,
+                                  this->pcpus[x]->ctx_from));
+                    break;
+                default:
+                    break;
+                }
             }
 
         return true;

@@ -37,6 +37,7 @@
 #include "util/log.hpp"
 #include "util/macros.hpp"
 #include "util/stdio-wrapper.hpp"
+#include "util/misc.hpp"
 #include "memory.hpp"
 
 #include <new>
@@ -63,6 +64,13 @@ bool x86_64PCPU::parse_pr_status(const char * buff, const size_t len)
         LOG_WARN("Wrong size for pr_status note.  Expected %zu, got %zu\n",
                  sizeof *ptr, len);
         return false;
+    }
+
+    if ( is_zeroes(buff, len) )
+    {
+        this->online = false;
+        LOG_WARN("Got zeros for PR_STATUS - PCPU assumed down\n");
+        return true;
     }
 
     this->regs.r15 = ptr->pr_reg[PR_REG_r15];
@@ -106,6 +114,13 @@ bool x86_64PCPU::parse_xen_crash_core(const char * buff, const size_t len)
         return false;
     }
 
+    if ( is_zeroes(buff, len) )
+    {
+        this->online = false;
+        LOG_WARN("Got zeros for XEN_CRASH_CORE - PCPU assumed down\n");
+        return true;
+    }
+
     this->regs.cr0 = ptr->cr0;
     this->regs.cr2 = ptr->cr2;
     this->regs.cr3 = ptr->cr3;
@@ -118,6 +133,11 @@ bool x86_64PCPU::parse_xen_crash_core(const char * buff, const size_t len)
 
 bool x86_64PCPU::decode_extended_state()
 {
+    if ( ! this->online )
+    {
+        LOG_ERROR("  This PCPU is not online\n");
+        return false;
+    }
     if ( ! (this->flags & CPU_EXTD_STATE) )
     {
         LOG_ERROR("  Missing required CPU_EXTD_STATE for this pcpu\n");
@@ -267,6 +287,11 @@ int x86_64PCPU::print_state(FILE * o) const
     VCPU * vcpu_to_print = NULL;
 
     len += FPRINTF(o, "  PCPU %d Host state:\n", this->processor_id);
+
+    if ( !this->online )
+    {
+        return len + FPUTS("    PCPU Offline\n\n", o);
+    }
 
     if ( this->flags & CPU_CORE_STATE )
     {
