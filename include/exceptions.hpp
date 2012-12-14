@@ -31,12 +31,38 @@
 #include <stdlib.h>
 
 /**
+ * CommonError group of exceptions
+ *
+ * Base class for common exceptions.
+ */
+class CommonError: public std::exception
+{
+public:
+    /// Constructor.
+    CommonError() throw();
+
+    /// Destructor.
+    virtual ~CommonError() throw();
+
+    /**
+     * What is this exception.
+     * @return string
+     */
+    virtual const char * what() const throw() = 0;
+
+    /**
+     * Log the error.
+     */
+    virtual void log() const throw() = 0;
+};
+
+/**
  * Memseek exception
  *
  * Results from failure to seek on /proc/vmcore, most likely because an attempt
  * is made to seek further than the 32bit kdump kernel can map.
  */
-class memseek: public std::exception
+class memseek: public CommonError
 {
 public:
     /**
@@ -56,6 +82,11 @@ public:
     virtual const char * what() const throw();
 
     /**
+     * Log the error.
+     */
+    virtual void log() const throw();
+
+    /**
      * Is the address outside 64GB.
      * @return boolean
      */
@@ -72,7 +103,7 @@ public:
  *
  * Results from failure to read a set number of bytes from /proc/vmcore
  */
-class memread: public std::exception
+class memread: public CommonError
 {
 public:
     /**
@@ -92,6 +123,11 @@ public:
      * @return string "memread"
      */
     virtual const char * what() const throw();
+
+    /**
+     * Log the error.
+     */
+    virtual void log() const throw();
 
     /**
      * Is the address outside 64GB.
@@ -114,7 +150,7 @@ public:
  *
  * Results from failure to walk pagetables.
  */
-class pagefault: public std::exception
+class pagefault: public CommonError
 {
 public:
     /**
@@ -134,6 +170,11 @@ public:
      */
     virtual const char * what() const throw();
 
+    /**
+     * Log the error.
+     */
+    virtual void log() const throw();
+
     /// Faulting virtual address.
     vaddr_t vaddr;
     /// Faulting cr3.
@@ -147,7 +188,7 @@ public:
  *
  * Thrown for validation failures for xen virtual addresses.
  */
-class validate: public std::exception
+class validate: public CommonError
 {
 public:
     /**
@@ -164,6 +205,11 @@ public:
      * @return string "validate"
      */
     virtual const char * what() const throw();
+
+    /**
+     * Log the error.
+     */
+    virtual void log() const throw();
 
     /// Invalid virtual address.
     vaddr_t vaddr;
@@ -193,6 +239,12 @@ public:
      * @return string "validate"
      */
     virtual const char * what() const throw();
+
+    /**
+     * Log the error.
+     * @param file Filename of the file being written to.
+     */
+    virtual void log(const char * file) const throw();
 
     /// Errno from error
     int error;

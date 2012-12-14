@@ -60,28 +60,9 @@ void fclose_failure(int err);
  * otherwise large and complex functions.
  */
 #define CATCH_COMMON                                                    \
-    catch ( const memseek & e )                                         \
+    catch ( const CommonError & e )                                     \
     {                                                                   \
-        LOG_WARN("memseek error for address 0x%016"PRIx64"\n", e.addr); \
-    }                                                                   \
-    catch ( const memread & e )                                         \
-    {                                                                   \
-    if ( e.count == -1 )                                                \
-        LOG_WARN("memread error for address 0x%016"PRIx64" - %s\n",     \
-                 e.addr, strerror(e.error));                            \
-    else                                                                \
-        LOG_WARN("memread error for address 0x%016"PRIx64" - "          \
-                 "Read %zu of intended %zu bytes\n", e.addr, e.count, e.total); \
-    }                                                                   \
-    catch ( const pagefault & e )                                       \
-    {                                                                   \
-        LOG_WARN("paging error trying to follow 0x%016"PRIx64" - "      \
-                 "level %d, cr3 %016"PRIx64"\n", e.vaddr, e.level, e.cr3); \
-    }                                                                   \
-    catch ( const validate & e )                                        \
-    {                                                                   \
-        LOG_WARN("validation error for address 0x%016"PRIx64"\n",       \
-                 e.vaddr);                                              \
+        e.log();                                                        \
     }                                                                   \
 
 
@@ -96,8 +77,7 @@ void fclose_failure(int err);
 #define CATCH_FILEWRITE(n)                                              \
     catch ( const filewrite & e )                                       \
     {                                                                   \
-        LOG_ERROR("Error writing to file '%s': %s\n",                   \
-                  (n), strerror(e.error));                              \
+        e.log((n));                                                     \
     }
 
 

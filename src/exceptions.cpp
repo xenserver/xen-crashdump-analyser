@@ -23,8 +23,14 @@
  * @author Andrew Cooper
  */
 
+#include <cstring>
+#include <cerrno>
+
+#include "util/log.hpp"
 #include "exceptions.hpp"
 
+CommonError::CommonError() throw() {}
+CommonError::~CommonError() throw() {}
 
 memseek::memseek(const maddr_t & addr, const int64_t & offset) throw():
     addr(addr), offset(offset)
@@ -35,6 +41,11 @@ memseek::~memseek() throw() {}
 const char * memseek::what() const throw()
 {
     return "memseek";
+}
+
+void memseek::log() const throw()
+{
+    LOG_WARN("memseek error for address 0x%016"PRIx64"\n", this->addr);
 }
 
 bool memseek::outside_64GB() const throw() { return this->addr > (1ULL << 36); }
@@ -52,6 +63,17 @@ const char * memread::what() const throw()
     return "memread";
 }
 
+void memread::log() const throw()
+{
+    if ( this->count == -1 )
+        LOG_WARN("memread error for address 0x%016"PRIx64" - %s\n",
+                 this->addr, strerror(this->error));
+    else
+        LOG_WARN("memread error for address 0x%016"PRIx64" - "
+                 "Read %zu of intended %zu bytes\n",
+                 this->addr, this->count, this->total);
+}
+
 bool memread::outside_64GB() const throw() { return this->addr > (1ULL << 36); }
 
 
@@ -67,6 +89,13 @@ const char * pagefault::what() const throw()
     return "pagefault";
 }
 
+void pagefault::log() const throw()
+{
+    LOG_WARN("paging error trying to follow 0x%016"PRIx64" - "
+             "level %d, cr3 %016"PRIx64"\n",
+             this->vaddr, this->level, this->cr3);
+}
+
 
 validate::validate(const vaddr_t & vaddr) throw():
     vaddr(vaddr)
@@ -79,6 +108,11 @@ const char * validate::what() const throw()
     return "validate";
 }
 
+void validate::log() const throw()
+{
+    LOG_WARN("validation error for address 0x%016"PRIx64"\n", this->vaddr);
+}
+
 
 filewrite::filewrite(const int error) throw():
     error(error)
@@ -89,6 +123,11 @@ filewrite::~filewrite() throw() {}
 const char * filewrite::what() const throw()
 {
     return "filewrite";
+}
+
+void filewrite::log(const char * file) const throw()
+{
+    LOG_ERROR("Error writing to file '%s': %s\n", file, strerror(this->error));
 }
 
 /*
