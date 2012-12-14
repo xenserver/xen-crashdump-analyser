@@ -383,7 +383,10 @@ bool Host::print_xen(bool dump_structures)
     {
         e.log();
     }
-    CATCH_FILEWRITE(xen_log_file)
+    catch ( const filewrite & e )
+    {
+        e.log(xen_log_file);
+    }
 
     set_additional_log(NULL);
     SAFE_FCLOSE(o);
@@ -520,7 +523,10 @@ int Host::print_domains(bool dump_structures)
             {
                 dom->print_state(fd);
             }
-            CATCH_FILEWRITE(fname)
+            catch ( const filewrite & e )
+            {
+                e.log(fname);
+            }
 
             // We are going to dump the xen structures...
             if ( dump_structures )
@@ -544,7 +550,10 @@ int Host::print_domains(bool dump_structures)
                 {
                     dom->dump_structures(fd);
                 }
-                CATCH_FILEWRITE(fname)
+                catch ( const filewrite & e )
+                {
+                    e.log(fname);
+                }
             }
 
             ++success;
