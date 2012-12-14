@@ -184,7 +184,10 @@ bool Host::parse_crash_xen_info(const char * buff, const size_t len)
     {
         LOG_ERROR("Bad alloc for PCPUs.  Kdump environment needs more memory\n");
     }
-    CATCH_COMMON
+    catch ( const CommonError & e )
+    {
+        e.log();
+    }
 
     SAFE_DELETE_ARRAY(tmp);
 
@@ -264,7 +267,10 @@ bool Host::decode_xen()
     {
         LOG_ERROR("Bad alloc for PCPUs.  Kdump environment needs more memory\n");
     }
-    CATCH_COMMON
+    catch ( const CommonError & e )
+    {
+        e.log();
+    }
 
     return false;
 }
@@ -325,7 +331,10 @@ bool Host::print_xen(bool dump_structures)
             {
                 LOG_ERROR("Bad Alloc exception.  Out of memory\n");
             }
-            CATCH_COMMON
+            catch ( const CommonError & e )
+            {
+                e.log();
+            }
             SAFE_DELETE_ARRAY(cmdline);
         }
 
@@ -370,7 +379,10 @@ bool Host::print_xen(bool dump_structures)
 
         success = true;
     }
-    CATCH_COMMON
+    catch ( const CommonError & e )
+    {
+        e.log();
+    }
     CATCH_FILEWRITE(xen_log_file)
 
     set_additional_log(NULL);
@@ -547,7 +559,10 @@ int Host::print_domains(bool dump_structures)
     {
         LOG_ERROR("Bad Alloc exception.  Out of memory\n");
     }
-    CATCH_COMMON
+    catch ( const CommonError & e )
+    {
+        e.log();
+    }
 
     set_additional_log(NULL);
     SAFE_FCLOSE(fd);

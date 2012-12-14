@@ -72,7 +72,10 @@ int print_64bit_stack(FILE * o, const CPU & cpu, const vaddr_t & rsp,
             len += FPRINTF(o, " %016"PRIx64, val);
         }
     }
-    CATCH_COMMON
+    catch ( const CommonError & e )
+    {
+        e.log();
+    }
 
     len += FPUTS("\n", o);
     return len;
@@ -125,7 +128,10 @@ int print_32bit_stack(FILE * o, const CPU & cpu, const vaddr_t & rsp,
             len += FPRINTF(o, " %08"PRIx32, val);
         }
     }
-    CATCH_COMMON
+    catch ( const CommonError & e )
+    {
+        e.log();
+    }
 
     len += FPUTS("\n", o);
     return len;
@@ -150,7 +156,10 @@ int print_code(FILE * o, const CPU & cpu, const vaddr_t & rip)
                 len += FPRINTF(o, " %02"PRIx8, d);
         }
     }
-    CATCH_COMMON
+    catch ( const CommonError & e )
+    {
+        e.log();
+    }
 
     len += FPUTS("\n", o);
 
@@ -231,7 +240,10 @@ int print_console_ring(FILE * o, const CPU & cpu,
             }
         }
     }
-    CATCH_COMMON
+    catch ( const CommonError & e )
+    {
+        e.log();
+    }
 
     len += FPUTS("\n", o);
     return len;
@@ -301,7 +313,10 @@ int dump_data(FILE * o, size_t ws, const CPU & cpu, const vaddr_t & start,
                                data[0]._64, data[1]._64);
             }
         }
-        CATCH_COMMON
+        catch ( const CommonError & e )
+        {
+            e.log();
+        }
     }
 
     return 0;

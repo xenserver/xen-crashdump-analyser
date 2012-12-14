@@ -102,7 +102,10 @@ bool x86_64VCPU::parse_basic(const vaddr_t & addr, const CPU & cpu)
 
         return true;
     }
-    CATCH_COMMON
+    catch ( const CommonError & e )
+    {
+        e.log();
+    }
 
     return false;
 }
@@ -157,7 +160,10 @@ bool x86_64VCPU::parse_regs(const vaddr_t & regs, const maddr_t & cr3)
         LOG_ERROR("Bad alloc of %"PRIu64" bytes for parsing vcpu structure "
                   "at 0x%016"PRIx64"\n", sizeof *uregs, this->vcpu_ptr);
     }
-    CATCH_COMMON
+    catch ( const CommonError & e )
+    {
+        e.log();
+    }
 
     SAFE_DELETE(uregs);
     return false;
@@ -297,7 +303,10 @@ int x86_64VCPU::print_state(FILE * o) const
                     sp += 8;
                 }
             }
-            CATCH_COMMON
+            catch ( const CommonError & e )
+            {
+                e.log();
+            }
         }
         else
             len += FPUTS("\t  No symbol table for domain\n", o);
@@ -397,7 +406,10 @@ int x86_64VCPU::print_state_compat(FILE * o) const
                     sp += 4;
                 }
             }
-            CATCH_COMMON
+            catch ( const CommonError & e )
+            {
+                e.log();
+            }
         }
         else
             len += FPUTS("\t  No symbol table for domain\n", o);

@@ -56,17 +56,6 @@ void fclose_failure(int err);
     } while (0)
 
 /**
- * Common catch statements.  Presented as a macro only for code brevity in
- * otherwise large and complex functions.
- */
-#define CATCH_COMMON                                                    \
-    catch ( const CommonError & e )                                     \
-    {                                                                   \
-        e.log();                                                        \
-    }                                                                   \
-
-
-/**
  * Catch filewrite exceptions.  Separate from CATCH_COMMON as only
  * certain pieces of code can sensibly deal with file errors.  It is not
  * neceserally safe to close file here, due to interactions with

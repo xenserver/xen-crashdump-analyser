@@ -269,7 +269,10 @@ bool x86_64PCPU::decode_extended_state()
     {
         LOG_ERROR("Bad alloc for PCPU vcpus.  Kdump environment needs more memory\n");
     }
-    CATCH_COMMON
+    catch ( const CommonError & e )
+    {
+        e.log();
+    }
 
     return false;
 }
@@ -479,7 +482,10 @@ int x86_64PCPU::print_stack(FILE * o, const vaddr_t & stack) const
             }
         }
     }
-    CATCH_COMMON
+    catch ( const CommonError & e )
+    {
+        e.log();
+    }
 
     return len;
 }

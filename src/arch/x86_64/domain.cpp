@@ -87,7 +87,10 @@ bool x86_64Domain::parse_basic(const CPU & cpu, const vaddr_t & domain_ptr)
 
         return true;
     }
-    CATCH_COMMON
+    catch ( const CommonError & e )
+    {
+        e.log();
+    }
 
     return false;
 }
@@ -125,7 +128,10 @@ bool x86_64Domain::parse_vcpus_basic(const CPU & cpu)
     {
         LOG_ERROR("Bad Alloc exception.  Out of memory\n");
     }
-    CATCH_COMMON
+    catch ( const CommonError & e )
+    {
+        e.log();
+    }
 
     return false;
 }
@@ -283,7 +289,10 @@ int x86_64Domain::print_console(FILE * o) const
 
         len += print_console_ring(o, cpu, ring, length, producer, consumer);
     }
-    CATCH_COMMON
+    catch ( const CommonError & e )
+    {
+        e.log();
+    }
 
     return len;
 }
@@ -324,7 +333,10 @@ int x86_64Domain::print_cmdline(FILE * o) const
         {
             LOG_ERROR("Bad Alloc exception.  Out of memory\n");
         }
-        CATCH_COMMON;
+        catch ( const CommonError & e )
+        {
+            e.log();
+        }
     }
 
     len += FPUTS("\n", o);
