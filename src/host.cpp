@@ -404,7 +404,7 @@ bool Host::print_xen(bool dump_structures)
                   strerror(errno));
         return false;
     }
-    LOG_INFO("Opened xen.structures.log for foobar\n");
+    LOG_INFO("Opened xen.structures.log\n");
 
     SAFE_FCLOSE(o);
 #endif
