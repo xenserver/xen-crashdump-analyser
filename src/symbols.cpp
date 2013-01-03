@@ -79,7 +79,7 @@ GROUP(per_cpu);
  * which have been found in the symbol table.
  *
  * @param g Symbol group.
- * @param n Symbol Index.
+ * @param n Symbol name.
  */
 #define SYMBOL(g, n) { #n , &(n) , &(required_##g##_symbols) , \
         (_meta_##g##_sym_mask <<= 1, required_##g##_symbols = _meta_##g##_sym_mask - 1, \
