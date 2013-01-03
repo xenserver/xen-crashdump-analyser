@@ -34,14 +34,14 @@ extern vaddr_t conring;
 /// Xen conring_size symbol, from symbol table.  Length of console ring.
 extern vaddr_t conring_size;
 /// Bitmask of Xen's console related symbols from the symbol table.
-extern int required_console_symbols;
+extern uint64_t required_console_symbols;
 
 /// Xen conringp symbol, from symbol table.  Console producer index.
 extern vaddr_t conringp;
 /// Xen conringc symbol, from symbol table  Console consumer index.
 extern vaddr_t conringc;
 /// Bitmask of Xen's console index related symbols from the symbol table.
-extern int required_consolepc_symbols;
+extern uint64_t required_consolepc_symbols;
 
 /// Sizeof Xen's cpuinfo structure.
 extern vaddr_t CPUINFO_sizeof;
@@ -54,7 +54,7 @@ extern vaddr_t CPUINFO_per_cpu_offset;
 /// Offset of guest_cpu_user_regs in Xen's struct cpuinfo.
 extern vaddr_t CPUINFO_guest_cpu_user_regs;
 /// Bitmask of Xen's struct cpuinfo related offsets from the symbol table.
-extern int required_cpuinfo_symbols;
+extern uint64_t required_cpuinfo_symbols;
 
 /// Sizeof Xen's vcpu structure.
 extern vaddr_t VCPU_sizeof;
@@ -73,7 +73,7 @@ extern vaddr_t VCPU_cr3;
 /// Offset of domain in Xen's struct vcpu.
 extern vaddr_t VCPU_domain;
 /// Bitmask of Xen's struct vcpu related offsets from the symbol table.
-extern int required_vcpu_symbols;
+extern uint64_t required_vcpu_symbols;
 
 /// Offset of id in Xen's struct domain.
 extern vaddr_t DOMAIN_id;
@@ -104,7 +104,7 @@ extern uint64_t DOMAIN_sizeof;
 /// Xen's domain_list symbol.
 extern vaddr_t domain_list;
 /// Bitmask of Xen's struct domain related offsets from the symbol table.
-extern int required_domain_symbols;
+extern uint64_t required_domain_symbols;
 
 /// Xen's per_cpu__curr_vcpu symbol.
 extern vaddr_t per_cpu__curr_vcpu;
@@ -113,7 +113,7 @@ extern vaddr_t idle_vcpu;
 /// Xen's __per_cpu_offset symbol
 extern vaddr_t __per_cpu_offset;
 /// Bitmask of Xen's per_cpu related symbols from the symbol table.
-extern int required_per_cpu_symbols;
+extern uint64_t required_per_cpu_symbols;
 
 /**
  * Insert a symbol or offset into the required table.
