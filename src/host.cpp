@@ -80,6 +80,7 @@ bool Host::setup(const Elf * elf)
 {
     if ( this -> once )
         return false;
+    this->once = true;
 
     if ( elf->arch != Elf::ELF_64 )
     {
@@ -118,25 +119,28 @@ bool Host::setup(const Elf * elf)
         switch ( elf->notes[x].type )
         {
         case NT_PRSTATUS:
-            if ( ! this->pcpus[pt_index++]->parse_pr_status(
-                     elf->notes[x].desc, elf->notes[x].desc_size) )
-                return false;
+            this->pcpus[pt_index++]->parse_pr_status(
+                elf->notes[x].desc, elf->notes[x].desc_size);
             break;
         case XEN_ELFNOTE_CRASH_INFO:
-            if ( ! this->parse_crash_xen_info(elf->notes[x].desc, elf->notes[x].desc_size) )
-                return false;
+            this->parse_crash_xen_info(elf->notes[x].desc, elf->notes[x].desc_size);
             break;
         case XEN_ELFNOTE_CRASH_REGS:
-            if ( ! this->pcpus[xen_core_index++]->parse_xen_crash_core(
-                     elf->notes[x].desc, elf->notes[x].desc_size) )
-                return false;
+            this->pcpus[xen_core_index++]->parse_xen_crash_core(
+                elf->notes[x].desc, elf->notes[x].desc_size);
             break;
         default:
             break;
         }
 
-    this->once = true;
-    return true;
+    /* If any pcpus are online (i.e. successfully got PRSTATUS and CRASH_REGS),
+       consider setup a success... */
+    for ( int x = 0; x < nr_pcpus; ++x )
+        if ( this->pcpus[x]->is_online() )
+            return true;
+
+    /* ...But if all pcpus are offline then consider setup a failure. */
+    return false;
 }
 
 bool Host::parse_crash_xen_info(const char * buff, const size_t len)

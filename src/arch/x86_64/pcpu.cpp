@@ -61,6 +61,7 @@ bool x86_64PCPU::parse_pr_status(const char * buff, const size_t len)
 
     if ( len != sizeof *ptr )
     {
+        this->online = false;
         LOG_WARN("Wrong size for pr_status note.  Expected %zu, got %zu\n",
                  sizeof *ptr, len);
         return false;
@@ -70,7 +71,7 @@ bool x86_64PCPU::parse_pr_status(const char * buff, const size_t len)
     {
         this->online = false;
         LOG_WARN("Got zeros for PR_STATUS - PCPU assumed down\n");
-        return true;
+        return false;
     }
 
     this->regs.r15 = ptr->pr_reg[PR_REG_r15];
@@ -109,6 +110,7 @@ bool x86_64PCPU::parse_xen_crash_core(const char * buff, const size_t len)
 
     if ( len != sizeof *ptr )
     {
+        this->online = false;
         LOG_WARN("Wrong size for crash_xen_core note.  Expected %zu, got %zu\n",
                  sizeof *ptr, len);
         return false;
@@ -118,7 +120,7 @@ bool x86_64PCPU::parse_xen_crash_core(const char * buff, const size_t len)
     {
         this->online = false;
         LOG_WARN("Got zeros for XEN_CRASH_CORE - PCPU assumed down\n");
-        return true;
+        return false;
     }
 
     this->regs.cr0 = ptr->cr0;
