@@ -415,7 +415,7 @@ static bool parse_commandline(int argc, char ** argv)
 int main(int argc, char ** argv)
 {
     char * path_buff = NULL;
-    Elf * elf = NULL;
+    Abstract::Elf * elf = NULL;
 
     // Low memory environment - chances of getting std::bad_alloc are high
     try
@@ -549,7 +549,7 @@ int main(int argc, char ** argv)
         free(path_buff);
 
         // Evaluate what kind of elf file we have
-        if ( NULL == (elf = Elf::create(core_path)) )
+        if ( NULL == (elf = Abstract::Elf::create(core_path)) )
         {
             LOG_ERROR("Failed to parse the crash file\n");
             return EX_IOERR;

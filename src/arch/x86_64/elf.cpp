@@ -44,7 +44,7 @@
 /// Round n up to the nearest 4
 #define round_up(n) (((n)+3)&~3)
 
-x86_64Elf::x86_64Elf(int fd):Elf(fd){ this->arch = Elf::ELF_64; }
+x86_64Elf::x86_64Elf(int fd):Abstract::Elf(fd){ this->arch = Abstract::Elf::ELF_64; }
 x86_64Elf::~x86_64Elf(){}
 
 bool x86_64Elf::parse()

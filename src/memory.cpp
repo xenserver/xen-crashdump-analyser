@@ -76,7 +76,7 @@ Memory::~Memory()
     }
 }
 
-bool Memory::setup(const char * path, const Elf * elf)
+bool Memory::setup(const char * path, const Abstract::Elf * elf)
 {
     if ( (this->fd = open(path, O_RDONLY, NULL)) == -1)
     {

@@ -31,7 +31,7 @@
 /**
  * Parser for 64bit elf crash files
  */
-class x86_64Elf : public Elf
+class x86_64Elf : public Abstract::Elf
 {
 public:
     /**

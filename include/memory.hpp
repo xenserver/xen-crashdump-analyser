@@ -86,7 +86,7 @@ public:
      * @param elf Elf parser.
      * @return boolean indicating success or failure.
      */
-    bool setup(const char * path, const Elf * elf);
+    bool setup(const char * path, const Abstract::Elf * elf);
 
     /**
      * Read a string from machine address addr.

@@ -51,7 +51,7 @@ public:
      * @param elf Elf file
      * @return boolean indicating success or failure.
      */
-    bool setup(const Elf * elf);
+    bool setup(const Abstract::Elf * elf);
 
     /**
      * Parse a Xen crash_xen_info note.
@@ -95,7 +95,7 @@ public:
     /// Whether setup() has been called.
     bool once;
     /// Architecture of /proc/vmcore.
-    Elf::ElfType arch;
+    Abstract::Elf::ElfType arch;
     /// Number of PCPUs.
     int nr_pcpus;
     /// PCPUs.

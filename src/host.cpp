@@ -50,7 +50,7 @@
 #include <string.h> // For strndup
 
 Host::Host():
-    once(false), arch(Elf::ELF_Unknown), nr_pcpus(0),
+    once(false), arch(Abstract::Elf::ELF_Unknown), nr_pcpus(0),
     pcpus(NULL), idle_vcpus(NULL),
     symtab(), dom0_symtab(),
     active_vcpus(),
@@ -76,13 +76,13 @@ Host::~Host()
     SAFE_DELETE_ARRAY(this->xen_compile_date);
 }
 
-bool Host::setup(const Elf * elf)
+bool Host::setup(const Abstract::Elf * elf)
 {
     if ( this -> once )
         return false;
     this->once = true;
 
-    if ( elf->arch != Elf::ELF_64 )
+    if ( elf->arch != Abstract::Elf::ELF_64 )
     {
         LOG_ERROR("TODO - implement decoding for non-64bit Xen\n");
         return false;
@@ -96,7 +96,7 @@ bool Host::setup(const Elf * elf)
         this->pcpus = new PCPU*[nr_pcpus];
 
         for ( int x = 0; x < nr_pcpus; ++x )
-            if ( arch == Elf::ELF_64 )
+            if ( arch == Abstract::Elf::ELF_64 )
                 this->pcpus[x] = new x86_64PCPU();
             else
             {
@@ -149,7 +149,7 @@ bool Host::parse_crash_xen_info(const char * buff, const size_t len)
 {
     char * tmp = NULL;
 
-    if ( arch != Elf::ELF_64 )
+    if ( arch != Abstract::Elf::ELF_64 )
     {
         LOG_ERROR("TODO - implement decoding for non-64bit Xen\n");
         return false;
@@ -216,7 +216,7 @@ bool Host::decode_xen()
 
     try
     {
-        if ( this->arch == Elf::ELF_64 )
+        if ( this->arch == Abstract::Elf::ELF_64 )
         {
             LOG_DEBUG("  Reading idle vcpus\n");
             for ( int x = 0; x < this->nr_pcpus; ++x )
@@ -432,7 +432,7 @@ int Host::print_domains(bool dump_structures)
         return success;
     }
 
-    if ( this->arch != Elf::ELF_64 )
+    if ( this->arch != Abstract::Elf::ELF_64 )
     {
         // Implement if necessary
         LOG_ERROR("TODO - implement decoding for non-64bit Xen\n");
@@ -591,7 +591,7 @@ bool Host::validate_xen_vaddr(const vaddr_t & vaddr, const bool except)
     switch(this->arch)
     {
         // Values from xen/include/asm-x86/config.h
-    case Elf::ELF_64:
+    case Abstract::Elf::ELF_64:
         // Xen .text, .bss etc (1GB)
         if ( 0xffff82c480000000ULL <= vaddr && vaddr <= 0xffff82c4bfffffffULL )
             return true;

@@ -34,86 +34,90 @@
 #include <errno.h>
 #include <elf.h>
 
-Elf::Elf(int fd):
-    arch(Elf::ELF_Unknown),
-    nr_phdrs(0), phdrs(NULL),
-    notedata(NULL), nr_notes(0), notes(NULL),
-    nr_cpus(0), fd(fd)
-{}
-
-Elf::~Elf()
+namespace Abstract
 {
-    if ( close(fd) == -1 )
-        LOG_ERROR("Failed to close crash file: %s\n", strerror(errno));
-    fd = -1;
+    Elf::Elf(int fd):
+        arch(Elf::ELF_Unknown),
+        nr_phdrs(0), phdrs(NULL),
+        notedata(NULL), nr_notes(0), notes(NULL),
+        nr_cpus(0), fd(fd)
+    {}
 
-    // Note entries pointers point into this->notedata,
-    // so don't explicitly delete.
-    SAFE_DELETE_ARRAY(this->notes);
-    SAFE_DELETE_ARRAY(this->notedata);
-
-    SAFE_DELETE_ARRAY(this->phdrs);
-}
-
-Elf * Elf::create(const char * path)
-{
-    int fd;
-    ssize_t r;
-    char ident[EI_NIDENT];
-
-    if ( (fd = open(path, O_RDONLY, NULL)) == -1 )
+    Elf::~Elf()
     {
-        LOG_ERROR("open() failed: %s\n", strerror(errno));
-        goto error;
+        if ( close(fd) == -1 )
+            LOG_ERROR("Failed to close crash file: %s\n", strerror(errno));
+        fd = -1;
+
+        // Note entries pointers point into this->notedata,
+        // so don't explicitly delete.
+        SAFE_DELETE_ARRAY(this->notes);
+        SAFE_DELETE_ARRAY(this->notedata);
+
+        SAFE_DELETE_ARRAY(this->phdrs);
     }
 
-    if ( (r = read(fd, ident, sizeof ident)) == -1 )
+    Elf * Elf::create(const char * path)
     {
-        LOG_ERROR("Failed to read elf ident: %s\n", strerror(errno));
-        goto error_close;
+        int fd;
+        ssize_t r;
+        char ident[EI_NIDENT];
+
+        if ( (fd = open(path, O_RDONLY, NULL)) == -1 )
+        {
+            LOG_ERROR("open() failed: %s\n", strerror(errno));
+            goto error;
+        }
+
+        if ( (r = read(fd, ident, sizeof ident)) == -1 )
+        {
+            LOG_ERROR("Failed to read elf ident: %s\n", strerror(errno));
+            goto error_close;
+        }
+
+        if ( r != sizeof ident )
+        {
+            LOG_ERROR("Failed to read all of the elf ident.  Read %zu bytes instead of %zu\n",
+                      r, sizeof ident);
+            goto error_close;
+        }
+
+        if ( 0 != std::strncmp(ELFMAG, ident, SELFMAG) )
+        {
+            LOG_ERROR("File is not an elf file\n");
+            goto error_close;
+        }
+
+        if ( ident[EI_DATA] != ELFDATA2LSB )
+        {
+            LOG_ERROR("Expected little endian elf file\n");
+            goto error_close;
+        }
+
+        if ( ident[EI_VERSION] != EV_CURRENT )
+        {
+            LOG_ERROR("Expected version to be current\n");
+            goto error_close;
+        }
+
+        if ( ident[EI_CLASS] == ELFCLASS64 )
+        {
+            return new x86_64Elf(fd);
+        }
+        // Implement 32bit elf files if really needed
+        else
+        {
+            LOG_ERROR("Unexpected class %d\n", ident[EI_CLASS]);
+            goto error_close;
+        }
+
+    error_close:
+        if ( -1 == close(fd) )
+            LOG_ERROR("close() failed: %s\n", strerror(errno));
+    error:
+        return NULL;
     }
 
-    if ( r != sizeof ident )
-    {
-        LOG_ERROR("Failed to read all of the elf ident.  Read %zu bytes instead of %zu\n",
-                  r, sizeof ident);
-        goto error_close;
-    }
-
-    if ( 0 != std::strncmp(ELFMAG, ident, SELFMAG) )
-    {
-        LOG_ERROR("File is not an elf file\n");
-        goto error_close;
-    }
-
-    if ( ident[EI_DATA] != ELFDATA2LSB )
-    {
-        LOG_ERROR("Expected little endian elf file\n");
-        goto error_close;
-    }
-
-    if ( ident[EI_VERSION] != EV_CURRENT )
-    {
-        LOG_ERROR("Expected version to be current\n");
-        goto error_close;
-    }
-
-    if ( ident[EI_CLASS] == ELFCLASS64 )
-    {
-        return new x86_64Elf(fd);
-    }
-    // Implement 32bit elf files if really needed
-    else
-    {
-        LOG_ERROR("Unexpected class %d\n", ident[EI_CLASS]);
-        goto error_close;
-    }
-
-error_close:
-    if ( -1 == close(fd) )
-        LOG_ERROR("close() failed: %s\n", strerror(errno));
-error:
-    return NULL;
 }
 
 /*

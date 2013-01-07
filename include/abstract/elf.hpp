@@ -59,74 +59,80 @@ struct ElfNote
         *desc;
 };
 
+
+namespace Abstract
+{
+
 /**
  * Abstract base class for Elf file parsing.
- * Constructor is protected to force use if Elf::create().
  */
-class Elf
-{
-protected:
-    /**
-     * Constructor.
-     * @param fd File descriptor, already opened.  Elf takes ownership
-     * of the file.
-     */
-    Elf(int fd);
+    class Elf
+    {
+    protected:
+        /**
+         * Constructor.
+         * Constructor is protected to force use of Elf::create().
+         * @param fd File descriptor, already opened.  We take ownership
+         * of the file, and responsibility for closing it.
+         */
+        Elf(int fd);
 
-public:
-    /// Destructor.
-    virtual ~Elf();
+    public:
+        /// Destructor.
+        virtual ~Elf();
 
-    /**
-     * Parse the file headers.
-     * @returns boolean indicating success or failure.
-     */
-    virtual bool parse() = 0;
+        /**
+         * Parse the file headers.
+         * @returns boolean indicating success or failure.
+         */
+        virtual bool parse() = 0;
 
-    /// Elf architecture.
-    enum ElfType {
-        /// Unknown.
-        ELF_Unknown,
-        /// 32bit.
-        ELF_32,
-        /// 64bit.
-        ELF_64
-    } arch;
+        /// Elf architecture.
+        enum ElfType {
+            /// Unknown.
+            ELF_Unknown,
+            /// 32bit.
+            ELF_32,
+            /// 64bit.
+            ELF_64
+        } arch;
 
-    /// Number of program headers.
-    int nr_phdrs;
-    /// Program Headers.
-    ElfProgHdr * phdrs;
+        /// Number of program headers.
+        int nr_phdrs;
+        /// Program Headers.
+        ElfProgHdr * phdrs;
 
-    /// Contents of the note program header.
-    char * notedata;
-    /// Number of notes.
-    int nr_notes;
-    /// Notes
-    ElfNote * notes;
+        /// Contents of the note program header.
+        char * notedata;
+        /// Number of notes.
+        int nr_notes;
+        /// Notes
+        ElfNote * notes;
 
-    /// Number of cpus.
-    int nr_cpus;
+        /// Number of cpus.
+        int nr_cpus;
 
-    /**
-     * Create an Elf file parser.
-     * Opens the elf file and verifies information from the ident structure
-     * at the beginning.
-     * @param path Path to an elf crash file.
-     * @returns Architecture specific Elf class, or NULL on failure.
-     */
-    static Elf * create(const char * path);
+        /**
+         * Create an Elf file parser.
+         * Opens the elf file and verifies information from the ident structure
+         * at the beginning.
+         * @param path Path to an elf crash file.
+         * @returns Architecture specific Elf class, or NULL on failure.
+         */
+        static Elf * create(const char * path);
 
-protected:
-    /// File descriptor
-    int fd;
+    protected:
+        /// File descriptor
+        int fd;
 
-private:
-    // @cond
-    Elf(const Elf &);
-    Elf & operator= (const Elf &);
-    // @endcond
-};
+    private:
+        // @cond
+        Elf(const Elf &);
+        Elf & operator= (const Elf &);
+        // @endcond
+    };
+
+}
 
 #endif
 
