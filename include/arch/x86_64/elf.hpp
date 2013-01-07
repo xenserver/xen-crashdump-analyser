@@ -28,44 +28,49 @@
 
 #include "abstract/elf.hpp"
 
+namespace x86_64
+{
+
 /**
  * Parser for 64bit elf crash files
  */
-class x86_64Elf : public Abstract::Elf
-{
-public:
-    /**
-     * Constructor.
-     * @param fd File descriptor to read from.
-     */
-    x86_64Elf(int fd);
+    class Elf : public Abstract::Elf
+    {
+    public:
+        /**
+         * Constructor.
+         * @param fd File descriptor to read from.
+         */
+        Elf(int fd);
 
-    /// Destructor.
-    virtual ~x86_64Elf();
+        /// Destructor.
+        virtual ~Elf();
 
-    /**
-     * Parse the file headers.
-     * @returns boolean indicating success or failure.
-     */
-    virtual bool parse();
+        /**
+         * Parse the file headers.
+         * @returns boolean indicating success or failure.
+         */
+        virtual bool parse();
 
-protected:
+    protected:
 
-    /**
-     * Parse the elf program headers.
-     * @param size phentsize from ehdr, to verify against Elf64_Phdr
-     * @param offset phoff from ehdr.
-     * @returns boolean indicating success or failure.
-     */
-    bool parse_phdrs(const Elf64_Half & size, const Elf64_Off & offset);
+        /**
+         * Parse the elf program headers.
+         * @param size phentsize from ehdr, to verify against Elf64_Phdr
+         * @param offset phoff from ehdr.
+         * @returns boolean indicating success or failure.
+         */
+        bool parse_phdrs(const Elf64_Half & size, const Elf64_Off & offset);
 
-    /**
-     * Parse the elf notes.
-     * @param hdr Elf Program Header containing the notes.
-     * @returns boolean indicating success or failure.
-     */
-    bool parse_nhdrs(const ElfProgHdr & hdr);
-};
+        /**
+         * Parse the elf notes.
+         * @param hdr Elf Program Header containing the notes.
+         * @returns boolean indicating success or failure.
+         */
+        bool parse_nhdrs(const ElfProgHdr & hdr);
+    };
+
+}
 
 #endif
 

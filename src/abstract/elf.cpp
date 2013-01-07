@@ -36,6 +36,7 @@
 
 namespace Abstract
 {
+
     Elf::Elf(int fd):
         arch(Elf::ELF_Unknown),
         nr_phdrs(0), phdrs(NULL),
@@ -102,7 +103,7 @@ namespace Abstract
 
         if ( ident[EI_CLASS] == ELFCLASS64 )
         {
-            return new x86_64Elf(fd);
+            return new x86_64::Elf(fd);
         }
         // Implement 32bit elf files if really needed
         else
