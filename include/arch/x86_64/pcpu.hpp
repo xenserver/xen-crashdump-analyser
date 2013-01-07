@@ -48,6 +48,7 @@ public:
      * @param buff Buffer containing data.
      * @param len Length of the buffer in bytes.
      * @param index Index of the note, for error reporting.
+     * @return boolean indicating success or failure.
      */
     virtual bool parse_pr_status(const char * buff, const size_t len, int index);
 
@@ -57,12 +58,14 @@ public:
      * @param buff Buffer containing data.
      * @param len Length of the buffer in bytes.
      * @param index Index of the note, for error reporting.
+     * @return boolean indicating success or failure.
      */
     virtual bool parse_xen_crash_core(const char * buff, const size_t len, int index);
 
     /**
      * Decode extended state, given information obtained from PR_STATUS and
      * Xen crash core notes.
+     * @return boolean indicating success or failure.
      */
     virtual bool decode_extended_state();
 
@@ -105,6 +108,7 @@ protected:
      * Include extending parsing of interrupt stack tables.
      * @param stream Stream to write to.
      * @param stack Xen's per-cpu stack pointer.
+     * @return Number of bytes written to stream.
      */
     int print_stack(FILE * stream, const vaddr_t & stack) const;
 

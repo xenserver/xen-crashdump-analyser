@@ -93,6 +93,7 @@ public:
     /**
      * Parse register information from other VCPU
      *
+     * @param active Active VCPU with already-parsed registers.
      * @return boolean indicating success or failure.
      */
     virtual bool parse_regs_from_active(const VCPU* active);

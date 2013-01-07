@@ -80,6 +80,7 @@ int print_console_ring(FILE * stream, const CPU & cpu, const vaddr_t & ring,
  * @param cpu CPU to do a pagetable lookup with.
  * @param start Virtual address to start dumping from.
  * @param length Total length of data to dump in bytes.
+ * @return Number of bytes written.
  */
 int dump_data(FILE * stream, size_t word_size, const CPU & cpu, const vaddr_t & start,
               const uint64_t & length);
@@ -90,6 +91,7 @@ int dump_data(FILE * stream, size_t word_size, const CPU & cpu, const vaddr_t & 
  * @param cpu CPU to do a pagetable lookup with.
  * @param start Virtual address to start dumping from.
  * @param length Total length of data to dump in bytes.
+ * @return Number of bytes written.
  */
 static inline int dump_32bit_data(
     FILE * stream, const CPU & cpu, const vaddr_t & start,
@@ -102,6 +104,7 @@ static inline int dump_32bit_data(
  * @param cpu CPU to do a pagetable lookup with.
  * @param start Virtual address to start dumping from.
  * @param length Total length of data to dump in bytes.
+ * @return Number of bytes written.
  */
 static inline int dump_64bit_data(
     FILE * stream, const CPU & cpu, const vaddr_t & start,

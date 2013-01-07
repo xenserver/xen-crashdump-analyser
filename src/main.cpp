@@ -410,6 +410,7 @@ static bool parse_commandline(int argc, char ** argv)
  * Main function.
  * @param argc Command line argument count
  * @param argv Command line arguments.
+ * @return 0 for success, or EX_* constants for error.
  */
 int main(int argc, char ** argv)
 {

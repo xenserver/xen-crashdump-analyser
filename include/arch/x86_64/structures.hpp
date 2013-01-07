@@ -115,6 +115,9 @@ typedef struct {
 /// @endcond
 
 
+/**
+ * PR_STATUS note.  Transcribed from Xen.
+ */
 typedef struct __attribute__ ((aligned (16)))
 {
 /// @cond
@@ -133,9 +136,7 @@ typedef struct __attribute__ ((aligned (16)))
 	uint64_t pr_reg[27];		/* GP registers */
 	int32_t pr_fpvalid;		/* True if math co-processor being used.  */
 /// @endcond
-}
-/// PR_STATUS note
-ELF_Prstatus;
+} ELF_Prstatus;
 
 /// @cond
 #define PR_REG_r15		0

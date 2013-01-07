@@ -63,6 +63,7 @@ public:
      * Overloaded less-than operator.
      * For sorting within stl containers.
      * @param rhs Object to be compared to.
+     * @return boolean.
      */
     bool operator < (const Symbol & rhs) const;
 

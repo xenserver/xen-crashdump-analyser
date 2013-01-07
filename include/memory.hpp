@@ -60,6 +60,7 @@ public:
     /**
      * Operator < for sorting purposes.
      * @param rhs Right hand side of the expression.
+     * @returns boolean.
      */
     bool operator < (const MemRegion & rhs) const;
 };
@@ -81,6 +82,7 @@ public:
      * Set up the memory regions
      * @param path Path of the ELF CORE file.
      * @param elf Elf parser.
+     * @return boolean indicating success or failure.
      */
     bool setup(const char * path, const Elf * elf);
 

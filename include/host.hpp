@@ -57,6 +57,7 @@ public:
      * Parse a Xen crash_xen_info note.
      * @param buff Buffer containing data.
      * @param len Length of the buffer in bytes.
+     * @return boolean indicating success or failure.
      */
     bool parse_crash_xen_info(const char * buff, const size_t len);
 
