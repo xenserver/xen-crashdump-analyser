@@ -1,0 +1,20 @@
+/**
+ * @namespace Abstract
+ *
+ * Abstract Base Classes for components with different implementations
+ * based on the compiled architecture of Xen.
+ *
+ * Every component will have an architecture specific implementation.
+ * This allows common code to use arch specific code with an
+ * architecture agnostic interface.
+ *
+ * There is some code in the namespace, for example the static function
+ * Elf::create() which parses a single resource and chooses the correct
+ * arch specific Elf class to instantiate.
+ */
+
+/**
+ * @namespace x86_64
+ *
+ * Xen x86_64 architecture namespace, for 64bit x86.
+ */
