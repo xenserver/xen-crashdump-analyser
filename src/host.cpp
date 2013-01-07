@@ -119,15 +119,17 @@ bool Host::setup(const Elf * elf)
         switch ( elf->notes[x].type )
         {
         case NT_PRSTATUS:
-            this->pcpus[pt_index++]->parse_pr_status(
-                elf->notes[x].desc, elf->notes[x].desc_size);
+            this->pcpus[pt_index]->parse_pr_status(
+                elf->notes[x].desc, elf->notes[x].desc_size, pt_index);
+            ++pt_index;
             break;
         case XEN_ELFNOTE_CRASH_INFO:
             this->parse_crash_xen_info(elf->notes[x].desc, elf->notes[x].desc_size);
             break;
         case XEN_ELFNOTE_CRASH_REGS:
-            this->pcpus[xen_core_index++]->parse_xen_crash_core(
-                elf->notes[x].desc, elf->notes[x].desc_size);
+            this->pcpus[xen_core_index]->parse_xen_crash_core(
+                elf->notes[x].desc, elf->notes[x].desc_size, xen_core_index);
+            ++xen_core_index;
             break;
         default:
             break;

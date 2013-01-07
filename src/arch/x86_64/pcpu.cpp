@@ -55,22 +55,22 @@ x86_64PCPU::~x86_64PCPU()
     SAFE_DELETE(this->vcpu);
 }
 
-bool x86_64PCPU::parse_pr_status(const char * buff, const size_t len)
+bool x86_64PCPU::parse_pr_status(const char * buff, const size_t len, int index)
 {
     ELF_Prstatus * ptr = (ELF_Prstatus *)buff;
 
     if ( len != sizeof *ptr )
     {
         this->online = false;
-        LOG_WARN("Wrong size for pr_status note.  Expected %zu, got %zu\n",
-                 sizeof *ptr, len);
+        LOG_WARN("Wrong size for pr_status note %d.  Expected %zu, got %zu\n",
+                 index, sizeof *ptr, len);
         return false;
     }
 
     if ( is_zeroes(buff, len) )
     {
         this->online = false;
-        LOG_WARN("Got zeros for PR_STATUS - PCPU assumed down\n");
+        LOG_WARN("Got zeros for pr_status note %d - PCPU assumed down\n", index);
         return false;
     }
 
@@ -104,22 +104,22 @@ bool x86_64PCPU::parse_pr_status(const char * buff, const size_t len)
     return true;
 }
 
-bool x86_64PCPU::parse_xen_crash_core(const char * buff, const size_t len)
+bool x86_64PCPU::parse_xen_crash_core(const char * buff, const size_t len, int index)
 {
     x86_64_crash_xen_core_t * ptr = (x86_64_crash_xen_core_t*)buff;
 
     if ( len != sizeof *ptr )
     {
         this->online = false;
-        LOG_WARN("Wrong size for crash_xen_core note.  Expected %zu, got %zu\n",
-                 sizeof *ptr, len);
+        LOG_WARN("Wrong size for crash_xen_core note %d.  Expected %zu, got %zu\n",
+                 index, sizeof *ptr, len);
         return false;
     }
 
     if ( is_zeroes(buff, len) )
     {
         this->online = false;
-        LOG_WARN("Got zeros for XEN_CRASH_CORE - PCPU assumed down\n");
+        LOG_WARN("Got zeros for xen_crash_core note %d - PCPU assumed down\n", index);
         return false;
     }
 

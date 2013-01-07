@@ -52,16 +52,18 @@ public:
      *
      * @param buff Buffer containing data.
      * @param len Length of the buffer in bytes.
+     * @param index Index of the note, for error reporting.
      */
-    virtual bool parse_pr_status(const char * buff, const size_t len) = 0;
+    virtual bool parse_pr_status(const char * buff, const size_t len, int index) = 0;
 
     /**
      * Parse a Xen crash core note.
      *
      * @param buff Buffer containing data.
      * @param len Length of the buffer in bytes.
+     * @param index Index of the note, for error reporting.
      */
-    virtual bool parse_xen_crash_core(const char * buff, const size_t len) = 0;
+    virtual bool parse_xen_crash_core(const char * buff, const size_t len, int index) = 0;
 
     /**
      * Decode extended state, given information obtained from PR_STATUS and
