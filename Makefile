@@ -71,29 +71,4 @@ cscope:
 dissasm: $(APP-NAME-DEBUG)
 	objdump -d $(APP-NAME-DEBUG) -Mintel > dissasm
 
-.PHONY: run
-run: $(APP-NAME-DEBUG)
-	-./$(APP-NAME-DEBUG) -v -o outdir -c vmcore -x xen-4.1.2.map -d System.map-2.6.32.43-0.4.1.xs1.5.50.650.170668xen
-	@echo
-	@less outdir/xen-crashdump-analyser.log outdir/xen.log outdir/dom*.log
-	@echo
-
-.PHONY: valgrind
-valgrind: $(APP-NAME-DEBUG)
-	valgrind --tool=memcheck --leak-check=full --track-origins=yes ./$(APP-NAME-DEBUG) -v -o outdir -c vmcore -x xen-4.1.2.map -d System.map-2.6.32.43-0.4.1.xs1.5.50.650.170668xen
-	@echo
-	@less outdir/xen-crashdump-analyser.log outdir/xen.log outdir/dom*.log
-	@echo
-
-.PHONY: massif
-massif: $(APP-NAME-DEBUG)
-	rm -f massif.out.*
-	valgrind --tool=massif ./$(APP-NAME-DEBUG) -v -o outdir -c vmcore -x xen-4.1.2.map -d System.map-2.6.32.43-0.4.1.xs1.5.50.650.170668xen
-	ms_print massif.out.* | less
-
-
-# Makefile debugging. run "make <varname>var" to view contents of <varname>
-%var:
-	@echo "$* = $($*)"
-
-FIND_CMD = @find include/ src/ -name "*.[hc]" -o -name "*.[hc]pp" -print0 | sort -z
+-include Makefile.local

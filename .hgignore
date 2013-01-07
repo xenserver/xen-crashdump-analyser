@@ -3,6 +3,7 @@ syntax: glob
 .*.d		# GCC generated dependency files
 *.e		# preprocessed files
 *.o		# object files
+Makefile.local	# Local makefile tweaks
 cscope.*	# Cscope indexes
 System.map-*
 vmcore
