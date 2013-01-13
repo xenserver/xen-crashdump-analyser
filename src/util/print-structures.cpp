@@ -325,7 +325,7 @@ int dump_data(FILE * o, size_t ws, const CPU & cpu, const vaddr_t & start,
 /*
  * Local variables:
  * mode: C++
- * c-set-style: "BSD"
+ * c-file-style: "BSD"
  * c-basic-offset: 4
  * tab-width: 4
  * indent-tabs-mode: nil

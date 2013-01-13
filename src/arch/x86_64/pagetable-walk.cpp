@@ -157,7 +157,7 @@ void pagetable_walk_64(const maddr_t & cr3, const vaddr_t & vaddr,
 /*
  * Local variables:
  * mode: C++
- * c-set-style: "BSD"
+ * c-file-style: "BSD"
  * c-basic-offset: 4
  * tab-width: 4
  * indent-tabs-mode: nil
