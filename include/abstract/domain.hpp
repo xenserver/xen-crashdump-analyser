@@ -29,6 +29,7 @@
 #include <stddef.h>
 #include <cstdio>
 
+#include "abstract/pagetable.hpp"
 #include "abstract/vcpu.hpp"
 
 /**
@@ -37,8 +38,12 @@
 class Domain
 {
 public:
-    /// Constructor.
-    Domain():
+    /**
+     * Constructor.
+     * @param xenpt Xen PageTables.
+     */
+    Domain(const Abstract::PageTable & xenpt):
+        xenpt(xenpt),
         domain_ptr(0), next_domain_ptr(0), domain_id(0), is_32bit_pv(0), is_hvm(0),
         is_privileged(0), tot_pages(0), max_pages(0), shr_pages(0), max_cpus(0),
         vcpus_ptr(0), paging_mode(0), vcpus(NULL)
@@ -50,19 +55,17 @@ public:
     /**
      * Parse basic information from Xen's struct domain.
      *
-     * @param cpu CPU to perform pagetable lookups with.
      * @param domain_ptr Xen struct domain pointer.
      * @return boolean indicating success or failure.
      */
-    virtual bool parse_basic(const CPU & cpu, const vaddr_t & domain_ptr) = 0;
+    virtual bool parse_basic(const vaddr_t & domain_ptr) = 0;
 
     /**
      * Parse basic VCPU information, based on domain information.
      *
-     * @param cpu CPU to perform pagetable lookups with.
      * @return boolean indicating success or failure.
      */
-    virtual bool parse_vcpus_basic(const CPU & cpu) = 0;
+    virtual bool parse_vcpus_basic() = 0;
 
     /**
      * Print the information about this domain.
@@ -99,6 +102,9 @@ public:
      * @return Number of bytes written to stream.
      */
     virtual int print_cmdline(FILE * stream) const = 0;
+
+    /// Xen pagetables for translations.
+    const Abstract::PageTable & xenpt;
 
     /// Xen struct domain pointer.
     vaddr_t domain_ptr;

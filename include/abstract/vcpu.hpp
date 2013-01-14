@@ -26,7 +26,9 @@
  * @author Andrew Cooper
  */
 
-#include "abstract/cpu.hpp"
+#include "types.hpp"
+#include "util/macros.hpp"
+#include "abstract/pagetable.hpp"
 
 /**
  * Abstract Base Class for parsing Xen's virtual CPUs.
@@ -34,36 +36,30 @@
  * The parsing is a little complicated because of how active VCPUs at the time
  * of crash have their state stored.
  */
-class VCPU: public CPU
+class VCPU
 {
 public:
     /// Constructor.
     VCPU():
         vcpu_ptr(0), domain_ptr(0), vcpu_id(-1), domid(-1), processor(0),
-        pause_flags(-1), flags(0), runstate(RST_UNKNOWN),
+        pause_flags(-1), flags(0), dompt(NULL), runstate(RST_UNKNOWN),
         paging_support(PAGING_UNKNOWN){};
 
-    /// Destructor
-    virtual ~VCPU(){};
-
-    /**
-     * Translate a virtual address to a physical address using this cpus cr3 value.
-     * @param vaddr Virtual address to translate
-     * @param maddr Machine address result of translation
-     * @param page_end If non-null, variable to be filled with the last virtual address
-     */
-    virtual void pagetable_walk(const vaddr_t & vaddr, maddr_t & maddr,
-                                vaddr_t * page_end = NULL) const = 0;
+    /// Destructor.
+    virtual ~VCPU()
+    {
+        SAFE_DELETE(this->dompt);
+    };
 
     /**
      * Parse basic information from a Xen struct vcpu.
      * Pulls non-register information from Xen's struct vcpu, and associated
      * struct domain.
      * @param addr Xen pointer to a struct vcpu.
-     * @param cpu CPU with which pagetable lookups can be performed.
+     * @param xenpt PageTable with which translations can be performed.
      * @return boolean indicating success or failure.
      */
-    virtual bool parse_basic(const vaddr_t & addr, const CPU & cpu) = 0;
+    virtual bool parse_basic(const vaddr_t & addr, const Abstract::PageTable & xenpt) = 0;
 
     /**
      * Parse register information from a Xen per-cpu structure.
@@ -75,9 +71,11 @@ public:
      *
      * @param addr Xen virtual address of the guest regs on the per-cpu stack.
      * @param cr3 CR3 for this VCPU.
+     * @param xenpt PageTable with which translations can be performed.
      * @return boolean indicating success or failure.
      */
-    virtual bool parse_regs_from_stack(const vaddr_t & addr, const maddr_t & cr3) = 0;
+    virtual bool parse_regs_from_stack(const vaddr_t & addr, const maddr_t & cr3,
+                                       const Abstract::PageTable & xenpt) = 0;
 
     /**
      * Parse register information from Xen's struct vcpu.
@@ -86,9 +84,10 @@ public:
      * so register state in the struct vcpu is valid.  The vcpu pointer will
      * already be available from parse_basic.
      *
+     * @param xenpt PageTable with which pagetable lookups can be performed.
      * @return boolean indicating success or failure.
      */
-    virtual bool parse_regs_from_struct() = 0;
+    virtual bool parse_regs_from_struct(const Abstract::PageTable & xenpt) = 0;
 
     /**
      * Parse register information from other VCPU
@@ -122,9 +121,10 @@ public:
      * Dump Xen structures for this vcpu.
      *
      * @param stream Stream to write to.
+     * @param xenpt PageTable with which translations can be performed.
      * @return Number of bytes written to stream.
      */
-    virtual int dump_structures(FILE * stream) const = 0;
+    virtual int dump_structures(FILE * stream, const Abstract::PageTable & xenpt) const = 0;
 
     /// Xen pointer to this struct vcpu.
     vaddr_t vcpu_ptr;
@@ -141,6 +141,9 @@ public:
 
     /// Parsing flags.  Will be made up of VCPU::VCPUFlags.
     uint32_t flags;
+
+    /// Pagetable for the domain context of this VCPU.
+    Abstract::PageTable * dompt;
 
     /**
      * Bitmask flags for what information has been decoded for this VCPU.
@@ -185,6 +188,12 @@ public:
         /// Hardware Assisted Paging support.
         PAGING_HAP
     } paging_support;
+
+private:
+    // @cond
+    VCPU(const VCPU &);
+    VCPU & operator= (const VCPU &);
+    // @endcond
 
 };
 

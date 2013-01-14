@@ -45,25 +45,15 @@ public:
     /// Destructor.
     virtual ~x86_64VCPU();
 
-
-    /**
-     * Translate a virtual address to a physical address using this cpus cr3 value.
-     * @param vaddr Virtual address to translate
-     * @param maddr Machine address result of translation
-     * @param page_end If non-null, variable to be filled with the last virtual address
-     */
-    virtual void pagetable_walk(const vaddr_t & vaddr, maddr_t & maddr,
-                                vaddr_t * page_end) const;
-
     /**
      * Parse basic information from a Xen struct vcpu.
      * Pulls non-register information from Xen's struct vcpu, and associated
      * struct domain.
      * @param addr Xen pointer to a struct vcpu.
-     * @param cpu CPU with which pagetable lookups can be performed.
+     * @param xenpt PageTable with which pagetable lookups can be performed.
      * @return boolean indicating success or failure.
      */
-    virtual bool parse_basic(const vaddr_t & addr, const CPU & cpu);
+    virtual bool parse_basic(const vaddr_t & addr, const Abstract::PageTable & xenpt);
 
     /**
      * Parse register information from a Xen per-cpu structure.
@@ -75,9 +65,11 @@ public:
      *
      * @param addr Xen virtual address of the guest regs on the per-cpu stack.
      * @param cr3 CR3 for this VCPU.
+     * @param xenpt PageTable with which pagetable lookups can be performed.
      * @return boolean indicating success or failure.
      */
-    virtual bool parse_regs_from_stack(const vaddr_t & addr, const maddr_t & cr3);
+    virtual bool parse_regs_from_stack(const vaddr_t & addr, const maddr_t & cr3,
+                                       const Abstract::PageTable & xenpt);
 
     /**
      * Parse register information from Xen's struct vcpu.
@@ -86,9 +78,10 @@ public:
      * so register state in the struct vcpu is valid.  The vcpu pointer will
      * already be available from parse_basic.
      *
+     * @param xenpt PageTable with which pagetable lookups can be performed.
      * @return boolean indicating success or failure.
      */
-    virtual bool parse_regs_from_struct();
+    virtual bool parse_regs_from_struct(const Abstract::PageTable & xenpt);
 
     /**
      * Parse register information from other VCPU
@@ -122,9 +115,10 @@ public:
      * Dump Xen structures for this vcpu.
      *
      * @param stream Stream to write to.
+     * @param xenpt PageTable with which translations can be performed.
      * @return Number of bytes written to stream.
      */
-    virtual int dump_structures(FILE * stream) const;
+    virtual int dump_structures(FILE * stream, const Abstract::PageTable & xenpt) const;
 
     /**
      * Print the information about this vcpu to the provided stream, if this
@@ -149,9 +143,11 @@ protected:
      *
      * @param addr Xen virtual address of the guest regs on the per-cpu stack.
      * @param cr3 CR3 for this VCPU.
+     * @param xenpt PageTable with which translations can be performed.
      * @return boolean indicating success or failure.
      */
-    virtual bool parse_regs(const vaddr_t & addr, const maddr_t & cr3);
+    virtual bool parse_regs(const vaddr_t & addr, const maddr_t & cr3,
+                            const Abstract::PageTable & xenpt);
 
     /// Register values
     x86_64regs regs;

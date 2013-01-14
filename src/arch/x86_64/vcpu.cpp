@@ -24,7 +24,7 @@
  */
 
 #include "arch/x86_64/vcpu.hpp"
-#include "arch/x86_64/pagetable-walk.hpp"
+#include "arch/x86_64/pagetable.hpp"
 
 #include <cstring>
 #include <new>
@@ -46,7 +46,7 @@ x86_64VCPU::x86_64VCPU():
 
 x86_64VCPU::~x86_64VCPU(){}
 
-bool x86_64VCPU::parse_basic(const vaddr_t & addr, const CPU & cpu)
+bool x86_64VCPU::parse_basic(const vaddr_t & addr, const Abstract::PageTable & xenpt)
 {
     if ( required_vcpu_symbols != 0 )
     {
@@ -66,27 +66,27 @@ bool x86_64VCPU::parse_basic(const vaddr_t & addr, const CPU & cpu)
         host.validate_xen_vaddr(addr);
         this->vcpu_ptr = addr;
 
-        memory.read64_vaddr(cpu, this->vcpu_ptr + VCPU_domain,
+        memory.read64_vaddr(xenpt, this->vcpu_ptr + VCPU_domain,
                             this->domain_ptr);
 
         host.validate_xen_vaddr(this->domain_ptr);
 
-        memory.read32_vaddr(cpu, this->vcpu_ptr + VCPU_vcpu_id,
+        memory.read32_vaddr(xenpt, this->vcpu_ptr + VCPU_vcpu_id,
                             this->vcpu_id);
 
-        memory.read32_vaddr(cpu, this->vcpu_ptr + VCPU_processor,
+        memory.read32_vaddr(xenpt, this->vcpu_ptr + VCPU_processor,
                             this->processor);
 
-        memory.read16_vaddr(cpu, this->domain_ptr + DOMAIN_id,
+        memory.read16_vaddr(xenpt, this->domain_ptr + DOMAIN_id,
                             this->domid);
 
         uint8_t is_32bit;
-        memory.read8_vaddr(cpu, this->domain_ptr + DOMAIN_is_32bit_pv,
+        memory.read8_vaddr(xenpt, this->domain_ptr + DOMAIN_is_32bit_pv,
                            is_32bit);
         this->flags |= is_32bit ? CPU_PV_COMPAT : 0;
 
         uint32_t paging_mode;
-        memory.read32_vaddr(cpu, this->domain_ptr + DOMAIN_paging_mode, paging_mode);
+        memory.read32_vaddr(xenpt, this->domain_ptr + DOMAIN_paging_mode, paging_mode);
         if ( paging_mode == 0 )
             this->paging_support = VCPU::PAGING_NONE;
         else if ( paging_mode & (1U<<20) )
@@ -94,10 +94,10 @@ bool x86_64VCPU::parse_basic(const vaddr_t & addr, const CPU & cpu)
         else if ( paging_mode & (1U<<21) )
             this->paging_support = VCPU::PAGING_HAP;
 
-        memory.read32_vaddr(cpu, this->vcpu_ptr + VCPU_pause_flags,
+        memory.read32_vaddr(xenpt, this->vcpu_ptr + VCPU_pause_flags,
                             this->pause_flags);
 
-        memory.read64_vaddr(cpu, this->vcpu_ptr + VCPU_cr3,
+        memory.read64_vaddr(xenpt, this->vcpu_ptr + VCPU_cr3,
                             this->regs.cr3);
 
         return true;
@@ -110,20 +110,31 @@ bool x86_64VCPU::parse_basic(const vaddr_t & addr, const CPU & cpu)
     return false;
 }
 
-bool x86_64VCPU::parse_regs(const vaddr_t & regs, const maddr_t & cr3)
+bool x86_64VCPU::parse_regs(const vaddr_t & regs, const maddr_t & cr3,
+                            const Abstract::PageTable & xenpt)
 {
     x86_64_cpu_user_regs * uregs = NULL;
-    const CPU & cpu = *static_cast<const CPU*>(this);
+
+    if ( this->regs.cr3 == 0ULL )
+    {
+        LOG_WARN("Got cr3 of 0 from guest registers - VCPU assumed down\n");
+        return false;
+    }
 
     this->regs.cr3 = cr3;
     this->flags |= CPU_EXTD_STATE;
 
     try
     {
+        if ( this->flags & CPU_PV_COMPAT )
+            this->dompt = new x86_64::PT64Compat(cr3);
+        else
+            this->dompt = new x86_64::PT64(cr3);
+
         host.validate_xen_vaddr(regs);
         uregs = new x86_64_cpu_user_regs();
 
-        memory.read_block_vaddr(cpu, regs, (char*)uregs, sizeof *uregs );
+        memory.read_block_vaddr(xenpt, regs, (char*)uregs, sizeof *uregs );
 
         this->regs.r15 = uregs->r15;
         this->regs.r14 = uregs->r14;
@@ -169,14 +180,15 @@ bool x86_64VCPU::parse_regs(const vaddr_t & regs, const maddr_t & cr3)
     return false;
 }
 
-bool x86_64VCPU::parse_regs_from_struct()
+bool x86_64VCPU::parse_regs_from_struct(const Abstract::PageTable & xenpt)
 {
-    return this->parse_regs(this->vcpu_ptr + VCPU_user_regs, this->regs.cr3);
+    return this->parse_regs(this->vcpu_ptr + VCPU_user_regs, this->regs.cr3, xenpt);
 }
 
-bool x86_64VCPU::parse_regs_from_stack(const vaddr_t & regs, const maddr_t & cr3)
+bool x86_64VCPU::parse_regs_from_stack(const vaddr_t & regs, const maddr_t & cr3,
+                                       const Abstract::PageTable & xenpt)
 {
-    return this->parse_regs(regs, cr3);
+    return this->parse_regs(regs, cr3, xenpt);
 }
 
 bool x86_64VCPU::parse_regs_from_active(const VCPU* active)
@@ -184,19 +196,36 @@ bool x86_64VCPU::parse_regs_from_active(const VCPU* active)
     // Dangerous, but safe.  We will only actually be handed a 64bit vcpu;
     const x86_64VCPU * vcpu = reinterpret_cast<const x86_64VCPU *>(active);
 
+    try
+    {
+        if ( vcpu->regs.cr3 == 0ULL )
+        {
+            LOG_ERROR("Got cr3 of 0 from active VCPU\n");
+            return false;
+        }
+
+        if ( this->flags & CPU_PV_COMPAT )
+            this->dompt = new x86_64::PT64Compat(vcpu->regs.cr3);
+        else
+            this->dompt = new x86_64::PT64(vcpu->regs.cr3);
+    }
+    catch ( const std::bad_alloc & )
+    {
+        LOG_ERROR("Bad Alloc exception.  Out of memory\n");
+        return false;
+    }
+    catch ( const CommonError & e )
+    {
+        e.log();
+        return false;
+    }
+
     this->flags = vcpu->flags;
     this->regs = vcpu->regs;
     this->runstate = vcpu->runstate;
     return true;
 }
 
-
-void x86_64VCPU::pagetable_walk(const vaddr_t & vaddr, maddr_t & maddr, vaddr_t * page_end) const
-{
-    if ( ! this->flags & CPU_EXTD_STATE )
-        throw pagefault(vaddr, 0ULL, 5);
-    pagetable_walk_64(this->regs.cr3, vaddr, maddr, page_end);
-}
 
 bool x86_64VCPU::is_online() const { return ! (this->pause_flags & 0x2); }
 
@@ -280,10 +309,10 @@ int x86_64VCPU::print_state(FILE * o) const
         )
     {
         len += FPRINTF(o, "\tStack at %16"PRIx64":", this->regs.rsp);
-        len += print_64bit_stack(o, *static_cast<const CPU*>(this), this->regs.rsp);
+        len += print_64bit_stack(o, *this->dompt, this->regs.rsp);
 
         len += FPUTS("\n\tCode:\n", o);
-        len += print_code(o, *static_cast<const CPU*>(this), this->regs.rip);
+        len += print_code(o, *this->dompt, this->regs.rip);
 
         len += FPUTS("\n\tCall Trace:\n", o);
         if ( this->domid == 0 )
@@ -298,7 +327,7 @@ int x86_64VCPU::print_state(FILE * o) const
             {
                 while ( sp < top )
                 {
-                    memory.read64_vaddr(*static_cast<const CPU*>(this), sp, val);
+                    memory.read64_vaddr(*this->dompt, sp, val);
                     len += host.dom0_symtab.print_symbol64(o, val);
                     sp += 8;
                 }
@@ -382,10 +411,10 @@ int x86_64VCPU::print_state_compat(FILE * o) const
         this->flags & CPU_EXTD_STATE )
     {
         len += FPRINTF(o, "\tStack at %08"PRIx32":", this->regs.esp);
-        len += print_32bit_stack(o, *static_cast<const CPU*>(this), this->regs.rsp);
+        len += print_32bit_stack(o, *this->dompt, this->regs.rsp);
 
         len += FPUTS("\n\tCode:\n", o);
-        len += print_code(o, *static_cast<const CPU*>(this), this->regs.rip);
+        len += print_code(o, *this->dompt, this->regs.rip);
 
         len += FPUTS("\n\tCall Trace:\n", o);
         if ( this->domid == 0 )
@@ -401,7 +430,7 @@ int x86_64VCPU::print_state_compat(FILE * o) const
             {
                 while ( sp < top )
                 {
-                    memory.read32_vaddr(*static_cast<const CPU*>(this), sp, val.val32);
+                    memory.read32_vaddr(*this->dompt, sp, val.val32);
                     len += host.dom0_symtab.print_symbol32(o, val.val64);
                     sp += 4;
                 }
@@ -420,9 +449,8 @@ int x86_64VCPU::print_state_compat(FILE * o) const
     return len;
 }
 
-int x86_64VCPU::dump_structures(FILE * o) const
+int x86_64VCPU::dump_structures(FILE * o, const Abstract::PageTable & xenpt) const
 {
-    const CPU & cpu = *static_cast<const CPU*>(this);
     int len = 0;
 
     if ( required_vcpu_symbols != 0 )
@@ -434,7 +462,7 @@ int x86_64VCPU::dump_structures(FILE * o) const
 
     len += FPRINTF(o, "struct vcpu (0x%016"PRIx64") for vcpu %"PRId32"\n",
                    this->vcpu_ptr, this->vcpu_id);
-    len += dump_64bit_data(o, cpu, this->vcpu_ptr, VCPU_sizeof);
+    len += dump_64bit_data(o, xenpt, this->vcpu_ptr, VCPU_sizeof);
     return len;
 }
 

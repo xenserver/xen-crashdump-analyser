@@ -203,7 +203,7 @@ bool Host::parse_crash_xen_info(const char * buff, const size_t len)
 
 bool Host::decode_xen()
 {
-    const CPU & cpu = *static_cast<const CPU*>(this->pcpus[0]);
+    const Abstract::PageTable & xenpt = *this->pcpus[0]->xenpt;
 
     LOG_INFO("Decoding physical CPU information.  %d PCPUs\n", this->nr_pcpus);
 
@@ -223,7 +223,7 @@ bool Host::decode_xen()
             {
                 vaddr_t idle = idle_vcpu + (x * sizeof(uint64_t) );
                 host.validate_xen_vaddr(idle);
-                memory.read64_vaddr(cpu, idle, this->idle_vcpus[x]);
+                memory.read64_vaddr(xenpt, idle, this->idle_vcpus[x]);
             }
         }
         else
@@ -286,7 +286,7 @@ bool Host::print_xen(bool dump_structures)
     static const char * xen_log_file = "xen.log";
     int len = 0;
     bool success = false;
-    const CPU & cpu = *static_cast<const CPU*>(this->pcpus[0]);
+    const Abstract::PageTable & xenpt = *this->pcpus[0]->xenpt;
     char * cmdline = NULL;
     FILE * o = NULL;
 
@@ -328,7 +328,7 @@ bool Host::print_xen(bool dump_structures)
                 cmdline = new char[1024];
 
                 host.validate_xen_vaddr(cmdline_sym->address);
-                memory.read_str_vaddr(cpu, cmdline_sym->address, cmdline, 1023);
+                memory.read_str_vaddr(xenpt, cmdline_sym->address, cmdline, 1023);
                 len += FPRINTF(o, "Xen command line: %s\n", cmdline);
 
                 SAFE_DELETE_ARRAY(cmdline);
@@ -359,8 +359,8 @@ bool Host::print_xen(bool dump_structures)
             host.validate_xen_vaddr(conring);
             host.validate_xen_vaddr(conring_size);
 
-            memory.read64_vaddr(cpu, conring, conring_ptr);
-            memory.read32_vaddr(cpu, conring_size, tmp);
+            memory.read64_vaddr(xenpt, conring, conring_ptr);
+            memory.read32_vaddr(xenpt, conring_size, tmp);
             length = tmp;
 
             if ( required_consolepc_symbols == 0 )
@@ -370,15 +370,15 @@ bool Host::print_xen(bool dump_structures)
                 host.validate_xen_vaddr(conringp);
                 host.validate_xen_vaddr(conringc);
 
-                memory.read32_vaddr(cpu, conringp, tmp);
+                memory.read32_vaddr(xenpt, conringp, tmp);
                 prod = tmp;
-                memory.read32_vaddr(cpu, conringc, tmp);
+                memory.read32_vaddr(xenpt, conringc, tmp);
                 cons = tmp;
 
-                len += print_console_ring(o, cpu, conring_ptr, length, prod, cons);
+                len += print_console_ring(o, xenpt, conring_ptr, length, prod, cons);
             }
             else
-                len += print_console_ring(o, cpu, conring_ptr, length, 0, 0);
+                len += print_console_ring(o, xenpt, conring_ptr, length, 0, 0);
         }
         else
             len += FPUTS("    Missing conring symbols\n", o);
@@ -420,7 +420,7 @@ bool Host::print_xen(bool dump_structures)
 
 int Host::print_domains(bool dump_structures)
 {
-    const CPU & cpuref = *static_cast<const CPU*>(this->pcpus[0]);
+    const Abstract::PageTable & xenpt = *this->pcpus[0]->xenpt;
     int success = 0;
 
     LOG_INFO("Decoding Domains\n");
@@ -447,15 +447,15 @@ int Host::print_domains(bool dump_structures)
     try
     {
         host.validate_xen_vaddr(domain_list);
-        memory.read64_vaddr(cpuref, domain_list, dom_ptr);
+        memory.read64_vaddr(xenpt, domain_list, dom_ptr);
         LOG_DEBUG("  Domain pointer = 0x%016"PRIx64"\n", dom_ptr);
 
         while ( dom_ptr )
         {
-            dom = new x86_64Domain();
+            dom = new x86_64Domain(xenpt);
 
             host.validate_xen_vaddr(dom_ptr);
-            if ( ! dom->parse_basic(cpuref, dom_ptr) )
+            if ( ! dom->parse_basic(dom_ptr) )
             {
                 LOG_WARN("  Failed to parse domain basics.  Cant continue with this domain\n");
                 break;
@@ -483,7 +483,7 @@ int Host::print_domains(bool dump_structures)
              */
             set_additional_log(fd);
 
-            if ( ! dom->parse_vcpus_basic(cpuref) )
+            if ( ! dom->parse_vcpus_basic() )
             {
                 LOG_ERROR("    Failed to parse basic cpu information for domain %d\n",
                           dom->domain_id);
@@ -520,7 +520,7 @@ int Host::print_domains(bool dump_structures)
                 {
                     LOG_DEBUG("    Dom%"PRIu16" vcpu%"PRIu32" was not active\n",
                               dom->domain_id, v);
-                    dom->vcpus[v]->parse_regs_from_struct();
+                    dom->vcpus[v]->parse_regs_from_struct(xenpt);
                     dom->vcpus[v]->runstate = VCPU::RST_NONE;
                 }
             }

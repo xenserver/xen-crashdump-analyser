@@ -26,7 +26,7 @@
 #include "arch/x86_64/pcpu.hpp"
 #include "arch/x86_64/vcpu.hpp"
 #include "arch/x86_64/structures.hpp"
-#include "arch/x86_64/pagetable-walk.hpp"
+#include "arch/x86_64/pagetable.hpp"
 
 #include "Xen.h"
 
@@ -128,6 +128,22 @@ bool x86_64PCPU::parse_xen_crash_core(const char * buff, const size_t len, int i
     this->regs.cr3 = ptr->cr3;
     this->regs.cr4 = ptr->cr4;
 
+    if ( this->regs.cr3 == 0ULL )
+    {
+        this->online = false;
+        LOG_WARN("Got cr3 of 0 from xen_crash_core note %d - PCPU assumed down\n", index);
+        return false;
+    }
+
+    try
+    {
+        this->xenpt = new x86_64::PT64(this->regs.cr3);
+    }
+    catch ( const std::bad_alloc & )
+    {
+        LOG_ERROR("Bad alloc for PCPU vcpus.  Kdump environment needs more memory\n");
+    }
+
     this->flags |= CPU_EXTD_STATE;
 
     return true;
@@ -164,8 +180,6 @@ bool x86_64PCPU::decode_extended_state()
         return false;
     }
 
-    const CPU & cpu = *static_cast<const CPU*>(this);
-
     try
     {
         vaddr_t cpu_info = this->regs.rsp;
@@ -175,7 +189,7 @@ bool x86_64PCPU::decode_extended_state()
         host.validate_xen_vaddr(cpu_info);
 
         uint32_t pid;
-        memory.read32_vaddr(cpu, cpu_info + CPUINFO_processor_id,
+        memory.read32_vaddr(*this->xenpt, cpu_info + CPUINFO_processor_id,
                             pid);
         this->processor_id = pid;
 
@@ -187,14 +201,14 @@ bool x86_64PCPU::decode_extended_state()
             return false;
         }
 
-        memory.read64_vaddr(cpu, cpu_info + CPUINFO_current_vcpu,
+        memory.read64_vaddr(*this->xenpt, cpu_info + CPUINFO_current_vcpu,
                             this->current_vcpu_ptr);
         host.validate_xen_vaddr(this->current_vcpu_ptr);
 
 
-        memory.read64_vaddr(cpu, cpu_info + CPUINFO_per_cpu_offset,
+        memory.read64_vaddr(*this->xenpt, cpu_info + CPUINFO_per_cpu_offset,
                             this->per_cpu_offset);
-        memory.read64_vaddr(cpu, this->per_cpu_offset + per_cpu__curr_vcpu,
+        memory.read64_vaddr(*this->xenpt, this->per_cpu_offset + per_cpu__curr_vcpu,
                             this->per_cpu_current_vcpu_ptr);
 
         host.validate_xen_vaddr(this->per_cpu_current_vcpu_ptr);
@@ -221,9 +235,10 @@ bool x86_64PCPU::decode_extended_state()
             // Load this->vcpu from per_cpu_current_vcpu_ptr, regs from stack
             this->vcpu = new x86_64VCPU();
             if ( ! this->vcpu->parse_basic(
-                     this->per_cpu_current_vcpu_ptr, cpu) ||
+                     this->per_cpu_current_vcpu_ptr, *this->xenpt) ||
                  ! this->vcpu->parse_regs_from_stack(
-                     cpu_info + CPUINFO_guest_cpu_user_regs, this->regs.cr3) )
+                     cpu_info + CPUINFO_guest_cpu_user_regs,
+                     this->regs.cr3, *this->xenpt) )
                 return false;
             this->vcpu->runstate = VCPU::RST_NONE;
         }
@@ -236,9 +251,10 @@ bool x86_64PCPU::decode_extended_state()
                 // Load this->vcpu from per_cpu_current_vcpu_ptr, regs on stack
                 this->vcpu = new x86_64VCPU();
                 if ( ! this->vcpu->parse_basic(
-                         this->per_cpu_current_vcpu_ptr, cpu) ||
+                         this->per_cpu_current_vcpu_ptr, *this->xenpt) ||
                      ! this->vcpu->parse_regs_from_stack(
-                         cpu_info + CPUINFO_guest_cpu_user_regs, this->regs.cr3) )
+                         cpu_info + CPUINFO_guest_cpu_user_regs,
+                         this->regs.cr3, *this->xenpt) )
                     return false;
                 this->vcpu->runstate = VCPU::RST_RUNNING;
             }
@@ -251,14 +267,14 @@ bool x86_64PCPU::decode_extended_state()
                 this->vcpu_state = CTX_SWITCH;
                 this->ctx_from = new x86_64VCPU();
                 if ( ! this->ctx_from->parse_basic(
-                         this->per_cpu_current_vcpu_ptr, cpu) ||
-                     ! this->ctx_from->parse_regs_from_struct() )
+                         this->per_cpu_current_vcpu_ptr, *this->xenpt) ||
+                     ! this->ctx_from->parse_regs_from_struct(*this->xenpt) )
                     return false;
                 this->ctx_from->runstate = VCPU::RST_CTX_SWITCH;
 
                 this->ctx_to = new x86_64VCPU();
                 if ( ! this->ctx_to->parse_basic(
-                         this->current_vcpu_ptr, cpu) )
+                         this->current_vcpu_ptr, *this->xenpt) )
                     return false;
                 this->ctx_to->runstate = VCPU::RST_NONE;
             }
@@ -280,11 +296,6 @@ bool x86_64PCPU::decode_extended_state()
 }
 
 bool x86_64PCPU::is_online() const { return this->online; }
-
-void x86_64PCPU::pagetable_walk(const vaddr_t & vaddr, maddr_t & maddr, vaddr_t * page_end) const
-{
-    pagetable_walk_64(this->regs.cr3, vaddr, maddr, page_end);
-}
 
 int x86_64PCPU::print_state(FILE * o) const
 {
@@ -398,10 +409,10 @@ int x86_64PCPU::print_state(FILE * o) const
     len += FPUTS("\n", o);
 
     len += FPRINTF(o, "\tStack at %016"PRIx64":", this->regs.rsp);
-    len += print_64bit_stack(o, *static_cast<const CPU*>(this), this->regs.rsp);
+    len += print_64bit_stack(o, *this->xenpt, this->regs.rsp);
 
     len += FPUTS("\n\tCode:\n", o);
-    len += print_code(o, *static_cast<const CPU*>(this), this->regs.rip);
+    len += print_code(o, *this->xenpt, this->regs.rip);
 
     len += FPUTS("\n\tCall Trace:\n", o);
 
@@ -425,7 +436,6 @@ int x86_64PCPU::print_state(FILE * o) const
 int x86_64PCPU::print_stack(FILE * o, const vaddr_t & stack) const
 {
     int len = 0;
-    const CPU & cpu = *static_cast<const CPU*>(this);
 
     uint64_t sp = stack;
     uint64_t stack_top;
@@ -448,7 +458,7 @@ int x86_64PCPU::print_stack(FILE * o, const vaddr_t & stack) const
 
         while ( sp < stack_top )
         {
-            memory.read64_vaddr(cpu, sp, val);
+            memory.read64_vaddr(*this->xenpt, sp, val);
             len += host.symtab.print_symbol64(o, val);
             sp += 8;
         }
@@ -457,7 +467,7 @@ int x86_64PCPU::print_stack(FILE * o, const vaddr_t & stack) const
         {
             // Entered this stack frame from NMI, MCE or Double Fault
             static const char * entry [] = { "Double Fault", "NMI", "MCE" };
-            memory.read_block_vaddr(cpu, stack_top, (char*)&exp_regs, sizeof exp_regs);
+            memory.read_block_vaddr(*this->xenpt, stack_top, (char*)&exp_regs, sizeof exp_regs);
 
             len += FPRINTF(o, "\n\t      %s interrupted Code at %04"PRIx16":%016"PRIx64
                            " and Stack at %016"PRIx64"\n\n",

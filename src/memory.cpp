@@ -110,11 +110,11 @@ ssize_t Memory::read_str(const maddr_t & addr, char * dst, ssize_t n) const
     return strlen(dst);
 }
 
-ssize_t Memory::read_str_vaddr(const CPU & cpu, const vaddr_t & vaddr, char * dst, ssize_t n) const
+ssize_t Memory::read_str_vaddr(const PageTable & pt, const vaddr_t & vaddr, char * dst, ssize_t n) const
 {
     maddr_t maddr;
     vaddr_t end;
-    cpu.pagetable_walk(vaddr, maddr, &end);
+    pt.walk(vaddr, maddr, &end);
     if ( vaddr + n - 1 <= end )
         return this->read_str(maddr, dst, n);
     else
@@ -131,7 +131,7 @@ ssize_t Memory::read_str_vaddr(const CPU & cpu, const vaddr_t & vaddr, char * ds
             this->read_block(maddr, &dst[index], nr);
             index += nr;
             addr = end+1;
-            cpu.pagetable_walk(addr, maddr, &end);
+            pt.walk(addr, maddr, &end);
             n -= nr;
         } while ( n );
         dst[index] = 0;
@@ -147,10 +147,10 @@ void Memory::read8(const maddr_t & addr, uint8_t & dst) const
         throw memread(addr, r, 1, errno);
 }
 
-void Memory::read8_vaddr(const CPU & cpu, const vaddr_t & vaddr, uint8_t & dst) const
+void Memory::read8_vaddr(const PageTable & pt, const vaddr_t & vaddr, uint8_t & dst) const
 {
     maddr_t maddr;
-    cpu.pagetable_walk(vaddr, maddr);
+    pt.walk(vaddr, maddr);
     this->read8(maddr, dst);
 }
 
@@ -163,9 +163,9 @@ void Memory::read16(const maddr_t & addr, uint16_t & dst) const
         throw memread(addr, r, 2, errno);
 }
 
-void Memory::read16_vaddr(const CPU & cpu, const vaddr_t & vaddr, uint16_t & dst) const
+void Memory::read16_vaddr(const PageTable & pt, const vaddr_t & vaddr, uint16_t & dst) const
 {
-    this->read_block_vaddr(cpu, vaddr, (char*)&dst, 2);
+    this->read_block_vaddr(pt, vaddr, (char*)&dst, 2);
 }
 
 void Memory::read32(const maddr_t & addr, uint32_t & dst) const
@@ -176,9 +176,9 @@ void Memory::read32(const maddr_t & addr, uint32_t & dst) const
         throw memread(addr, r, 4, errno);
 }
 
-void Memory::read32_vaddr(const CPU & cpu, const vaddr_t & vaddr, uint32_t & dst) const
+void Memory::read32_vaddr(const PageTable & pt, const vaddr_t & vaddr, uint32_t & dst) const
 {
-    this->read_block_vaddr(cpu, vaddr, (char*)&dst, 4);
+    this->read_block_vaddr(pt, vaddr, (char*)&dst, 4);
 }
 
 void Memory::read64(const maddr_t & addr, uint64_t & dst) const
@@ -189,9 +189,9 @@ void Memory::read64(const maddr_t & addr, uint64_t & dst) const
         throw memread(addr, r, 8, errno);
 }
 
-void Memory::read64_vaddr(const CPU & cpu, const vaddr_t & vaddr, uint64_t & dst) const
+void Memory::read64_vaddr(const PageTable & pt, const vaddr_t & vaddr, uint64_t & dst) const
 {
-    this->read_block_vaddr(cpu, vaddr, (char*)&dst, 8);
+    this->read_block_vaddr(pt, vaddr, (char*)&dst, 8);
 }
 
 void Memory::read_block(const maddr_t & addr, char * dst, ssize_t n) const
@@ -202,11 +202,11 @@ void Memory::read_block(const maddr_t & addr, char * dst, ssize_t n) const
         throw memread(addr, r, n, errno);
 }
 
-void Memory::read_block_vaddr(const CPU & cpu, const vaddr_t & vaddr, char * dst, ssize_t n) const
+void Memory::read_block_vaddr(const PageTable & pt, const vaddr_t & vaddr, char * dst, ssize_t n) const
 {
     maddr_t maddr;
     vaddr_t end;
-    cpu.pagetable_walk(vaddr, maddr, &end);
+    pt.walk(vaddr, maddr, &end);
     if ( vaddr + n - 1 <= end )
         this->read_block(maddr, dst, n);
     else
@@ -223,7 +223,7 @@ void Memory::read_block_vaddr(const CPU & cpu, const vaddr_t & vaddr, char * dst
             this->read_block(maddr, &dst[index], nr);
             index += nr;
             addr = end+1;
-            cpu.pagetable_walk(addr, maddr, &end);
+            pt.walk(addr, maddr, &end);
             n -= nr;
         } while ( n );
     }
@@ -273,11 +273,11 @@ ssize_t Memory::write_block_to_file(const maddr_t & addr, FILE * file, ssize_t n
     return total_written;
 }
 
-ssize_t Memory::write_block_vaddr_to_file(const CPU & cpu, const vaddr_t & vaddr, FILE * file, ssize_t n) const
+ssize_t Memory::write_block_vaddr_to_file(const PageTable & pt, const vaddr_t & vaddr, FILE * file, ssize_t n) const
 {
     maddr_t maddr;
     vaddr_t end;
-    cpu.pagetable_walk(vaddr, maddr, &end);
+    pt.walk(vaddr, maddr, &end);
     if ( vaddr + n - 1 <= end )
         return this->write_block_to_file(maddr, file, n);
     else
@@ -296,7 +296,7 @@ ssize_t Memory::write_block_vaddr_to_file(const CPU & cpu, const vaddr_t & vaddr
             if ( w != nr )
                 return index + w;
             addr = end+1;
-            cpu.pagetable_walk(addr, maddr, &end);
+            pt.walk(addr, maddr, &end);
             n -= nr;
         } while ( n );
         return index;

@@ -24,52 +24,54 @@
  */
 
 #include "types.hpp"
-#include "abstract/cpu.hpp"
+#include "abstract/pagetable.hpp"
 #include <cstdio>
+
+using Abstract::PageTable;
 
 /**
  * Print a 64bit stack dump.
  * @param stream Stream to print to.
- * @param cpu CPU to do a pagetable lookup with.
+ * @param pt PageTable to do a pagetable lookup with.
  * @param rsp Stack pointer to start at.
  * @param count Number of entries to print.  Defaults to rounding up to the nearest page size.
  * @return Number of bytes written.
  */
-int print_64bit_stack(FILE * stream, const CPU & cpu, const vaddr_t & rsp,
+int print_64bit_stack(FILE * stream, const PageTable & pt, const vaddr_t & rsp,
                       const size_t count=0);
 
 /**
  * Print a 32bit stack dump.
  * @param stream Stream to print to.
- * @param cpu CPU to do a pagetable lookup with.
+ * @param pt PageTable to do a pagetable lookup with.
  * @param rsp Stack pointer to start at.
  * @param count Number of entries to print.  Defaults to rounding up to the nearest page size.
  * @return Number of bytes written.
  */
-int print_32bit_stack(FILE * stream, const CPU & cpu, const vaddr_t & rsp,
+int print_32bit_stack(FILE * stream, const PageTable & pt, const vaddr_t & rsp,
                       const size_t count=0);
 
 /**
  * Print a code dump
  * @param stream Stream to print to.
- * @param cpu CPU to do a pagetable lookup with.
+ * @param pt PageTable to do a pagetable lookup with.
  * @param rip Instruction pointer.
  * @return Number of bytes written.
  */
-int print_code(FILE * stream, const CPU & cpu, const vaddr_t & rip);
+int print_code(FILE * stream, const PageTable & pt, const vaddr_t & rip);
 
 
 /**
  * Print a console ring.
  * @param stream Stream to print to.
- * @param cpu CPU to do a pagetable lookup with.
+ * @param pt PageTable to do a pagetable lookup with.
  * @param ring Virtual address of the console ring.
  * @param length Total length of the ring buffer.
  * @param prod Producer index, or 0 is unavailable.
  * @param cons Consumer index, or 0 if unavailable.
  * @return Number of bytes written.
  */
-int print_console_ring(FILE * stream, const CPU & cpu, const vaddr_t & ring,
+int print_console_ring(FILE * stream, const PageTable & pt, const vaddr_t & ring,
                        const uint64_t & length, const uint64_t & prod,
                        const uint64_t & cons);
 
@@ -77,39 +79,39 @@ int print_console_ring(FILE * stream, const CPU & cpu, const vaddr_t & ring,
  * Dump a data region.
  * @param stream Stream to print to.
  * @param word_size Size of words (4 or 8) in bytes.
- * @param cpu CPU to do a pagetable lookup with.
+ * @param pt PageTable to do a pagetable lookup with.
  * @param start Virtual address to start dumping from.
  * @param length Total length of data to dump in bytes.
  * @return Number of bytes written.
  */
-int dump_data(FILE * stream, size_t word_size, const CPU & cpu, const vaddr_t & start,
+int dump_data(FILE * stream, size_t word_size, const PageTable & pt, const vaddr_t & start,
               const uint64_t & length);
 
 /**
  * Dump a 32bit data region.
  * @param stream Stream to print to.
- * @param cpu CPU to do a pagetable lookup with.
+ * @param pt PageTable to do a pagetable lookup with.
  * @param start Virtual address to start dumping from.
  * @param length Total length of data to dump in bytes.
  * @return Number of bytes written.
  */
 static inline int dump_32bit_data(
-    FILE * stream, const CPU & cpu, const vaddr_t & start,
+    FILE * stream, const PageTable & pt, const vaddr_t & start,
     const uint64_t & length)
-{ return dump_data(stream, 4, cpu, start, length); }
+{ return dump_data(stream, 4, pt, start, length); }
 
 /**
  * Dump a 64bit data region.
  * @param stream Stream to print to.
- * @param cpu CPU to do a pagetable lookup with.
+ * @param pt PageTable to do a pagetable lookup with.
  * @param start Virtual address to start dumping from.
  * @param length Total length of data to dump in bytes.
  * @return Number of bytes written.
  */
 static inline int dump_64bit_data(
-    FILE * stream, const CPU & cpu, const vaddr_t & start,
+    FILE * stream, const PageTable & pt, const vaddr_t & start,
     const uint64_t & length)
-{ return dump_data(stream, 8, cpu, start, length); }
+{ return dump_data(stream, 8, pt, start, length); }
 
 /*
  * Local variables:

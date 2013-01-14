@@ -35,7 +35,8 @@
  * @author Andrew Cooper
  */
 
-x86_64Domain::x86_64Domain()
+x86_64Domain::x86_64Domain(const Abstract::PageTable & xenpt)
+    : Domain(xenpt)
 {
     memset(this->handle, 0, sizeof this->handle);
 }
@@ -52,7 +53,7 @@ x86_64Domain::~x86_64Domain()
     }
 }
 
-bool x86_64Domain::parse_basic(const CPU & cpu, const vaddr_t & domain_ptr)
+bool x86_64Domain::parse_basic(const vaddr_t & domain_ptr)
 {
     if ( required_domain_symbols != 0 )
     {
@@ -66,24 +67,24 @@ bool x86_64Domain::parse_basic(const CPU & cpu, const vaddr_t & domain_ptr)
         host.validate_xen_vaddr(domain_ptr);
         this->domain_ptr = domain_ptr;
 
-        memory.read16_vaddr(cpu, this->domain_ptr + DOMAIN_id, this->domain_id);
+        memory.read16_vaddr(this->xenpt, this->domain_ptr + DOMAIN_id, this->domain_id);
 
-        memory.read8_vaddr (cpu, this->domain_ptr + DOMAIN_is_32bit_pv, this->is_32bit_pv);
-        memory.read8_vaddr (cpu, this->domain_ptr + DOMAIN_is_hvm, this->is_hvm);
-        memory.read8_vaddr (cpu, this->domain_ptr + DOMAIN_is_privileged, this->is_privileged);
+        memory.read8_vaddr (this->xenpt, this->domain_ptr + DOMAIN_is_32bit_pv, this->is_32bit_pv);
+        memory.read8_vaddr (this->xenpt, this->domain_ptr + DOMAIN_is_hvm, this->is_hvm);
+        memory.read8_vaddr (this->xenpt, this->domain_ptr + DOMAIN_is_privileged, this->is_privileged);
 
-        memory.read32_vaddr(cpu, this->domain_ptr + DOMAIN_max_vcpus, this->max_cpus);
-        memory.read64_vaddr(cpu, this->domain_ptr + DOMAIN_vcpus, this->vcpus_ptr);
+        memory.read32_vaddr(this->xenpt, this->domain_ptr + DOMAIN_max_vcpus, this->max_cpus);
+        memory.read64_vaddr(this->xenpt, this->domain_ptr + DOMAIN_vcpus, this->vcpus_ptr);
 
-        memory.read32_vaddr(cpu, this->domain_ptr + DOMAIN_paging_mode, this->paging_mode);
-        memory.read32_vaddr(cpu, this->domain_ptr + DOMAIN_tot_pages, this->tot_pages);
-        memory.read32_vaddr(cpu, this->domain_ptr + DOMAIN_max_pages, this->max_pages);
-        memory.read32_vaddr(cpu, this->domain_ptr + DOMAIN_shr_pages, (uint32_t&)this->shr_pages);
+        memory.read32_vaddr(this->xenpt, this->domain_ptr + DOMAIN_paging_mode, this->paging_mode);
+        memory.read32_vaddr(this->xenpt, this->domain_ptr + DOMAIN_tot_pages, this->tot_pages);
+        memory.read32_vaddr(this->xenpt, this->domain_ptr + DOMAIN_max_pages, this->max_pages);
+        memory.read32_vaddr(this->xenpt, this->domain_ptr + DOMAIN_shr_pages, (uint32_t&)this->shr_pages);
 
-        memory.read_block_vaddr(cpu, this->domain_ptr + DOMAIN_handle,
+        memory.read_block_vaddr(this->xenpt, this->domain_ptr + DOMAIN_handle,
                                 (char*)this->handle, sizeof this->handle);
 
-        memory.read64_vaddr(cpu, this->domain_ptr + DOMAIN_next, this->next_domain_ptr);
+        memory.read64_vaddr(this->xenpt, this->domain_ptr + DOMAIN_next, this->next_domain_ptr);
 
         return true;
     }
@@ -95,7 +96,7 @@ bool x86_64Domain::parse_basic(const CPU & cpu, const vaddr_t & domain_ptr)
     return false;
 }
 
-bool x86_64Domain::parse_vcpus_basic(const CPU & cpu)
+bool x86_64Domain::parse_vcpus_basic()
 {
     try
     {
@@ -116,10 +117,10 @@ bool x86_64Domain::parse_vcpus_basic(const CPU & cpu)
         {
             vaddr_t vcpu_addr;
             this->vcpus[x] = new x86_64VCPU();
-            memory.read64_vaddr(cpu, this->vcpus_ptr + x * 8, vcpu_addr);
+            memory.read64_vaddr(this->xenpt, this->vcpus_ptr + x * 8, vcpu_addr);
             host.validate_xen_vaddr(vcpu_addr);
             LOG_DEBUG("    Vcpu%"PRIu32" pointer = 0x%016"PRIx64"\n", x, vcpu_addr);
-            this->vcpus[x]->parse_basic(vcpu_addr, cpu);
+            this->vcpus[x]->parse_basic(vcpu_addr, this->xenpt);
         }
 
         return true;
@@ -203,7 +204,6 @@ int x86_64Domain::print_state(FILE * o) const
 
 int x86_64Domain::dump_structures(FILE * o) const
 {
-    const CPU & cpu = *static_cast<const CPU*>(this->vcpus[0]);
     int len = 0;
 
     if ( required_domain_symbols != 0 )
@@ -216,13 +216,13 @@ int x86_64Domain::dump_structures(FILE * o) const
     len += FPRINTF(o, "Xen structures for Domain %"PRId16"\n\n", this->domain_id);
 
     len += FPRINTF(o, "struct domain (0x%016"PRIx64")\n", this->domain_ptr);
-    len += dump_64bit_data(o, cpu, this->domain_ptr, DOMAIN_sizeof);
+    len += dump_64bit_data(o, this->xenpt, this->domain_ptr, DOMAIN_sizeof);
 
     for ( uint32_t x = 0; x < this->max_cpus; ++x )
         if ( this->vcpus[x] )
         {
             len += FPUTS("\n", o);
-            len += this->vcpus[x]->dump_structures(o);
+            len += this->vcpus[x]->dump_structures(o, this->xenpt);
         }
         else
             len += FPRINTF(o, "Nothing to dump for vcpu%"PRIu32"\n\n", x);
@@ -238,7 +238,7 @@ int x86_64Domain::print_console(FILE * o) const
     if ( this->domain_id != 0 )
         return len;
 
-    const CPU & cpu = *static_cast<const CPU*>(this->vcpus[0]);
+    const Abstract::PageTable & dompt = *this->vcpus[0]->dompt;
 
     const Symbol *log_end_sym, *log_buf_sym, *log_buf_len_sym;
 
@@ -265,16 +265,16 @@ int x86_64Domain::print_console(FILE * o) const
     {
         if ( this->is_32bit_pv )
         {
-            memory.read32_vaddr(cpu, log_buf_sym->address, tmp);
+            memory.read32_vaddr(dompt, log_buf_sym->address, tmp);
             ring = tmp;
         }
         else
-            memory.read64_vaddr(cpu, log_buf_sym->address, ring);
+            memory.read64_vaddr(dompt, log_buf_sym->address, ring);
 
-        memory.read32_vaddr(cpu, log_end_sym->address, tmp);
+        memory.read32_vaddr(dompt, log_end_sym->address, tmp);
         producer = tmp;
 
-        memory.read32_vaddr(cpu, log_buf_len_sym->address, tmp);
+        memory.read32_vaddr(dompt, log_buf_len_sym->address, tmp);
         length = tmp;
 
 
@@ -287,7 +287,7 @@ int x86_64Domain::print_console(FILE * o) const
 
         consumer = producer > length ? producer - length : 0;
 
-        len += print_console_ring(o, cpu, ring, length, producer, consumer);
+        len += print_console_ring(o, dompt, ring, length, producer, consumer);
     }
     catch ( const CommonError & e )
     {
@@ -306,7 +306,7 @@ int x86_64Domain::print_cmdline(FILE * o) const
     if ( this->domain_id != 0 )
         return len;
 
-    const CPU & cpu = *static_cast<const CPU*>(this->vcpus[0]);
+    const Abstract::PageTable & dompt = *this->vcpus[0]->dompt;
 
     const Symbol * cmdline_sym = host.dom0_symtab.find("saved_command_line");
     if ( ! cmdline_sym )
@@ -320,11 +320,11 @@ int x86_64Domain::print_cmdline(FILE * o) const
             union { uint32_t val32; uint64_t val64; } cmdline_vaddr = {0};
 
             if ( this->is_32bit_pv )
-                memory.read32_vaddr(cpu, cmdline_sym->address, cmdline_vaddr.val32);
+                memory.read32_vaddr(dompt, cmdline_sym->address, cmdline_vaddr.val32);
             else
-                memory.read64_vaddr(cpu, cmdline_sym->address, cmdline_vaddr.val64);
+                memory.read64_vaddr(dompt, cmdline_sym->address, cmdline_vaddr.val64);
 
-            memory.read_str_vaddr(cpu, cmdline_vaddr.val64, cmdline, 2047);
+            memory.read_str_vaddr(dompt, cmdline_vaddr.val64, cmdline, 2047);
             len += FPRINTF(o, "  Command line: %s\n", cmdline);
 
             SAFE_DELETE_ARRAY(cmdline);

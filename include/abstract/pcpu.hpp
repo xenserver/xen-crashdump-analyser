@@ -29,23 +29,27 @@
 #include <stddef.h>
 #include <cstdio>
 
-#include "abstract/cpu.hpp"
+#include "util/macros.hpp"
+#include "abstract/pagetable.hpp"
 #include "abstract/vcpu.hpp"
 
 /**
  * Physical CPU state, from Xen crash notes, and Xen per-cpu stack information.
  */
-class PCPU: public CPU
+class PCPU
 {
 public:
     /// Constructor.
     PCPU():flags(0),processor_id(-1),per_cpu_offset(0),current_vcpu_ptr(0),
            per_cpu_current_vcpu_ptr(0),ctx_from(NULL),ctx_to(NULL),vcpu(NULL),
-           online(true),vcpu_state(CTX_UNKNOWN)
+           online(true),xenpt(NULL),vcpu_state(CTX_UNKNOWN)
         {};
 
     /// Destructor.
-    virtual ~PCPU(){};
+    virtual ~PCPU()
+    {
+        SAFE_DELETE(this->xenpt);
+    };
 
     /**
      * Parse a PR_STATUS crash note.
@@ -81,15 +85,6 @@ public:
     virtual bool is_online() const = 0;
 
     /**
-     * Translate a virtual address to a physical address using this cpus cr3 value.
-     * @param vaddr Virtual address to translate
-     * @param maddr Machine address result of translation
-     * @param page_end If non-null, variable to be filled with the last virtual address
-     */
-    virtual void pagetable_walk(const vaddr_t & vaddr, maddr_t & maddr,
-                                vaddr_t * page_end) const = 0;
-
-    /**
      * Print the information about this vcpu to the provided stream.
      * Information includes (where relevant).
      * - Core registers
@@ -123,6 +118,9 @@ public:
 
     /// Is this PCPU online?
     bool online;
+
+    /// Pagetable for the context of Xen.
+    Abstract::PageTable * xenpt;
 
     /**
      * Bitmask flags for what information has been decoded for this PCPU.

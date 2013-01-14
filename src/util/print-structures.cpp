@@ -33,7 +33,7 @@
 
 #include <limits.h>
 
-int print_64bit_stack(FILE * o, const CPU & cpu, const vaddr_t & rsp,
+int print_64bit_stack(FILE * o, const PageTable & pt, const vaddr_t & rsp,
                       const size_t count)
 {
     int len = 0;
@@ -68,7 +68,7 @@ int print_64bit_stack(FILE * o, const CPU & cpu, const vaddr_t & rsp,
         {
             if ( !(sp & mask) )
                 len += FPRINTF(o, "\n\t  %016"PRIx64":", sp);
-            memory.read64_vaddr(cpu, sp, val);
+            memory.read64_vaddr(pt, sp, val);
             len += FPRINTF(o, " %016"PRIx64, val);
         }
     }
@@ -81,7 +81,7 @@ int print_64bit_stack(FILE * o, const CPU & cpu, const vaddr_t & rsp,
     return len;
 }
 
-int print_32bit_stack(FILE * o, const CPU & cpu, const vaddr_t & rsp,
+int print_32bit_stack(FILE * o, const PageTable & pt, const vaddr_t & rsp,
                       const size_t count)
 {
     int len = 0;
@@ -124,7 +124,7 @@ int print_32bit_stack(FILE * o, const CPU & cpu, const vaddr_t & rsp,
         {
             if ( !(sp & mask) )
                 len += FPRINTF(o, "\n\t  %08"PRIx64":", sp);
-            memory.read32_vaddr(cpu, sp, val);
+            memory.read32_vaddr(pt, sp, val);
             len += FPRINTF(o, " %08"PRIx32, val);
         }
     }
@@ -137,7 +137,7 @@ int print_32bit_stack(FILE * o, const CPU & cpu, const vaddr_t & rsp,
     return len;
 }
 
-int print_code(FILE * o, const CPU & cpu, const vaddr_t & rip)
+int print_code(FILE * o, const PageTable & pt, const vaddr_t & rip)
 {
     int len = 0;
     vaddr_t ip = rip - 15;
@@ -149,7 +149,7 @@ int print_code(FILE * o, const CPU & cpu, const vaddr_t & rip)
     {
         for ( int i = 0; i < 32; ++i )
         {
-            memory.read8_vaddr(cpu, ip + i, d);
+            memory.read8_vaddr(pt, ip + i, d);
             if ( (ip + i) == rip )
                 len += FPRINTF(o, " <%02"PRIx8">", d);
             else
@@ -166,7 +166,7 @@ int print_code(FILE * o, const CPU & cpu, const vaddr_t & rip)
     return len;
 }
 
-int print_console_ring(FILE * o, const CPU & cpu,
+int print_console_ring(FILE * o, const PageTable & pt,
                        const vaddr_t & ring, const uint64_t & _length,
                        const uint64_t & producer, const uint64_t & consumer)
 {
@@ -198,7 +198,7 @@ int print_console_ring(FILE * o, const CPU & cpu,
     {
         if ( cons == 0 && prod == 0 )
         {
-            written = memory.write_block_vaddr_to_file(cpu, ring, o, length);
+            written = memory.write_block_vaddr_to_file(pt, ring, o, length);
             len += written;
 
             if ( written != length )
@@ -209,7 +209,7 @@ int print_console_ring(FILE * o, const CPU & cpu,
         {
             if ( cons >= prod )
             {
-                written = memory.write_block_vaddr_to_file(cpu, ring + cons,
+                written = memory.write_block_vaddr_to_file(pt, ring + cons,
                                                            o, length - cons);
                 len += written;
 
@@ -221,7 +221,7 @@ int print_console_ring(FILE * o, const CPU & cpu,
                 else
                 {
 
-                    written = memory.write_block_vaddr_to_file(cpu, ring, o, prod);
+                    written = memory.write_block_vaddr_to_file(pt, ring, o, prod);
                     len += written;
 
                     if ( prod != written )
@@ -231,7 +231,7 @@ int print_console_ring(FILE * o, const CPU & cpu,
             }
             else
             {
-                written = memory.write_block_vaddr_to_file(cpu, ring + cons, o, prod - cons);
+                written = memory.write_block_vaddr_to_file(pt, ring + cons, o, prod - cons);
                 len += written;
 
                 if ( (prod - cons) != written )
@@ -249,7 +249,7 @@ int print_console_ring(FILE * o, const CPU & cpu,
     return len;
 }
 
-int dump_data(FILE * o, size_t ws, const CPU & cpu, const vaddr_t & start,
+int dump_data(FILE * o, size_t ws, const PageTable & pt, const vaddr_t & start,
               const uint64_t & length)
 {
     int len = 0;
@@ -278,13 +278,13 @@ int dump_data(FILE * o, size_t ws, const CPU & cpu, const vaddr_t & start,
             {
                 union { uint32_t _32; unsigned char _8 [sizeof (uint32_t)]; } data[2];
 
-                memory.read32_vaddr(cpu, addr, data[0]._32);
+                memory.read32_vaddr(pt, addr, data[0]._32);
 
                 for ( size_t x = 0; x < sizeof data[0]._8; ++x )
                     len += FPRINTF(o, "%02x ", data[0]._8[x]);
                 len += FPUTS(" ", o);
 
-                memory.read32_vaddr(cpu, addr+ws, data[1]._32);
+                memory.read32_vaddr(pt, addr+ws, data[1]._32);
 
                 for ( size_t x = 0; x < sizeof data[1]._8; ++x )
                     len += FPRINTF(o, "%02x ", data[1]._8[x]);
@@ -297,13 +297,13 @@ int dump_data(FILE * o, size_t ws, const CPU & cpu, const vaddr_t & start,
             {
                 union { uint64_t _64; unsigned char _8 [sizeof (uint64_t)]; } data[2];
 
-                memory.read64_vaddr(cpu, addr, data[0]._64);
+                memory.read64_vaddr(pt, addr, data[0]._64);
 
                 for ( size_t x = 0; x < sizeof data[0]._8; ++x )
                     len += FPRINTF(o, "%02x ", data[0]._8[x]);
                 len += FPUTS(" ", o);
 
-                memory.read64_vaddr(cpu, addr+ws, data[1]._64);
+                memory.read64_vaddr(pt, addr+ws, data[1]._64);
 
                 for ( size_t x = 0; x < sizeof data[1]._8; ++x )
                     len += FPRINTF(o, "%02x ", data[1]._8[x]);

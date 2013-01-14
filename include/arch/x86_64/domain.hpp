@@ -34,27 +34,28 @@
 class x86_64Domain : public Domain
 {
 public:
-    /// Constructor.
-    x86_64Domain();
+    /**
+     * Constructor.
+     * @param xenpt Xen PageTables.
+     */
+    x86_64Domain(const Abstract::PageTable & xenpt);
     /// Destructor.
     virtual ~x86_64Domain();
 
     /**
      * Parse basic information from Xen's struct domain.
      *
-     * @param cpu CPU to perform pagetable lookups with.
      * @param domain_ptr Xen struct domain pointer.
      * @return boolean indicating success or failure.
      */
-    virtual bool parse_basic(const CPU & cpu, const vaddr_t & domain_ptr);
+    virtual bool parse_basic(const vaddr_t & domain_ptr);
 
     /**
      * Parse basic VCPU information, based on domain information.
      *
-     * @param cpu CPU to perform pagetable lookups with.
      * @return boolean indicating success or failure.
      */
-    virtual bool parse_vcpus_basic(const CPU & cpu);
+    virtual bool parse_vcpus_basic();
 
     /**
      * Print the information about this domain.

@@ -76,15 +76,6 @@ public:
     virtual bool is_online() const;
 
     /**
-     * Translate a virtual address to a physical address using this cpus cr3 value.
-     * @param vaddr Virtual address to translate
-     * @param maddr Machine address result of translation
-     * @param page_end If non-null, variable to be filled with the last virtual address
-     */
-    virtual void pagetable_walk(const vaddr_t & vaddr, maddr_t & maddr,
-                                vaddr_t * page_end) const;
-
-    /**
      * Print the information about this vcpu to the provided stream.
      * Information includes (where relevant).
      * - Core registers

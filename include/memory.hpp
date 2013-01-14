@@ -30,10 +30,12 @@
 
 #include "types.hpp"
 #include "exceptions.hpp"
-#include "abstract/cpu.hpp"
+#include "abstract/pagetable.hpp"
 #include "abstract/elf.hpp"
 
 #include <cstdio>
+
+using Abstract::PageTable;
 
 /**
  * Memory region.
@@ -99,13 +101,13 @@ public:
     /**
      * Read a string from virtual address addr.
      * Reads n-1 bytes starting at addr, and places a NULL terminator position n in dst
-     * @param cpu CPU to perform a pagetable walk with.
+     * @param pt PageTable to perform a pagetable walk with.
      * @param addr Virtual address.
      * @param dst Destination buffer.
      * @param n Length of buffer.
      * @returns strlen(dst)
      */
-    ssize_t read_str_vaddr(const CPU & cpu, const vaddr_t & addr, char * dst, ssize_t n) const;
+    ssize_t read_str_vaddr(const PageTable & pt, const vaddr_t & addr, char * dst, ssize_t n) const;
 
     /**
      * Read a block of bytes from addr.
@@ -119,12 +121,12 @@ public:
     /**
      * Read a block of bytes from addr.
      * Reads n bytes starting at addr into dst.
-     * @param cpu CPU to perform a pagetable walk with.
+     * @param pt PageTable to perform a pagetable walk with.
      * @param addr Virtual address.
      * @param dst Destination buffer.
      * @param n Length of buffer.
      */
-    void read_block_vaddr(const CPU & cpu, const vaddr_t & addr, char * dst, ssize_t n) const;
+    void read_block_vaddr(const PageTable & pt, const vaddr_t & addr, char * dst, ssize_t n) const;
 
 
     /**
@@ -138,11 +140,11 @@ public:
     /**
      * Read a 8 bit integer from addr.
      * Reads 1 bytes from addr into dst.
-     * @param cpu CPU to perform a pagetable walk with.
+     * @param pt PageTable to perform a pagetable walk with.
      * @param addr Virtual address.
      * @param dst Destination integer.
      */
-    void read8_vaddr(const CPU & cpu, const vaddr_t & addr, uint8_t & dst) const;
+    void read8_vaddr(const PageTable & pt, const vaddr_t & addr, uint8_t & dst) const;
 
     /**
      * Read a 16 bit integer from addr.
@@ -155,11 +157,11 @@ public:
     /**
      * Read a 16 bit integer from addr.
      * Reads 2 bytes from addr into dst.
-     * @param cpu CPU to perform a pagetable walk with.
+     * @param pt PageTable to perform a pagetable walk with.
      * @param addr Virtual address.
      * @param dst Destination integer.
      */
-    void read16_vaddr(const CPU & cpu, const vaddr_t & addr, uint16_t & dst) const;
+    void read16_vaddr(const PageTable & pt, const vaddr_t & addr, uint16_t & dst) const;
 
     /**
      * Read a 32 bit integer from addr.
@@ -172,11 +174,11 @@ public:
     /**
      * Read a 32 bit integer from addr.
      * Reads 4 bytes from addr into dst.
-     * @param cpu CPU to perform a pagetable walk with.
+     * @param pt PageTable to perform a pagetable walk with.
      * @param addr Virtual address.
      * @param dst Destination integer.
      */
-    void read32_vaddr(const CPU & cpu, const vaddr_t & addr, uint32_t & dst) const;
+    void read32_vaddr(const PageTable & pt, const vaddr_t & addr, uint32_t & dst) const;
 
     /**
      * Read a 32 bit integer from addr.
@@ -189,11 +191,11 @@ public:
     /**
      * Read a 32 bit integer from addr.
      * Reads 8 bytes from addr into dst.
-     * @param cpu CPU to perform a pagetable walk with.
+     * @param pt PageTable to perform a pagetable walk with.
      * @param addr Virtual address.
      * @param dst Destination integer.
      */
-    void read64_vaddr(const CPU & cpu, const vaddr_t & addr, uint64_t & dst) const;
+    void read64_vaddr(const PageTable & pt, const vaddr_t & addr, uint64_t & dst) const;
 
     /**
      * Writes a block of from addr into the specified file.
@@ -208,13 +210,13 @@ public:
     /**
      * Writes a block of from addr into the specified file.
      * Reads n bytes starting at addr into file.
-     * @param cpu CPU to perform a pagetable walk with.
+     * @param pt PageTable to perform a pagetable walk with.
      * @param addr Virtual address.
      * @param file Destination file reference.
      * @param n Length of buffer.
      * @returns number of bytes read.
      */
-    ssize_t write_block_vaddr_to_file(const CPU & cpu, const vaddr_t & addr, FILE * file, ssize_t n) const;
+    ssize_t write_block_vaddr_to_file(const PageTable & pt, const vaddr_t & addr, FILE * file, ssize_t n) const;
 
 protected:
 
