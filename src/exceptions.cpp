@@ -97,8 +97,8 @@ void pagefault::log() const throw()
 }
 
 
-validate::validate(const vaddr_t & vaddr) throw():
-    vaddr(vaddr)
+validate::validate(const vaddr_t & vaddr, const char * reason) throw():
+    vaddr(vaddr), reason(reason)
 {}
 
 validate::~validate() throw () {}
@@ -110,7 +110,7 @@ const char * validate::what() const throw()
 
 void validate::log() const throw()
 {
-    LOG_WARN("validation error for address 0x%016"PRIx64"\n", this->vaddr);
+    LOG_WARN("Validation error for 0x%016"PRIx64": %s\n", this->vaddr, this->reason);
 }
 
 

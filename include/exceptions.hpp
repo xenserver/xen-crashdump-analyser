@@ -194,8 +194,13 @@ public:
     /**
      * Constructor.
      * @param vaddr Faulting virtual address.
+     * @param reason Reason for the fault.
      */
-    validate(const vaddr_t & vaddr) throw();
+    validate(const vaddr_t & vaddr, const char * reason) throw();
+
+    // This is needed to be public for throw(), but is never referenced.
+    /// Copy constructor.
+    validate(const validate &) throw();
 
     /// Destructor.
     virtual ~validate() throw();
@@ -213,6 +218,13 @@ public:
 
     /// Invalid virtual address.
     vaddr_t vaddr;
+    /// Reason.
+    const char * reason;
+
+private:
+    // @cond
+    validate & operator= (const validate &);
+    // @endcond
 };
 
 

@@ -603,7 +603,7 @@ bool Host::validate_xen_vaddr(const vaddr_t & vaddr, const bool except)
     }
 
     if ( except )
-        throw validate(vaddr);
+        throw validate(vaddr, "Not in Xen Virtual Address regions.");
     return false;
 }
 
