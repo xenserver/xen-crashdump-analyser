@@ -15,37 +15,43 @@
  *  along with the Xen Crashdump Analyser.  If not, see
  *  <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012 Citrix Inc.
+ *  Copyright (c) 2011,2012 Citrix Inc.
  */
 
-#ifndef __X86_64_PAGETABLE_WALK_HPP__
-#define __X86_64_PAGETABLE_WALK_HPP__
-
 /**
- * @file include/arch/x86_64/pagetable-walk.hpp
+ * @file src/arch/x86_64/pagetable.cpp
  * @author Andrew Cooper
  */
 
-#include "types.hpp"
+#include "arch/x86_64/pagetable.hpp"
+#include "arch/x86_64/pagetable-walk.hpp"
+
 #include "exceptions.hpp"
 
-/**
- * Pagetable walk for 64bit mode.
- * Long mode executing 64bit code has a 52bit physical address space and a 64bit
- * virtual address space.
- * @param cr3 Value of the cr3 register.
- * @param vaddr Virtual address to look up.
- * @param maddr Machine address result of the pagetable walk.
- * @param page_end If non-null, variable to be filled with the last virtual address
- * within the page which contains vaddr.
- * @throws memseek
- * @throws memread
- * @throws pagefault
- */
-void pagetable_walk_64(const maddr_t & cr3, const vaddr_t & vaddr,
-                       maddr_t & maddr, vaddr_t * page_end = NULL);
+namespace x86_64
+{
+    PT64::PT64(const uint64_t & cr3):cr3(cr3) {};
+    PT64::~PT64() {};
 
-#endif
+    void PT64::walk(const vaddr_t & vaddr, maddr_t & maddr,
+                       vaddr_t * page_end) const
+    {
+        pagetable_walk_64(this->cr3, vaddr, maddr, page_end);
+    }
+
+
+    PT64Compat::PT64Compat(const uint64_t & cr3):cr3(cr3) {};
+    PT64Compat::~PT64Compat() {};
+
+    void PT64Compat::walk(const vaddr_t & vaddr, maddr_t & maddr,
+                       vaddr_t * page_end) const
+    {
+        if ( vaddr & 0xffffffff00000000ULL )
+            throw validate(vaddr, "Pointer out of range for 64bit Compat pagetables.");
+
+        pagetable_walk_64(this->cr3, vaddr, maddr, page_end);
+    }
+}
 
 /*
  * Local variables:

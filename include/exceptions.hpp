@@ -186,7 +186,7 @@ public:
 /**
  * Validate exception
  *
- * Thrown for validation failures for xen virtual addresses.
+ * Thrown for validation failures for virtual addresses.
  */
 class validate: public CommonError
 {
