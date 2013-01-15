@@ -93,7 +93,7 @@ bool Host::setup(const Abstract::Elf * elf)
 
     try
     {
-        this->pcpus = new PCPU*[nr_pcpus];
+        this->pcpus = new Abstract::PCPU*[nr_pcpus];
 
         for ( int x = 0; x < nr_pcpus; ++x )
             if ( arch == Abstract::Elf::ELF_64 )
@@ -251,13 +251,13 @@ bool Host::decode_xen()
             {
                 switch(this->pcpus[x]->vcpu_state)
                 {
-                case PCPU::CTX_IDLE:
-                case PCPU::CTX_RUNNING:
+                case Abstract::PCPU::CTX_IDLE:
+                case Abstract::PCPU::CTX_RUNNING:
                     this->active_vcpus.push_back(
                         vcpu_pair(this->pcpus[x]->vcpu->vcpu_ptr,
                                   this->pcpus[x]->vcpu));
                     break;
-                case PCPU::CTX_SWITCH:
+                case Abstract::PCPU::CTX_SWITCH:
                     this->active_vcpus.push_back(
                         vcpu_pair(this->pcpus[x]->ctx_from->vcpu_ptr,
                                   this->pcpus[x]->ctx_from));

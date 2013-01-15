@@ -33,7 +33,7 @@
  * Physical CPU state, from Xen crash notes, and Xen per-cpu stack information
  * for 64bit Xen
  */
-class x86_64PCPU : public PCPU
+class x86_64PCPU : public Abstract::PCPU
 {
 public:
     /// Constructor.

@@ -99,7 +99,7 @@ public:
     /// Number of PCPUs.
     int nr_pcpus;
     /// PCPUs.
-    PCPU ** pcpus;
+    Abstract::PCPU ** pcpus;
     /// Idle VCPU addresses
     vaddr_t * idle_vcpus;
 
