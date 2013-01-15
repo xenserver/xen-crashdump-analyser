@@ -439,7 +439,7 @@ int Host::print_domains(bool dump_structures)
         return success;
     }
 
-    Domain * dom = NULL;
+    Abstract::Domain * dom = NULL;
     vaddr_t dom_ptr;
     FILE * fd = NULL;
     static char fname[32] = { 0 };

@@ -32,116 +32,121 @@
 #include "abstract/pagetable.hpp"
 #include "abstract/vcpu.hpp"
 
+namespace Abstract
+{
+
 /**
  * Domain parser
  */
-class Domain
-{
-public:
-    /**
-     * Constructor.
-     * @param xenpt Xen PageTables.
-     */
-    Domain(const Abstract::PageTable & xenpt):
-        xenpt(xenpt),
-        domain_ptr(0), next_domain_ptr(0), domain_id(0), is_32bit_pv(0), is_hvm(0),
-        is_privileged(0), tot_pages(0), max_pages(0), shr_pages(0), max_cpus(0),
-        vcpus_ptr(0), paging_mode(0), vcpus(NULL)
-    {};
+    class Domain
+    {
+    public:
+        /**
+         * Constructor.
+         * @param xenpt Xen PageTables.
+         */
+        Domain(const Abstract::PageTable & xenpt):
+            xenpt(xenpt),
+            domain_ptr(0), next_domain_ptr(0), domain_id(0), is_32bit_pv(0), is_hvm(0),
+            is_privileged(0), tot_pages(0), max_pages(0), shr_pages(0), max_cpus(0),
+            vcpus_ptr(0), paging_mode(0), vcpus(NULL)
+        {};
 
-    /// Destructor.
-    virtual ~Domain() {};
+        /// Destructor.
+        virtual ~Domain() {};
 
-    /**
-     * Parse basic information from Xen's struct domain.
-     *
-     * @param domain_ptr Xen struct domain pointer.
-     * @return boolean indicating success or failure.
-     */
-    virtual bool parse_basic(const vaddr_t & domain_ptr) = 0;
+        /**
+         * Parse basic information from Xen's struct domain.
+         *
+         * @param domain_ptr Xen struct domain pointer.
+         * @return boolean indicating success or failure.
+         */
+        virtual bool parse_basic(const vaddr_t & domain_ptr) = 0;
 
-    /**
-     * Parse basic VCPU information, based on domain information.
-     *
-     * @return boolean indicating success or failure.
-     */
-    virtual bool parse_vcpus_basic() = 0;
+        /**
+         * Parse basic VCPU information, based on domain information.
+         *
+         * @return boolean indicating success or failure.
+         */
+        virtual bool parse_vcpus_basic() = 0;
 
-    /**
-     * Print the information about this domain.
-     * Information includes (where relevant).
-     * - Memory info.
-     * - Register state.
-     *
-     * @param stream Stream to write to.
-     * @return Number of bytes written to stream.
-     */
-    virtual int print_state(FILE * stream) const = 0;
+        /**
+         * Print the information about this domain.
+         * Information includes (where relevant).
+         * - Memory info.
+         * - Register state.
+         *
+         * @param stream Stream to write to.
+         * @return Number of bytes written to stream.
+         */
+        virtual int print_state(FILE * stream) const = 0;
 
-    /**
-     * Dump Xen structures for this domain.  Includes Xen's struct domain
-     * and each struct vcpu.
-     *
-     * @param stream Stream to write to.
-     * @return Number of bytes written to stream.
-     */
-    virtual int dump_structures(FILE * stream) const = 0;
+        /**
+         * Dump Xen structures for this domain.  Includes Xen's struct domain
+         * and each struct vcpu.
+         *
+         * @param stream Stream to write to.
+         * @return Number of bytes written to stream.
+         */
+        virtual int dump_structures(FILE * stream) const = 0;
 
-    /**
-     * Print the console ring.
-     *
-     * @param stream Stream to write to.
-     * @return Number of bytes written to stream.
-     */
-    virtual int print_console(FILE * stream) const = 0;
+        /**
+         * Print the console ring.
+         *
+         * @param stream Stream to write to.
+         * @return Number of bytes written to stream.
+         */
+        virtual int print_console(FILE * stream) const = 0;
 
-    /**
-     * Print the command line.
-     *
-     * @param stream Stream to write to.
-     * @return Number of bytes written to stream.
-     */
-    virtual int print_cmdline(FILE * stream) const = 0;
+        /**
+         * Print the command line.
+         *
+         * @param stream Stream to write to.
+         * @return Number of bytes written to stream.
+         */
+        virtual int print_cmdline(FILE * stream) const = 0;
 
-    /// Xen pagetables for translations.
-    const Abstract::PageTable & xenpt;
+        /// Xen pagetables for translations.
+        const Abstract::PageTable & xenpt;
 
-    /// Xen struct domain pointer.
-    vaddr_t domain_ptr;
-    /// Pointer to next domain.
-    vaddr_t next_domain_ptr;
-    /// dom id.
-    uint16_t domain_id;
-    /// Whether this domain is 32 bit PV.
-    uint8_t is_32bit_pv,
-    /// Whether this domain is using HVM extensions.
-        is_hvm,
-    /// Whether this domain is privileged.
-        is_privileged;
-    /// Total pages.
-    uint32_t tot_pages,
-    /// Maximum pages.
-        max_pages;
-    /// Shared pages
-    int32_t shr_pages;
-    /// Maximum VCPUs.
-    uint32_t max_cpus;
-    /// Pointer to VCPU* array.
-    vaddr_t vcpus_ptr;
-    /// Handle (Toolstack domain reference).
-    uint8_t handle[16];
-    /// Paging mode flags
-    uint32_t paging_mode;
+        /// Xen struct domain pointer.
+        vaddr_t domain_ptr;
+        /// Pointer to next domain.
+        vaddr_t next_domain_ptr;
+        /// dom id.
+        uint16_t domain_id;
+        /// Whether this domain is 32 bit PV.
+        uint8_t is_32bit_pv,
+        /// Whether this domain is using HVM extensions.
+            is_hvm,
+        /// Whether this domain is privileged.
+            is_privileged;
+        /// Total pages.
+        uint32_t tot_pages,
+        /// Maximum pages.
+            max_pages;
+        /// Shared pages
+        int32_t shr_pages;
+        /// Maximum VCPUs.
+        uint32_t max_cpus;
+        /// Pointer to VCPU* array.
+        vaddr_t vcpus_ptr;
+        /// Handle (Toolstack domain reference).
+        uint8_t handle[16];
+        /// Paging mode flags
+        uint32_t paging_mode;
 
-    /// VCPUs for this domain.
-    VCPU ** vcpus;
+        /// VCPUs for this domain.
+        VCPU ** vcpus;
 
-private:
-    // @cond
-    Domain(const Domain & );
-    Domain & operator= (const Domain &);
-    // @endcond
-};
+    private:
+        // @cond
+        Domain(const Domain & );
+        Domain & operator= (const Domain &);
+        // @endcond
+    };
+
+}
 
 #endif
 

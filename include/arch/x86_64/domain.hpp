@@ -31,7 +31,7 @@
 /**
  * Domain parser for x64 bit Xen.
  */
-class x86_64Domain : public Domain
+class x86_64Domain : public Abstract::Domain
 {
 public:
     /**
