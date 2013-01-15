@@ -108,8 +108,8 @@ bool x86_64Domain::parse_vcpus_basic()
             return false;
         }
 
-        this->vcpus = new VCPU*[this->max_cpus];
-        std::memset(this->vcpus, 0, sizeof (VCPU*) * this->max_cpus);
+        this->vcpus = new Abstract::VCPU*[this->max_cpus];
+        std::memset(this->vcpus, 0, sizeof (Abstract::VCPU*) * this->max_cpus);
 
         LOG_INFO("    %"PRIu32" VCPUs\n", this->max_cpus);
 

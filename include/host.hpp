@@ -110,7 +110,7 @@ public:
     SymbolTable dom0_symtab;
 
     /// vcpu pair.
-    typedef std::pair<vaddr_t, const VCPU *> vcpu_pair;
+    typedef std::pair<vaddr_t, const Abstract::VCPU *> vcpu_pair;
     /// active_vcpus type.
     typedef std::vector<vcpu_pair> active_vcpus_t;
     /// Active vcpus.

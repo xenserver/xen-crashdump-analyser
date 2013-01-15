@@ -36,7 +36,7 @@
  * The parsing is a little complicated because of how active VCPUs at the time
  * of crash have their state stored.
  */
-class x86_64VCPU : public VCPU
+class x86_64VCPU : public Abstract::VCPU
 {
 public:
     /// Constructor.

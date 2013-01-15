@@ -240,7 +240,7 @@ bool x86_64PCPU::decode_extended_state()
                      cpu_info + CPUINFO_guest_cpu_user_regs,
                      this->regs.cr3, *this->xenpt) )
                 return false;
-            this->vcpu->runstate = VCPU::RST_NONE;
+            this->vcpu->runstate = Abstract::VCPU::RST_NONE;
         }
         else
         {
@@ -256,7 +256,7 @@ bool x86_64PCPU::decode_extended_state()
                          cpu_info + CPUINFO_guest_cpu_user_regs,
                          this->regs.cr3, *this->xenpt) )
                     return false;
-                this->vcpu->runstate = VCPU::RST_RUNNING;
+                this->vcpu->runstate = Abstract::VCPU::RST_RUNNING;
             }
             else
             {
@@ -270,13 +270,13 @@ bool x86_64PCPU::decode_extended_state()
                          this->per_cpu_current_vcpu_ptr, *this->xenpt) ||
                      ! this->ctx_from->parse_regs_from_struct(*this->xenpt) )
                     return false;
-                this->ctx_from->runstate = VCPU::RST_CTX_SWITCH;
+                this->ctx_from->runstate = Abstract::VCPU::RST_CTX_SWITCH;
 
                 this->ctx_to = new x86_64VCPU();
                 if ( ! this->ctx_to->parse_basic(
                          this->current_vcpu_ptr, *this->xenpt) )
                     return false;
-                this->ctx_to->runstate = VCPU::RST_NONE;
+                this->ctx_to->runstate = Abstract::VCPU::RST_NONE;
             }
         }
 
@@ -300,7 +300,7 @@ bool x86_64PCPU::is_online() const { return this->online; }
 int x86_64PCPU::print_state(FILE * o) const
 {
     int len = 0;
-    VCPU * vcpu_to_print = NULL;
+    Abstract::VCPU * vcpu_to_print = NULL;
 
     len += FPRINTF(o, "  PCPU %d Host state:\n", this->processor_id);
 

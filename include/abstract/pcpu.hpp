@@ -110,7 +110,7 @@ public:
     uint64_t per_cpu_current_vcpu_ptr;
 
     /// VCPU being context-switched from on this PCPU.  Usually NULL.
-    VCPU *ctx_from,
+    Abstract::VCPU *ctx_from,
     /// VCPU being context-switched to on this PCPU.  Usually NULL.
         *ctx_to,
     /// VCPU active or idle on this PCPU.  Possibly NULL.
