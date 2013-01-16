@@ -28,72 +28,77 @@
 
 #include "abstract/domain.hpp"
 
+namespace x86_64
+{
+
 /**
  * Domain parser for x64 bit Xen.
  */
-class x86_64Domain : public Abstract::Domain
-{
-public:
-    /**
-     * Constructor.
-     * @param xenpt Xen PageTables.
-     */
-    x86_64Domain(const Abstract::PageTable & xenpt);
-    /// Destructor.
-    virtual ~x86_64Domain();
+    class Domain : public Abstract::Domain
+    {
+    public:
+        /**
+         * Constructor.
+         * @param xenpt Xen PageTables.
+         */
+        Domain(const Abstract::PageTable & xenpt);
+        /// Destructor.
+        virtual ~Domain();
 
-    /**
-     * Parse basic information from Xen's struct domain.
-     *
-     * @param domain_ptr Xen struct domain pointer.
-     * @return boolean indicating success or failure.
-     */
-    virtual bool parse_basic(const vaddr_t & domain_ptr);
+        /**
+         * Parse basic information from Xen's struct domain.
+         *
+         * @param domain_ptr Xen struct domain pointer.
+         * @return boolean indicating success or failure.
+         */
+        virtual bool parse_basic(const vaddr_t & domain_ptr);
 
-    /**
-     * Parse basic VCPU information, based on domain information.
-     *
-     * @return boolean indicating success or failure.
-     */
-    virtual bool parse_vcpus_basic();
+        /**
+         * Parse basic VCPU information, based on domain information.
+         *
+         * @return boolean indicating success or failure.
+         */
+        virtual bool parse_vcpus_basic();
 
-    /**
-     * Print the information about this domain.
-     * Information includes (where relevant).
-     * - Memory info.
-     * - Register state.
-     *
-     * @param stream Stream to write to.
-     * @return Number of bytes written to stream.
-     */
-    virtual int print_state(FILE * stream) const;
+        /**
+         * Print the information about this domain.
+         * Information includes (where relevant).
+         * - Memory info.
+         * - Register state.
+         *
+         * @param stream Stream to write to.
+         * @return Number of bytes written to stream.
+         */
+        virtual int print_state(FILE * stream) const;
 
-    /**
-     * Dump Xen structures for this domain.  Includes Xen's struct domain
-     * and each struct vcpu.
-     *
-     * @param stream Stream to write to.
-     * @return Number of bytes written to stream.
-     */
-    virtual int dump_structures(FILE * stream) const;
+        /**
+         * Dump Xen structures for this domain.  Includes Xen's struct domain
+         * and each struct vcpu.
+         *
+         * @param stream Stream to write to.
+         * @return Number of bytes written to stream.
+         */
+        virtual int dump_structures(FILE * stream) const;
 
-    /**
-     * Print the console ring.
-     *
-     * @param stream Stream to write to.
-     * @return Number of bytes written to stream.
-     */
-    virtual int print_console(FILE * stream) const;
+        /**
+         * Print the console ring.
+         *
+         * @param stream Stream to write to.
+         * @return Number of bytes written to stream.
+         */
+        virtual int print_console(FILE * stream) const;
 
-    /**
-     * Print the command line.
-     *
-     * @param stream Stream to write to.
-     * @return Number of bytes written to stream.
-     */
-    virtual int print_cmdline(FILE * stream) const;
+        /**
+         * Print the command line.
+         *
+         * @param stream Stream to write to.
+         * @return Number of bytes written to stream.
+         */
+        virtual int print_cmdline(FILE * stream) const;
 
-};
+    };
+
+}
 
 #endif
 

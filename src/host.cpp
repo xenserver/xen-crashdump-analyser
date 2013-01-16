@@ -452,7 +452,7 @@ int Host::print_domains(bool dump_structures)
 
         while ( dom_ptr )
         {
-            dom = new x86_64Domain(xenpt);
+            dom = new x86_64::Domain(xenpt);
 
             host.validate_xen_vaddr(dom_ptr);
             if ( ! dom->parse_basic(dom_ptr) )
