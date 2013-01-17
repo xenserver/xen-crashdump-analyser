@@ -233,7 +233,7 @@ bool x86_64PCPU::decode_extended_state()
             LOG_INFO("    Current vcpu is IDLE.  Guest context on stack.\n");
             this->vcpu_state = CTX_IDLE;
             // Load this->vcpu from per_cpu_current_vcpu_ptr, regs from stack
-            this->vcpu = new x86_64VCPU();
+            this->vcpu = new x86_64::VCPU();
             if ( ! this->vcpu->parse_basic(
                      this->per_cpu_current_vcpu_ptr, *this->xenpt) ||
                  ! this->vcpu->parse_regs_from_stack(
@@ -249,7 +249,7 @@ bool x86_64PCPU::decode_extended_state()
                 LOG_INFO("    Current vcpu was RUNNING.  Guest context on stack\n");
                 this->vcpu_state = CTX_RUNNING;
                 // Load this->vcpu from per_cpu_current_vcpu_ptr, regs on stack
-                this->vcpu = new x86_64VCPU();
+                this->vcpu = new x86_64::VCPU();
                 if ( ! this->vcpu->parse_basic(
                          this->per_cpu_current_vcpu_ptr, *this->xenpt) ||
                      ! this->vcpu->parse_regs_from_stack(
@@ -265,14 +265,14 @@ bool x86_64PCPU::decode_extended_state()
                  * state.  ctx_to can find valid register state in its struct vcpu.
                  */
                 this->vcpu_state = CTX_SWITCH;
-                this->ctx_from = new x86_64VCPU();
+                this->ctx_from = new x86_64::VCPU();
                 if ( ! this->ctx_from->parse_basic(
                          this->per_cpu_current_vcpu_ptr, *this->xenpt) ||
                      ! this->ctx_from->parse_regs_from_struct(*this->xenpt) )
                     return false;
                 this->ctx_from->runstate = Abstract::VCPU::RST_CTX_SWITCH;
 
-                this->ctx_to = new x86_64VCPU();
+                this->ctx_to = new x86_64::VCPU();
                 if ( ! this->ctx_to->parse_basic(
                          this->current_vcpu_ptr, *this->xenpt) )
                     return false;

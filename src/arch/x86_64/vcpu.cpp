@@ -38,434 +38,438 @@
 #include "util/macros.hpp"
 #include "util/stdio-wrapper.hpp"
 
-x86_64VCPU::x86_64VCPU():
-    regs()
+namespace x86_64
 {
-    memset(&this->regs, 0, sizeof this->regs);
-}
 
-x86_64VCPU::~x86_64VCPU(){}
-
-bool x86_64VCPU::parse_basic(const vaddr_t & addr, const Abstract::PageTable & xenpt)
-{
-    if ( required_vcpu_symbols != 0 )
+    VCPU::VCPU():
+        regs()
     {
-        LOG_ERROR("Missing required vcpu symbols. %#x\n",
-                  required_vcpu_symbols);
-        return false;
-    }
-    if ( required_domain_symbols != 0 )
-    {
-        LOG_ERROR("Missing required domain symbols. %#x\n",
-                  required_domain_symbols);
-        return false;
+        memset(&this->regs, 0, sizeof this->regs);
     }
 
-    try
+    VCPU::~VCPU(){}
+
+    bool VCPU::parse_basic(const vaddr_t & addr, const Abstract::PageTable & xenpt)
     {
-        host.validate_xen_vaddr(addr);
-        this->vcpu_ptr = addr;
-
-        memory.read64_vaddr(xenpt, this->vcpu_ptr + VCPU_domain,
-                            this->domain_ptr);
-
-        host.validate_xen_vaddr(this->domain_ptr);
-
-        memory.read32_vaddr(xenpt, this->vcpu_ptr + VCPU_vcpu_id,
-                            this->vcpu_id);
-
-        memory.read32_vaddr(xenpt, this->vcpu_ptr + VCPU_processor,
-                            this->processor);
-
-        memory.read16_vaddr(xenpt, this->domain_ptr + DOMAIN_id,
-                            this->domid);
-
-        uint8_t is_32bit;
-        memory.read8_vaddr(xenpt, this->domain_ptr + DOMAIN_is_32bit_pv,
-                           is_32bit);
-        this->flags |= is_32bit ? CPU_PV_COMPAT : 0;
-
-        uint32_t paging_mode;
-        memory.read32_vaddr(xenpt, this->domain_ptr + DOMAIN_paging_mode, paging_mode);
-        if ( paging_mode == 0 )
-            this->paging_support = VCPU::PAGING_NONE;
-        else if ( paging_mode & (1U<<20) )
-            this->paging_support = VCPU::PAGING_SHADOW;
-        else if ( paging_mode & (1U<<21) )
-            this->paging_support = VCPU::PAGING_HAP;
-
-        memory.read32_vaddr(xenpt, this->vcpu_ptr + VCPU_pause_flags,
-                            this->pause_flags);
-
-        memory.read64_vaddr(xenpt, this->vcpu_ptr + VCPU_cr3,
-                            this->regs.cr3);
-
-        return true;
-    }
-    catch ( const CommonError & e )
-    {
-        e.log();
-    }
-
-    return false;
-}
-
-bool x86_64VCPU::parse_regs(const vaddr_t & regs, const maddr_t & cr3,
-                            const Abstract::PageTable & xenpt)
-{
-    x86_64_cpu_user_regs * uregs = NULL;
-
-    if ( this->regs.cr3 == 0ULL )
-    {
-        LOG_WARN("Got cr3 of 0 from guest registers - VCPU assumed down\n");
-        return false;
-    }
-
-    this->regs.cr3 = cr3;
-    this->flags |= CPU_EXTD_STATE;
-
-    try
-    {
-        if ( this->flags & CPU_PV_COMPAT )
-            this->dompt = new x86_64::PT64Compat(cr3);
-        else
-            this->dompt = new x86_64::PT64(cr3);
-
-        host.validate_xen_vaddr(regs);
-        uregs = new x86_64_cpu_user_regs();
-
-        memory.read_block_vaddr(xenpt, regs, (char*)uregs, sizeof *uregs );
-
-        this->regs.r15 = uregs->r15;
-        this->regs.r14 = uregs->r14;
-        this->regs.r13 = uregs->r13;
-        this->regs.r12 = uregs->r12;
-        this->regs.rbp = uregs->rbp;
-        this->regs.rbx = uregs->rbx;
-        this->regs.r11 = uregs->r11;
-        this->regs.r10 = uregs->r10;
-        this->regs.r9 = uregs->r9;
-        this->regs.r8 = uregs->r8;
-        this->regs.rax = uregs->rax;
-        this->regs.rcx = uregs->rcx;
-        this->regs.rdx = uregs->rdx;
-        this->regs.rsi = uregs->rsi;
-        this->regs.rdi = uregs->rdi;
-        this->regs.rip = uregs->rip;
-        this->regs.cs = uregs->cs;
-        this->regs.rflags = uregs->rflags;
-        this->regs.rsp = uregs->rsp;
-        this->regs.ds = uregs->ds;
-        this->regs.es = uregs->es;
-        this->regs.ss = uregs->ss;
-        this->regs.fs = uregs->fs;
-        this->regs.gs = uregs->gs;
-
-        this->flags |= CPU_CORE_STATE;
-
-        SAFE_DELETE(uregs);
-        return true;
-    }
-    catch ( const std::bad_alloc & )
-    {
-        LOG_ERROR("Bad alloc of %"PRIu64" bytes for parsing vcpu structure "
-                  "at 0x%016"PRIx64"\n", sizeof *uregs, this->vcpu_ptr);
-    }
-    catch ( const CommonError & e )
-    {
-        e.log();
-    }
-
-    SAFE_DELETE(uregs);
-    return false;
-}
-
-bool x86_64VCPU::parse_regs_from_struct(const Abstract::PageTable & xenpt)
-{
-    return this->parse_regs(this->vcpu_ptr + VCPU_user_regs, this->regs.cr3, xenpt);
-}
-
-bool x86_64VCPU::parse_regs_from_stack(const vaddr_t & regs, const maddr_t & cr3,
-                                       const Abstract::PageTable & xenpt)
-{
-    return this->parse_regs(regs, cr3, xenpt);
-}
-
-bool x86_64VCPU::parse_regs_from_active(const VCPU* active)
-{
-    // Dangerous, but safe.  We will only actually be handed a 64bit vcpu;
-    const x86_64VCPU * vcpu = reinterpret_cast<const x86_64VCPU *>(active);
-
-    try
-    {
-        if ( vcpu->regs.cr3 == 0ULL )
+        if ( required_vcpu_symbols != 0 )
         {
-            LOG_ERROR("Got cr3 of 0 from active VCPU\n");
+            LOG_ERROR("Missing required vcpu symbols. %#x\n",
+                      required_vcpu_symbols);
+            return false;
+        }
+        if ( required_domain_symbols != 0 )
+        {
+            LOG_ERROR("Missing required domain symbols. %#x\n",
+                      required_domain_symbols);
             return false;
         }
 
+        try
+        {
+            host.validate_xen_vaddr(addr);
+            this->vcpu_ptr = addr;
+
+            memory.read64_vaddr(xenpt, this->vcpu_ptr + VCPU_domain,
+                                this->domain_ptr);
+
+            host.validate_xen_vaddr(this->domain_ptr);
+
+            memory.read32_vaddr(xenpt, this->vcpu_ptr + VCPU_vcpu_id,
+                                this->vcpu_id);
+
+            memory.read32_vaddr(xenpt, this->vcpu_ptr + VCPU_processor,
+                                this->processor);
+
+            memory.read16_vaddr(xenpt, this->domain_ptr + DOMAIN_id,
+                                this->domid);
+
+            uint8_t is_32bit;
+            memory.read8_vaddr(xenpt, this->domain_ptr + DOMAIN_is_32bit_pv,
+                               is_32bit);
+            this->flags |= is_32bit ? CPU_PV_COMPAT : 0;
+
+            uint32_t paging_mode;
+            memory.read32_vaddr(xenpt, this->domain_ptr + DOMAIN_paging_mode, paging_mode);
+            if ( paging_mode == 0 )
+                this->paging_support = VCPU::PAGING_NONE;
+            else if ( paging_mode & (1U<<20) )
+                this->paging_support = VCPU::PAGING_SHADOW;
+            else if ( paging_mode & (1U<<21) )
+                this->paging_support = VCPU::PAGING_HAP;
+
+            memory.read32_vaddr(xenpt, this->vcpu_ptr + VCPU_pause_flags,
+                                this->pause_flags);
+
+            memory.read64_vaddr(xenpt, this->vcpu_ptr + VCPU_cr3,
+                                this->regs.cr3);
+
+            return true;
+        }
+        catch ( const CommonError & e )
+        {
+            e.log();
+        }
+
+        return false;
+    }
+
+    bool VCPU::parse_regs(const vaddr_t & regs, const maddr_t & cr3,
+                                const Abstract::PageTable & xenpt)
+    {
+        x86_64_cpu_user_regs * uregs = NULL;
+
+        if ( this->regs.cr3 == 0ULL )
+        {
+            LOG_WARN("Got cr3 of 0 from guest registers - VCPU assumed down\n");
+            return false;
+        }
+
+        this->regs.cr3 = cr3;
+        this->flags |= CPU_EXTD_STATE;
+
+        try
+        {
+            if ( this->flags & CPU_PV_COMPAT )
+                this->dompt = new x86_64::PT64Compat(cr3);
+            else
+                this->dompt = new x86_64::PT64(cr3);
+
+            host.validate_xen_vaddr(regs);
+            uregs = new x86_64_cpu_user_regs();
+
+            memory.read_block_vaddr(xenpt, regs, (char*)uregs, sizeof *uregs );
+
+            this->regs.r15 = uregs->r15;
+            this->regs.r14 = uregs->r14;
+            this->regs.r13 = uregs->r13;
+            this->regs.r12 = uregs->r12;
+            this->regs.rbp = uregs->rbp;
+            this->regs.rbx = uregs->rbx;
+            this->regs.r11 = uregs->r11;
+            this->regs.r10 = uregs->r10;
+            this->regs.r9 = uregs->r9;
+            this->regs.r8 = uregs->r8;
+            this->regs.rax = uregs->rax;
+            this->regs.rcx = uregs->rcx;
+            this->regs.rdx = uregs->rdx;
+            this->regs.rsi = uregs->rsi;
+            this->regs.rdi = uregs->rdi;
+            this->regs.rip = uregs->rip;
+            this->regs.cs = uregs->cs;
+            this->regs.rflags = uregs->rflags;
+            this->regs.rsp = uregs->rsp;
+            this->regs.ds = uregs->ds;
+            this->regs.es = uregs->es;
+            this->regs.ss = uregs->ss;
+            this->regs.fs = uregs->fs;
+            this->regs.gs = uregs->gs;
+
+            this->flags |= CPU_CORE_STATE;
+
+            SAFE_DELETE(uregs);
+            return true;
+        }
+        catch ( const std::bad_alloc & )
+        {
+            LOG_ERROR("Bad alloc of %"PRIu64" bytes for parsing vcpu structure "
+                      "at 0x%016"PRIx64"\n", sizeof *uregs, this->vcpu_ptr);
+        }
+        catch ( const CommonError & e )
+        {
+            e.log();
+        }
+
+        SAFE_DELETE(uregs);
+        return false;
+    }
+
+    bool VCPU::parse_regs_from_struct(const Abstract::PageTable & xenpt)
+    {
+        return this->parse_regs(this->vcpu_ptr + VCPU_user_regs, this->regs.cr3, xenpt);
+    }
+
+    bool VCPU::parse_regs_from_stack(const vaddr_t & regs, const maddr_t & cr3,
+                                           const Abstract::PageTable & xenpt)
+    {
+        return this->parse_regs(regs, cr3, xenpt);
+    }
+
+    bool VCPU::parse_regs_from_active(const Abstract::VCPU* active)
+    {
+        // Dangerous, but safe.  We will only actually be handed a 64bit vcpu;
+        const VCPU * vcpu = reinterpret_cast<const VCPU *>(active);
+
+        try
+        {
+            if ( vcpu->regs.cr3 == 0ULL )
+            {
+                LOG_ERROR("Got cr3 of 0 from active VCPU\n");
+                return false;
+            }
+
+            if ( this->flags & CPU_PV_COMPAT )
+                this->dompt = new x86_64::PT64Compat(vcpu->regs.cr3);
+            else
+                this->dompt = new x86_64::PT64(vcpu->regs.cr3);
+        }
+        catch ( const std::bad_alloc & )
+        {
+            LOG_ERROR("Bad Alloc exception.  Out of memory\n");
+            return false;
+        }
+        catch ( const CommonError & e )
+        {
+            e.log();
+            return false;
+        }
+
+        this->flags = vcpu->flags;
+        this->regs = vcpu->regs;
+        this->runstate = vcpu->runstate;
+        return true;
+    }
+
+
+    bool VCPU::is_online() const { return ! (this->pause_flags & 0x2); }
+
+    int VCPU::print_state(FILE * o) const
+    {
+        int len = 0;
+
+        if ( ! this->is_online() )
+            return len + FPUTS("\tVCPU Offline\n\n", o);
+
         if ( this->flags & CPU_PV_COMPAT )
-            this->dompt = new x86_64::PT64Compat(vcpu->regs.cr3);
-        else
-            this->dompt = new x86_64::PT64(vcpu->regs.cr3);
-    }
-    catch ( const std::bad_alloc & )
-    {
-        LOG_ERROR("Bad Alloc exception.  Out of memory\n");
-        return false;
-    }
-    catch ( const CommonError & e )
-    {
-        e.log();
-        return false;
-    }
+            return len + this->print_state_compat(o);
 
-    this->flags = vcpu->flags;
-    this->regs = vcpu->regs;
-    this->runstate = vcpu->runstate;
-    return true;
-}
-
-
-bool x86_64VCPU::is_online() const { return ! (this->pause_flags & 0x2); }
-
-int x86_64VCPU::print_state(FILE * o) const
-{
-    int len = 0;
-
-    if ( ! this->is_online() )
-        return len + FPUTS("\tVCPU Offline\n\n", o);
-
-    if ( this->flags & CPU_PV_COMPAT )
-        return len + this->print_state_compat(o);
-
-    if ( this->flags & CPU_CORE_STATE )
-    {
-        len += FPRINTF(o, "\tRIP:    %04x:[<%016"PRIx64">] Ring %d\n",
-                       this->regs.cs, this->regs.rip, this->regs.cs & 0x3);
-        len += FPRINTF(o, "\tRFLAGS: %016"PRIx64" ", this->regs.rflags);
-        len += print_rflags(o, this->regs.rflags);
-        len += FPUTS("\n\n", o);
-
-        len += FPRINTF(o, "\trax: %016"PRIx64"   rbx: %016"PRIx64"   rcx: %016"PRIx64"\n",
-                       this->regs.rax, this->regs.rbx, this->regs.rcx);
-        len += FPRINTF(o, "\trdx: %016"PRIx64"   rsi: %016"PRIx64"   rdi: %016"PRIx64"\n",
-                       this->regs.rdx, this->regs.rsi, this->regs.rdi);
-        len += FPRINTF(o, "\trbp: %016"PRIx64"   rsp: %016"PRIx64"   r8:  %016"PRIx64"\n",
-                       this->regs.rbp, this->regs.rsp, this->regs.r8);
-        len += FPRINTF(o, "\tr9:  %016"PRIx64"   r10: %016"PRIx64"   r11: %016"PRIx64"\n",
-                       this->regs.r9,  this->regs.r10, this->regs.r11);
-        len += FPRINTF(o, "\tr12: %016"PRIx64"   r13: %016"PRIx64"   r14: %016"PRIx64"\n",
-                       this->regs.r12, this->regs.r13, this->regs.r14);
-        len += FPRINTF(o, "\tr15: %016"PRIx64"\n",
-                       this->regs.r15);
-    }
-
-    if ( this->flags & CPU_EXTD_STATE )
-    {
-        len += FPUTS("\n", o);
-        len += FPRINTF(o, "\tcr3: %016"PRIx64"\n", this->regs.cr3);
-    }
-
-    if ( this->flags & CPU_CORE_STATE )
-    {
-        len += FPUTS("\n", o);
-        len += FPRINTF(o, "\tds: %04"PRIx16"   es: %04"PRIx16"   "
-                       "fs: %04"PRIx16"   gs: %04"PRIx16"   "
-                       "ss: %04"PRIx16"   cs: %04"PRIx16"\n",
-                       this->regs.ds, this->regs.es, this->regs.fs,
-                       this->regs.gs, this->regs.ss, this->regs.cs);
-    }
-
-    len += FPUTS("\n", o);
-
-    len += FPRINTF(o, "\tPause Flags: 0x%"PRIx32" ", this->pause_flags);
-    len += print_pause_flags(o, this->pause_flags);
-    len += FPUTS("\n", o);
-
-    switch ( this->runstate )
-    {
-    case RST_NONE:
-        len += FPRINTF(o, "\tNot running:  Last run on PCPU%"PRIu32"\n", this->processor);
-        break;
-    case RST_RUNNING:
-        len += FPRINTF(o, "\tCurrently running on PCPU%"PRIu32"\n", this->processor);
-        break;
-    case RST_CTX_SWITCH:
-        len += FPUTS("\tBeing Context Switched:  State unreliable\n", o);
-        break;
-    default:
-        len += FPUTS("\tUnknown runstate\n", o);
-        break;
-    }
-    len += FPRINTF(o, "\tStruct vcpu at %016"PRIx64"\n", this->vcpu_ptr);
-
-    len += FPUTS("\n", o);
-
-    if ( this->flags & CPU_CORE_STATE &&
-         this->flags & CPU_EXTD_STATE &&
-         ( this->paging_support == VCPU::PAGING_NONE ||
-           this->paging_support == VCPU::PAGING_SHADOW )
-        )
-    {
-        len += FPRINTF(o, "\tStack at %16"PRIx64":", this->regs.rsp);
-        len += print_64bit_stack(o, *this->dompt, this->regs.rsp);
-
-        len += FPUTS("\n\tCode:\n", o);
-        len += print_code(o, *this->dompt, this->regs.rip);
-
-        len += FPUTS("\n\tCall Trace:\n", o);
-        if ( this->domid == 0 )
+        if ( this->flags & CPU_CORE_STATE )
         {
-            vaddr_t sp = this->regs.rsp;
-            vaddr_t top = (this->regs.rsp | (PAGE_SIZE-1))+1;
-            uint64_t val;
+            len += FPRINTF(o, "\tRIP:    %04x:[<%016"PRIx64">] Ring %d\n",
+                           this->regs.cs, this->regs.rip, this->regs.cs & 0x3);
+            len += FPRINTF(o, "\tRFLAGS: %016"PRIx64" ", this->regs.rflags);
+            len += print_rflags(o, this->regs.rflags);
+            len += FPUTS("\n\n", o);
 
-            len += host.dom0_symtab.print_symbol64(o, this->regs.rip, true);
+            len += FPRINTF(o, "\trax: %016"PRIx64"   rbx: %016"PRIx64"   rcx: %016"PRIx64"\n",
+                           this->regs.rax, this->regs.rbx, this->regs.rcx);
+            len += FPRINTF(o, "\trdx: %016"PRIx64"   rsi: %016"PRIx64"   rdi: %016"PRIx64"\n",
+                           this->regs.rdx, this->regs.rsi, this->regs.rdi);
+            len += FPRINTF(o, "\trbp: %016"PRIx64"   rsp: %016"PRIx64"   r8:  %016"PRIx64"\n",
+                           this->regs.rbp, this->regs.rsp, this->regs.r8);
+            len += FPRINTF(o, "\tr9:  %016"PRIx64"   r10: %016"PRIx64"   r11: %016"PRIx64"\n",
+                           this->regs.r9,  this->regs.r10, this->regs.r11);
+            len += FPRINTF(o, "\tr12: %016"PRIx64"   r13: %016"PRIx64"   r14: %016"PRIx64"\n",
+                           this->regs.r12, this->regs.r13, this->regs.r14);
+            len += FPRINTF(o, "\tr15: %016"PRIx64"\n",
+                           this->regs.r15);
+        }
 
-            try
+        if ( this->flags & CPU_EXTD_STATE )
+        {
+            len += FPUTS("\n", o);
+            len += FPRINTF(o, "\tcr3: %016"PRIx64"\n", this->regs.cr3);
+        }
+
+        if ( this->flags & CPU_CORE_STATE )
+        {
+            len += FPUTS("\n", o);
+            len += FPRINTF(o, "\tds: %04"PRIx16"   es: %04"PRIx16"   "
+                           "fs: %04"PRIx16"   gs: %04"PRIx16"   "
+                           "ss: %04"PRIx16"   cs: %04"PRIx16"\n",
+                           this->regs.ds, this->regs.es, this->regs.fs,
+                           this->regs.gs, this->regs.ss, this->regs.cs);
+        }
+
+        len += FPUTS("\n", o);
+
+        len += FPRINTF(o, "\tPause Flags: 0x%"PRIx32" ", this->pause_flags);
+        len += print_pause_flags(o, this->pause_flags);
+        len += FPUTS("\n", o);
+
+        switch ( this->runstate )
+        {
+        case RST_NONE:
+            len += FPRINTF(o, "\tNot running:  Last run on PCPU%"PRIu32"\n", this->processor);
+            break;
+        case RST_RUNNING:
+            len += FPRINTF(o, "\tCurrently running on PCPU%"PRIu32"\n", this->processor);
+            break;
+        case RST_CTX_SWITCH:
+            len += FPUTS("\tBeing Context Switched:  State unreliable\n", o);
+            break;
+        default:
+            len += FPUTS("\tUnknown runstate\n", o);
+            break;
+        }
+        len += FPRINTF(o, "\tStruct vcpu at %016"PRIx64"\n", this->vcpu_ptr);
+
+        len += FPUTS("\n", o);
+
+        if ( this->flags & CPU_CORE_STATE &&
+             this->flags & CPU_EXTD_STATE &&
+             ( this->paging_support == VCPU::PAGING_NONE ||
+               this->paging_support == VCPU::PAGING_SHADOW )
+            )
+        {
+            len += FPRINTF(o, "\tStack at %16"PRIx64":", this->regs.rsp);
+            len += print_64bit_stack(o, *this->dompt, this->regs.rsp);
+
+            len += FPUTS("\n\tCode:\n", o);
+            len += print_code(o, *this->dompt, this->regs.rip);
+
+            len += FPUTS("\n\tCall Trace:\n", o);
+            if ( this->domid == 0 )
             {
-                while ( sp < top )
+                vaddr_t sp = this->regs.rsp;
+                vaddr_t top = (this->regs.rsp | (PAGE_SIZE-1))+1;
+                uint64_t val;
+
+                len += host.dom0_symtab.print_symbol64(o, this->regs.rip, true);
+
+                try
                 {
-                    memory.read64_vaddr(*this->dompt, sp, val);
-                    len += host.dom0_symtab.print_symbol64(o, val);
-                    sp += 8;
+                    while ( sp < top )
+                    {
+                        memory.read64_vaddr(*this->dompt, sp, val);
+                        len += host.dom0_symtab.print_symbol64(o, val);
+                        sp += 8;
+                    }
+                }
+                catch ( const CommonError & e )
+                {
+                    e.log();
                 }
             }
-            catch ( const CommonError & e )
-            {
-                e.log();
-            }
+            else
+                len += FPUTS("\t  No symbol table for domain\n", o);
+
+            len += FPUTS("\n", o);
         }
-        else
-            len += FPUTS("\t  No symbol table for domain\n", o);
-
-        len += FPUTS("\n", o);
-    }
-    return len;
-}
-
-int x86_64VCPU::print_state_compat(FILE * o) const
-{
-    int len = 0;
-
-    if ( this->flags & CPU_CORE_STATE )
-    {
-        len += FPRINTF(o, "\tEIP:    %04"PRIx16":[<%08"PRIx32">] Ring %d\n",
-                       this->regs.cs, this->regs.eip, this->regs.cs & 0x3);
-        len += FPRINTF(o, "\tEFLAGS: %08"PRIx32" ", this->regs.eflags);
-        len += print_rflags(o, this->regs.rflags & -((uint32_t)1));
-        len += FPUTS("\n", o);
-
-        len += FPRINTF(o, "\teax: %08"PRIx32"   ebx: %08"PRIx32"   ",
-                       this->regs.eax, this->regs.ebx);
-        len += FPRINTF(o, "ecx: %08"PRIx32"   edx: %08"PRIx32"\n",
-                       this->regs.ecx, this->regs.edx);
-        len += FPRINTF(o, "\tesi: %08"PRIx32"   edi: %08"PRIx32"   ",
-                       this->regs.esi, this->regs.edi);
-        len += FPRINTF(o, "ebp: %08"PRIx32"   esp: %08"PRIx32"\n",
-                       this->regs.ebp, this->regs.esp);
-    }
-
-    if ( this->flags & CPU_EXTD_STATE )
-    {
-        len += FPRINTF(o, "\tcr3: %016"PRIx64"\n", this->regs.cr3);
-    }
-
-    if ( this->flags & CPU_CORE_STATE )
-    {
-        len += FPRINTF(o, "\tds: %04"PRIx16"   es: %04"PRIx16"   "
-                       "fs: %04"PRIx16"   gs: %04"PRIx16"   "
-                       "ss: %04"PRIx16"   cs: %04"PRIx16"\n",
-                       this->regs.ds, this->regs.es, this->regs.fs,
-                       this->regs.gs, this->regs.ss, this->regs.cs);
-
-    }
-
-    len += FPUTS("\n", o);
-
-    len += FPRINTF(o, "\tPause Flags: 0x%"PRIx32" ", this->pause_flags);
-    len += print_pause_flags(o, this->pause_flags);
-    len += FPUTS("\n", o);
-
-    switch ( this->runstate )
-    {
-    case RST_NONE:
-        len += FPRINTF(o, "\tNot running:  Last run on PCPU%"PRIu32"\n", this->processor);
-        break;
-    case RST_RUNNING:
-        len += FPRINTF(o, "\tCurrently running on PCPU%"PRIu32"\n", this->processor);
-        break;
-    case RST_CTX_SWITCH:
-        len += FPUTS("\tBeing Context Switched:  State unreliable\n", o);
-        break;
-    default:
-        len += FPUTS("\tUnknown runstate\n", o);
-        break;
-    }
-    len += FPRINTF(o, "\tStruct vcpu at %016"PRIx64"\n", this->vcpu_ptr);
-
-    len += FPUTS("\n", o);
-
-    if ( this->flags & CPU_CORE_STATE &&
-        this->flags & CPU_EXTD_STATE )
-    {
-        len += FPRINTF(o, "\tStack at %08"PRIx32":", this->regs.esp);
-        len += print_32bit_stack(o, *this->dompt, this->regs.rsp);
-
-        len += FPUTS("\n\tCode:\n", o);
-        len += print_code(o, *this->dompt, this->regs.rip);
-
-        len += FPUTS("\n\tCall Trace:\n", o);
-        if ( this->domid == 0 )
-        {
-            vaddr_t sp = this->regs.rsp;
-            vaddr_t top = (this->regs.rsp | (PAGE_SIZE-1))+1;
-            union { uint32_t val32; uint64_t val64; } val;
-            val.val64 = 0;
-
-            len += host.dom0_symtab.print_symbol32(o, this->regs.rip, true);
-
-            try
-            {
-                while ( sp < top )
-                {
-                    memory.read32_vaddr(*this->dompt, sp, val.val32);
-                    len += host.dom0_symtab.print_symbol32(o, val.val64);
-                    sp += 4;
-                }
-            }
-            catch ( const CommonError & e )
-            {
-                e.log();
-            }
-        }
-        else
-            len += FPUTS("\t  No symbol table for domain\n", o);
-
-    }
-
-    len += FPUTS("\n", o);
-    return len;
-}
-
-int x86_64VCPU::dump_structures(FILE * o, const Abstract::PageTable & xenpt) const
-{
-    int len = 0;
-
-    if ( required_vcpu_symbols != 0 )
-    {
-        LOG_ERROR("Missing required domain symbols. %#x\n",
-                  required_domain_symbols);
         return len;
     }
 
-    len += FPRINTF(o, "struct vcpu (0x%016"PRIx64") for vcpu %"PRId32"\n",
-                   this->vcpu_ptr, this->vcpu_id);
-    len += dump_64bit_data(o, xenpt, this->vcpu_ptr, VCPU_sizeof);
-    return len;
-}
+    int VCPU::print_state_compat(FILE * o) const
+    {
+        int len = 0;
 
+        if ( this->flags & CPU_CORE_STATE )
+        {
+            len += FPRINTF(o, "\tEIP:    %04"PRIx16":[<%08"PRIx32">] Ring %d\n",
+                           this->regs.cs, this->regs.eip, this->regs.cs & 0x3);
+            len += FPRINTF(o, "\tEFLAGS: %08"PRIx32" ", this->regs.eflags);
+            len += print_rflags(o, this->regs.rflags & -((uint32_t)1));
+            len += FPUTS("\n", o);
+
+            len += FPRINTF(o, "\teax: %08"PRIx32"   ebx: %08"PRIx32"   ",
+                           this->regs.eax, this->regs.ebx);
+            len += FPRINTF(o, "ecx: %08"PRIx32"   edx: %08"PRIx32"\n",
+                           this->regs.ecx, this->regs.edx);
+            len += FPRINTF(o, "\tesi: %08"PRIx32"   edi: %08"PRIx32"   ",
+                           this->regs.esi, this->regs.edi);
+            len += FPRINTF(o, "ebp: %08"PRIx32"   esp: %08"PRIx32"\n",
+                           this->regs.ebp, this->regs.esp);
+        }
+
+        if ( this->flags & CPU_EXTD_STATE )
+        {
+            len += FPRINTF(o, "\tcr3: %016"PRIx64"\n", this->regs.cr3);
+        }
+
+        if ( this->flags & CPU_CORE_STATE )
+        {
+            len += FPRINTF(o, "\tds: %04"PRIx16"   es: %04"PRIx16"   "
+                           "fs: %04"PRIx16"   gs: %04"PRIx16"   "
+                           "ss: %04"PRIx16"   cs: %04"PRIx16"\n",
+                           this->regs.ds, this->regs.es, this->regs.fs,
+                           this->regs.gs, this->regs.ss, this->regs.cs);
+
+        }
+
+        len += FPUTS("\n", o);
+
+        len += FPRINTF(o, "\tPause Flags: 0x%"PRIx32" ", this->pause_flags);
+        len += print_pause_flags(o, this->pause_flags);
+        len += FPUTS("\n", o);
+
+        switch ( this->runstate )
+        {
+        case RST_NONE:
+            len += FPRINTF(o, "\tNot running:  Last run on PCPU%"PRIu32"\n", this->processor);
+            break;
+        case RST_RUNNING:
+            len += FPRINTF(o, "\tCurrently running on PCPU%"PRIu32"\n", this->processor);
+            break;
+        case RST_CTX_SWITCH:
+            len += FPUTS("\tBeing Context Switched:  State unreliable\n", o);
+            break;
+        default:
+            len += FPUTS("\tUnknown runstate\n", o);
+            break;
+        }
+        len += FPRINTF(o, "\tStruct vcpu at %016"PRIx64"\n", this->vcpu_ptr);
+
+        len += FPUTS("\n", o);
+
+        if ( this->flags & CPU_CORE_STATE &&
+             this->flags & CPU_EXTD_STATE )
+        {
+            len += FPRINTF(o, "\tStack at %08"PRIx32":", this->regs.esp);
+            len += print_32bit_stack(o, *this->dompt, this->regs.rsp);
+
+            len += FPUTS("\n\tCode:\n", o);
+            len += print_code(o, *this->dompt, this->regs.rip);
+
+            len += FPUTS("\n\tCall Trace:\n", o);
+            if ( this->domid == 0 )
+            {
+                vaddr_t sp = this->regs.rsp;
+                vaddr_t top = (this->regs.rsp | (PAGE_SIZE-1))+1;
+                union { uint32_t val32; uint64_t val64; } val;
+                val.val64 = 0;
+
+                len += host.dom0_symtab.print_symbol32(o, this->regs.rip, true);
+
+                try
+                {
+                    while ( sp < top )
+                    {
+                        memory.read32_vaddr(*this->dompt, sp, val.val32);
+                        len += host.dom0_symtab.print_symbol32(o, val.val64);
+                        sp += 4;
+                    }
+                }
+                catch ( const CommonError & e )
+                {
+                    e.log();
+                }
+            }
+            else
+                len += FPUTS("\t  No symbol table for domain\n", o);
+
+        }
+
+        len += FPUTS("\n", o);
+        return len;
+    }
+
+    int VCPU::dump_structures(FILE * o, const Abstract::PageTable & xenpt) const
+    {
+        int len = 0;
+
+        if ( required_vcpu_symbols != 0 )
+        {
+            LOG_ERROR("Missing required domain symbols. %#x\n",
+                      required_domain_symbols);
+            return len;
+        }
+
+        len += FPRINTF(o, "struct vcpu (0x%016"PRIx64") for vcpu %"PRId32"\n",
+                       this->vcpu_ptr, this->vcpu_id);
+        len += dump_64bit_data(o, xenpt, this->vcpu_ptr, VCPU_sizeof);
+        return len;
+    }
+
+}
 
 /*
  * Local variables:
