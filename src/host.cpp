@@ -97,7 +97,7 @@ bool Host::setup(const Abstract::Elf * elf)
 
         for ( int x = 0; x < nr_pcpus; ++x )
             if ( arch == Abstract::Elf::ELF_64 )
-                this->pcpus[x] = new x86_64PCPU();
+                this->pcpus[x] = new x86_64::PCPU();
             else
             {
                 // Implement if necessary

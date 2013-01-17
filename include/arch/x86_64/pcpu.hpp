@@ -29,81 +29,86 @@
 #include "abstract/pcpu.hpp"
 #include "arch/x86_64/structures.hpp"
 
+namespace x86_64
+{
+
 /**
  * Physical CPU state, from Xen crash notes, and Xen per-cpu stack information
  * for 64bit Xen
  */
-class x86_64PCPU : public Abstract::PCPU
-{
-public:
-    /// Constructor.
-    x86_64PCPU();
+    class PCPU : public Abstract::PCPU
+    {
+    public:
+        /// Constructor.
+        PCPU();
 
-    /// Destructor.
-    virtual ~x86_64PCPU();
+        /// Destructor.
+        virtual ~PCPU();
 
-    /**
-     * Parse a PR_STATUS crash note.
-     *
-     * @param buff Buffer containing data.
-     * @param len Length of the buffer in bytes.
-     * @param index Index of the note, for error reporting.
-     * @return boolean indicating success or failure.
-     */
-    virtual bool parse_pr_status(const char * buff, const size_t len, int index);
+        /**
+         * Parse a PR_STATUS crash note.
+         *
+         * @param buff Buffer containing data.
+         * @param len Length of the buffer in bytes.
+         * @param index Index of the note, for error reporting.
+         * @return boolean indicating success or failure.
+         */
+        virtual bool parse_pr_status(const char * buff, const size_t len, int index);
 
-    /**
-     * Parse a Xen crash core note.
-     *
-     * @param buff Buffer containing data.
-     * @param len Length of the buffer in bytes.
-     * @param index Index of the note, for error reporting.
-     * @return boolean indicating success or failure.
-     */
-    virtual bool parse_xen_crash_core(const char * buff, const size_t len, int index);
+        /**
+         * Parse a Xen crash core note.
+         *
+         * @param buff Buffer containing data.
+         * @param len Length of the buffer in bytes.
+         * @param index Index of the note, for error reporting.
+         * @return boolean indicating success or failure.
+         */
+        virtual bool parse_xen_crash_core(const char * buff, const size_t len, int index);
 
-    /**
-     * Decode extended state, given information obtained from PR_STATUS and
-     * Xen crash core notes.
-     * @return boolean indicating success or failure.
-     */
-    virtual bool decode_extended_state();
+        /**
+         * Decode extended state, given information obtained from PR_STATUS and
+         * Xen crash core notes.
+         * @return boolean indicating success or failure.
+         */
+        virtual bool decode_extended_state();
 
-    /**
-     * Is this PCPU online?
-     * @returns boolean
-     */
-    virtual bool is_online() const;
+        /**
+         * Is this PCPU online?
+         * @returns boolean
+         */
+        virtual bool is_online() const;
 
-    /**
-     * Print the information about this vcpu to the provided stream.
-     * Information includes (where relevant).
-     * - Core registers
-     * - Segment registers
-     * - Stack dump
-     * - Code dump
-     * - Stack trace
-     *
-     * @param stream Stream to write to.
-     * @return Number of bytes written to stream.
-     */
-    virtual int print_state(FILE * stream) const;
+        /**
+         * Print the information about this vcpu to the provided stream.
+         * Information includes (where relevant).
+         * - Core registers
+         * - Segment registers
+         * - Stack dump
+         * - Code dump
+         * - Stack trace
+         *
+         * @param stream Stream to write to.
+         * @return Number of bytes written to stream.
+         */
+        virtual int print_state(FILE * stream) const;
 
-protected:
-    /// PCPU Registers
-    x86_64regs regs;
+    protected:
+        /// PCPU Registers
+        x86_64regs regs;
 
-    /**
-     * Print xen per-cpu stack.
-     *
-     * Include extending parsing of interrupt stack tables.
-     * @param stream Stream to write to.
-     * @param stack Xen's per-cpu stack pointer.
-     * @return Number of bytes written to stream.
-     */
-    int print_stack(FILE * stream, const vaddr_t & stack) const;
+        /**
+         * Print xen per-cpu stack.
+         *
+         * Include extending parsing of interrupt stack tables.
+         * @param stream Stream to write to.
+         * @param stack Xen's per-cpu stack pointer.
+         * @return Number of bytes written to stream.
+         */
+        int print_stack(FILE * stream, const vaddr_t & stack) const;
 
-};
+    };
+
+}
 
 #endif
 
