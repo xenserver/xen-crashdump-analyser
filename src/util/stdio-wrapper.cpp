@@ -18,6 +18,11 @@
  *  Copyright (c) 2012 Citrix Inc.
  */
 
+/**
+ * @file src/util/stdio-wrapper.cpp
+ * @author Andrew Cooper
+ */
+
 #include "util/stdio-wrapper.hpp"
 
 #include <cstdarg>
