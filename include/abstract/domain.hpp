@@ -140,7 +140,7 @@ namespace Abstract
         VCPU ** vcpus;
 
     private:
-        // @cond
+        // @cond EXCLUDE
         Domain(const Domain & );
         Domain & operator= (const Domain &);
         // @endcond

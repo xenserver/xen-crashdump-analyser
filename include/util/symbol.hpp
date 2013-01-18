@@ -81,7 +81,7 @@ public:
     char * name;
 
 private:
-    // @cond
+    // @cond EXCLUDE
     Symbol & operator=(const Symbol &);
     // @endcond
 };

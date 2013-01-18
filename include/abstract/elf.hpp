@@ -95,7 +95,9 @@ namespace Abstract
             ELF_32,
             /// 64bit.
             ELF_64
-        } arch;
+        }
+        /// Elf architecture.
+            arch;
 
         /// Number of program headers.
         int nr_phdrs;
@@ -126,7 +128,7 @@ namespace Abstract
         int fd;
 
     private:
-        // @cond
+        // @cond EXCLUDE
         Elf(const Elf &);
         Elf & operator= (const Elf &);
         // @endcond

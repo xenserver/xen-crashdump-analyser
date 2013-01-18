@@ -130,7 +130,7 @@ public:
         *xen_compile_date;
 
 private:
-    // @cond
+    // @cond EXCLUDE
     Host(const Host &);
     Host & operator= (const Host &);
     // @endcond

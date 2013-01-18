@@ -97,6 +97,7 @@ const static struct required_symbol
     /// Found mask.
     uint64_t mask;
 }
+/// Required symbols list
 required_symbols [] =
 {
     SYMBOL(console, conring),

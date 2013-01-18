@@ -29,7 +29,7 @@
 #include <cstring>
 
 /// These are structures taken from Xen header files.
-/// @cond
+/// @cond EXCLUDE
 #define STACK_SIZE (4096<<3)
 #define PAGE_SIZE (4096)
 

@@ -222,7 +222,7 @@ public:
     const char * reason;
 
 private:
-    // @cond
+    // @cond EXCLUDE
     validate & operator= (const validate &);
     // @endcond
 };

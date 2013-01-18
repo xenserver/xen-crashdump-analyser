@@ -172,7 +172,7 @@ bool Host::parse_crash_xen_info(const char * buff, const size_t len)
         tmp = new char[1024];
         tmp[0] = 0;
 
-/// @cond
+/// @cond EXCLUDE
 #define GET_STR(src, dst) do {                              \
             size_t sz = memory.read_str((src), tmp, 1023);  \
             (dst) = new char [ sz+1 ];                      \

@@ -34,7 +34,7 @@
  */
 struct x86_64regs
 {
-    /// @cond
+    /// @cond EXCLUDE
     uint64_t r15, r14, r13, r12, r11, r10, r9, r8;
     union { uint64_t rax; uint32_t eax; };
     union { uint64_t rbx; uint32_t ebx; };
@@ -57,7 +57,7 @@ struct x86_64regs
  * 64bit Xen CPU user regs structure.  Transcribed from Xen
  */
 struct x86_64_cpu_user_regs {
-    /// @cond
+    /// @cond EXCLUDE
 #define __DECL_REG(reg) uint64_t r##reg
     uint64_t r15;
     uint64_t r14;
@@ -93,12 +93,12 @@ struct x86_64_cpu_user_regs {
 
 /// x86_64 crash xen core note
 typedef struct {
-    /// @cond
+    /// @cond EXCLUDE
     uint64_t cr0, cr2, cr3, cr4;
     /// @endcond
 } x86_64_crash_xen_core_t;
 
-/// @cond
+/// @cond EXCLUDE
 typedef struct
 {
 	int32_t signo;			/* signal number */
@@ -120,7 +120,7 @@ typedef struct {
  */
 typedef struct __attribute__ ((aligned (16)))
 {
-/// @cond
+/// @cond EXCLUDE
 	ELF_Signifo pr_info;		/* Info associated with signal */
 	int16_t pr_cursig;		/* Current signal */
 	uint64_t pr_sigpend;		/* Set of pending signals */
@@ -138,7 +138,7 @@ typedef struct __attribute__ ((aligned (16)))
 /// @endcond
 } ELF_Prstatus;
 
-/// @cond
+/// @cond EXCLUDE
 #define PR_REG_r15		0
 #define PR_REG_r14		1
 #define PR_REG_r13		2
@@ -173,7 +173,7 @@ typedef struct __attribute__ ((aligned (16)))
  */
 struct x86_64exception
 {
-    /// @cond
+    /// @cond EXCLUDE
     uint64_t rip;
     uint16_t cs, _pad1[3];
     uint64_t rflags;
@@ -185,7 +185,7 @@ struct x86_64exception
 /** Xen crash_xen_info structure
  */
 typedef struct {
-    /// @cond
+    /// @cond EXCLUDE
     uint64_t xen_major_version;
     uint64_t xen_minor_version;
     maddr_t xen_extra_version;

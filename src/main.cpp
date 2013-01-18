@@ -269,8 +269,9 @@ static void usage(char * argv0, FILE * stream = stdout)
     fprintf(stream, "Usage: %s [options]\n", argv0);
     fprintf(stream, "Options: (* indicates required)\n\n");
 
-// @cond - Doxygen ought to ignore these macros.
-//         They are for pretty-printing the command line parameters
+/// @cond EXCLUDE
+/* Doxygen ought to ignore these macros.  They are for pretty-printing
+ * the command line parameters */
 #define WL 15
 #define L_REQ(l,d)    fprintf(stream, "    --%-*s    * %s\n", WL, l, d);
 #define LS_REQ(l,s,d) fprintf(stream, "    --%-*s -%c * %s\n", WL, l, s, d);
@@ -303,7 +304,7 @@ static void usage(char * argv0, FILE * stream = stdout)
 #undef L_OPT
 #undef LS_OPT
 #undef WL
-// @endcond
+/// @endcond
 }
 
 /**

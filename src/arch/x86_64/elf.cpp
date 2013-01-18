@@ -30,9 +30,11 @@
 #include "types.hpp"
 #include "Xen.h"
 
+/// @cond EXCLUDE
 #ifndef _LARGEFILE64_SOURCE
 #define _LARGEFILE64_SOURCE
 #endif
+/// @endcond
 
 #include <fcntl.h>
 #include <sys/types.h>

@@ -166,7 +166,7 @@ namespace Abstract
             CPU_HVM = 1<<3
         };
 
-        /// Runstate of this VCPU at the time of crash
+        /// VCPU Runstate.
         enum VCPURunstate
         {
             /// Unknown runstate.
@@ -177,9 +177,11 @@ namespace Abstract
             RST_RUNNING,
             /// VCPU was being context switched from.
             RST_CTX_SWITCH
-        } runstate;
+        }
+        /// Runstate of this VCPU at the time of crash.
+            runstate;
 
-        /// Paging support which this VCPU has from Xen.
+        /// VCPU Paging mode.
         enum VCPUPagingSupport
         {
             /// Unknown support.
@@ -190,10 +192,12 @@ namespace Abstract
             PAGING_SHADOW,
             /// Hardware Assisted Paging support.
             PAGING_HAP
-        } paging_support;
+        }
+        /// Paging support which this VCPU has from Xen.
+            paging_support;
 
     private:
-        // @cond
+        // @cond EXCLUDE
         VCPU(const VCPU &);
         VCPU & operator= (const VCPU &);
         // @endcond

@@ -139,7 +139,7 @@ namespace Abstract
             CPU_STACK_STATE = 1<<2
         };
 
-        /// VCPU state on this PCPU at the time of crash.
+        /// VCPU State.
         enum PCPUCtxState
         {
             /// Unknown runstate.
@@ -152,10 +152,12 @@ namespace Abstract
             CTX_RUNNING,
             /// Context switch occurring.
             CTX_SWITCH
-        } vcpu_state;
+        }
+        /// VCPU state on this PCPU at the time of crash.
+            vcpu_state;
 
     private:
-        // @cond
+        // @cond EXCLUDE
         PCPU(const PCPU &);
         PCPU & operator= (const PCPU &);
         // @endcond

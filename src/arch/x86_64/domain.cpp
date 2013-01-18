@@ -157,7 +157,7 @@ namespace x86_64
         len += print_paging_mode(o, this->paging_mode);
         len += FPUTS("\n", o);
 
-///@cond
+///@cond EXCLUDE
 #define PAGES_TO_GB(p) (((double)(p)) * 4096.0 / (1024.0 * 1024.0 * 1024.0))
 #define PAGES_TO_MB(p) (((double)(p)) * 4096.0 / (1024.0 * 1024.0))
 #define PAGES_TO_KB(p) (((double)(p)) * 4096.0 / (1024.0))
