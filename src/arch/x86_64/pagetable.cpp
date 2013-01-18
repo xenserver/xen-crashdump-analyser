@@ -36,6 +36,12 @@ namespace x86_64
     void PT64::walk(const vaddr_t & vaddr, maddr_t & maddr,
                        vaddr_t * page_end) const
     {
+        /* Verify the pointer is canonical.  If not, the vaddr is
+         * certainly junk. */
+        if ( vaddr > 0x00007fffffffffffULL &&
+             vaddr < 0xffff800000000000ULL )
+            throw validate(vaddr, "Address is non-canonical.");
+
         pagetable_walk_64(this->cr3, vaddr, maddr, page_end);
     }
 
@@ -46,6 +52,8 @@ namespace x86_64
     void PT64Compat::walk(const vaddr_t & vaddr, maddr_t & maddr,
                        vaddr_t * page_end) const
     {
+        /* Long compat mode uses 32bit pointers running on the same
+         * 64bit pagetables, with a 0-extended pointer. */
         if ( vaddr & 0xffffffff00000000ULL )
             throw validate(vaddr, "Pointer out of range for 64bit Compat pagetables.");
 
