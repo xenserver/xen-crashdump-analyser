@@ -27,11 +27,12 @@
 
 #include "Xen.h"
 
-#include "symbols.hpp"
+#include "abstract/xensyms.hpp"
 
 #include "arch/x86_64/pagetable-walk.hpp"
 #include "arch/x86_64/pcpu.hpp"
 #include "arch/x86_64/domain.hpp"
+#include "arch/x86_64/xensyms.hpp"
 
 #include "util/print-structures.hpp"
 #include "util/log.hpp"
@@ -48,6 +49,9 @@
 # define _GNU_SOURCE
 #endif
 #include <string.h> // For strndup
+
+using namespace Abstract::xensyms;
+using namespace x86_64::xensyms;
 
 Host::Host():
     once(false), arch(Abstract::Elf::ELF_Unknown), nr_pcpus(0),
@@ -207,10 +211,10 @@ bool Host::decode_xen()
 
     LOG_INFO("Decoding physical CPU information.  %d PCPUs\n", this->nr_pcpus);
 
-    if ( required_per_cpu_symbols != 0 )
+    if ( required_x86_64_per_cpu_symbols != 0 )
     {
         LOG_ERROR("  Missing required per_cpu symbols. %#x\n",
-                  required_per_cpu_symbols);
+                  required_x86_64_per_cpu_symbols);
         return false;
     }
 

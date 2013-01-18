@@ -14,7 +14,21 @@
  */
 
 /**
+ * @namespace Abstract::xensyms
+ *
+ * Small namespace containing the xensyms for architecture independent
+ * areas of Xen.
+ */
+
+
+/**
  * @namespace x86_64
  *
  * Xen x86_64 architecture namespace, for 64bit x86.
+ */
+
+/**
+ * @namespace x86_64::xensyms
+ *
+ * Small namespace containing the xensyms for the x86_64 areas of Xen.
  */

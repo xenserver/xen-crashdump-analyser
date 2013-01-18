@@ -31,7 +31,9 @@
 #include <cstdio>
 #include <algorithm>
 
-#include "symbols.hpp"
+#include "util/xensym-common.hpp"
+#include "abstract/xensyms.hpp"
+#include "arch/x86_64/xensyms.hpp"
 
 /// Hypercall number -> name
 static const char *hypercall_names[] = {
@@ -181,12 +183,18 @@ bool SymbolTable::parse(const char * file, bool offsets)
         if ( name[0] == '+' )
         {
             if ( offsets )
-                insert_required_symbol(&name[1], addr);
+            {
+                insert_xensym(Abstract::xensyms::xensyms, &name[1], addr);
+                insert_xensym(x86_64::xensyms::xensyms, &name[1], addr);
+            }
         }
         else
         {
             if ( offsets )
-                insert_required_symbol(name , addr);
+            {
+                insert_xensym(Abstract::xensyms::xensyms, name, addr);
+                insert_xensym(x86_64::xensyms::xensyms, name, addr);
+            }
             this->insert( new Symbol(addr, type, name) );
         }
     }

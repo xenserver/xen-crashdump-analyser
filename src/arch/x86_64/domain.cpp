@@ -20,7 +20,8 @@
 
 #include "arch/x86_64/domain.hpp"
 #include "arch/x86_64/vcpu.hpp"
-#include "symbols.hpp"
+#include "arch/x86_64/xensyms.hpp"
+#include "abstract/xensyms.hpp"
 #include "memory.hpp"
 #include "host.hpp"
 #include "util/print-structures.hpp"
@@ -34,6 +35,9 @@
  * @file src/arch/x86_64/domain.cpp
  * @author Andrew Cooper
  */
+
+using namespace Abstract::xensyms;
+using namespace x86_64::xensyms;
 
 namespace x86_64
 {
@@ -62,6 +66,12 @@ namespace x86_64
         {
             LOG_ERROR("Missing required domain symbols. %#x\n",
                       required_domain_symbols);
+            return false;
+        }
+        if ( required_x86_64_domain_symbols != 0 )
+        {
+            LOG_ERROR("Missing required x86_64 domain symbols. %#x\n",
+                      required_x86_64_domain_symbols);
             return false;
         }
 

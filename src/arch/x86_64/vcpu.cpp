@@ -25,11 +25,12 @@
 
 #include "arch/x86_64/vcpu.hpp"
 #include "arch/x86_64/pagetable.hpp"
+#include "arch/x86_64/xensyms.hpp"
 
 #include <cstring>
 #include <new>
 #include "Xen.h"
-#include "symbols.hpp"
+#include "abstract/xensyms.hpp"
 #include "util/print-bitwise.hpp"
 #include "host.hpp"
 #include "memory.hpp"
@@ -37,6 +38,9 @@
 #include "util/log.hpp"
 #include "util/macros.hpp"
 #include "util/stdio-wrapper.hpp"
+
+using namespace Abstract::xensyms;
+using namespace x86_64::xensyms;
 
 namespace x86_64
 {
@@ -57,10 +61,22 @@ namespace x86_64
                       required_vcpu_symbols);
             return false;
         }
+        if ( required_x86_64_vcpu_symbols != 0 )
+        {
+            LOG_ERROR("Missing required x86_64 vcpu symbols. %#x\n",
+                      required_x86_64_vcpu_symbols);
+            return false;
+        }
         if ( required_domain_symbols != 0 )
         {
             LOG_ERROR("Missing required domain symbols. %#x\n",
                       required_domain_symbols);
+            return false;
+        }
+        if ( required_x86_64_domain_symbols != 0 )
+        {
+            LOG_ERROR("Missing required x86_64 domain symbols. %#x\n",
+                      required_x86_64_domain_symbols);
             return false;
         }
 

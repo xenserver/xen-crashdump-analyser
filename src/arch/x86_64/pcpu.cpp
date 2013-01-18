@@ -27,10 +27,12 @@
 #include "arch/x86_64/vcpu.hpp"
 #include "arch/x86_64/structures.hpp"
 #include "arch/x86_64/pagetable.hpp"
+#include "arch/x86_64/xensyms.hpp"
 
 #include "Xen.h"
 
-#include "symbols.hpp"
+#include "abstract/xensyms.hpp"
+
 #include "host.hpp"
 #include "util/print-bitwise.hpp"
 #include "util/print-structures.hpp"
@@ -41,6 +43,10 @@
 #include "memory.hpp"
 
 #include <new>
+
+using namespace Abstract::xensyms;
+using namespace x86_64::xensyms;
+
 
 namespace x86_64
 {
@@ -164,22 +170,16 @@ namespace x86_64
             LOG_ERROR("  Missing required CPU_EXTD_STATE for this pcpu\n");
             return false;
         }
-        if ( required_vcpu_symbols != 0 )
-        {
-            LOG_ERROR("  Missing required vcpu symbols. %#x\n",
-                      required_vcpu_symbols);
-            return false;
-        }
-        if ( required_cpuinfo_symbols != 0 )
+        if ( required_x86_64_cpuinfo_symbols != 0 )
         {
             LOG_ERROR("  Missing required cpuinfo symbols. %#x\n",
-                      required_cpuinfo_symbols);
+                      required_x86_64_cpuinfo_symbols);
             return false;
         }
-        if ( required_per_cpu_symbols != 0 )
+        if ( required_x86_64_per_cpu_symbols != 0 )
         {
             LOG_ERROR("  Missing required per_cpu symbols. %#x\n",
-                      required_per_cpu_symbols);
+                      required_x86_64_per_cpu_symbols);
             return false;
         }
 
