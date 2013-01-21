@@ -70,6 +70,26 @@ namespace xensyms
      * architecture specific areas of Xen.
      */
     extern const struct xensym xensyms[];
+
+    /**
+     * Check whether all group xensyms are present.
+     *
+     * In the case that xensyms are missing, the xensym names are put in
+     * an error message.
+     * @param g Xensym group name
+     * @returns true if all symbols are present, or false if any are missing.
+     */
+#define REQ_x86_64_XENSYMS(g) _required_xensyms(x86_64::xensyms::xensyms, \
+                                                &x86_64::xensyms::_##g##_xsg_)
+
+    /**
+     * Check whether all group xensyms are present.
+     *
+     * @param g Xensym group name
+     * @returns true if all symbols are present, or false if any are missing.
+     */
+#define HAVE_x86_64_XENSYMS(g) (x86_64::xensyms::_##g##_xsg_ == 0ULL )
+
 }
 }
 

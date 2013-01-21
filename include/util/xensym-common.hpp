@@ -37,15 +37,12 @@
  * @param g Xensym group name.
  */
 #define DECLARE_XENSYM_GROUP(g) \
-    extern uint64_t required_##g##_symbols
+    extern uint64_t _##g##_xsg_
 
 /**
  * Macro for defining a group of related symbols.
  *
  * For use in source files only.
- *
- * It sets up the public symbol 'required_\<group\>_symbols', and a private
- * variable used by XENSYM() to set up the relevant masks.
  *
  * The XENSYM()'s (ab)use of mask and the comma operator will work for up to
  * 63 symbols per group, which is sufficent for now.
@@ -53,7 +50,7 @@
  * @param g Xensym group name.
  */
 #define DEFINE_XENSYM_GROUP(g) \
-    uint64_t required_##g##_symbols; static uint64_t _meta_##g##_sym_mask = 1
+    uint64_t _##g##_xsg_; static uint64_t _##g##_xsg_mask_ = 1
 
 /**
  * Macro to help setting up the required symbols table.
@@ -65,9 +62,9 @@
  * @param g Xensym group.
  * @param n Xensym name.
  */
-#define XENSYM(g, n) { #n , &(n) , &(required_##g##_symbols) ,          \
-            (_meta_##g##_sym_mask <<= 1, required_##g##_symbols = _meta_##g##_sym_mask - 1, \
-             _meta_##g##_sym_mask >> 1) }
+#define XENSYM(g, n) { #n , &(n) , &(_##g##_xsg_) ,          \
+            (_##g##_xsg_mask_ <<= 1, _##g##_xsg_ = _##g##_xsg_mask_ - 1, \
+             _##g##_xsg_mask_ >> 1) }
 
 /**
  * XenSym container.
@@ -98,6 +95,15 @@ typedef struct xensym
  * @param value Value or address of symbol or offset.
  */
 void insert_xensym(const xensym_t * xensyms, const char * name, vaddr_t & value);
+
+/**
+ * Check whether all group xensyms are present.
+ *
+ * @param xensyms Xensyms list.
+ * @param group pointer to the Xensym group variable.
+ * @returns true if all symbols are present, or false if any are missing.
+ */
+bool _required_xensyms(const xensym_t * xensyms, const uint64_t * group);
 
 #endif
 

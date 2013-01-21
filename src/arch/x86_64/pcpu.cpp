@@ -170,18 +170,9 @@ namespace x86_64
             LOG_ERROR("  Missing required CPU_EXTD_STATE for this pcpu\n");
             return false;
         }
-        if ( required_x86_64_cpuinfo_symbols != 0 )
-        {
-            LOG_ERROR("  Missing required cpuinfo symbols. %#x\n",
-                      required_x86_64_cpuinfo_symbols);
+        if ( ! ( REQ_x86_64_XENSYMS(x86_64_cpuinfo) &
+                 REQ_x86_64_XENSYMS(x86_64_per_cpu) ))
             return false;
-        }
-        if ( required_x86_64_per_cpu_symbols != 0 )
-        {
-            LOG_ERROR("  Missing required per_cpu symbols. %#x\n",
-                      required_x86_64_per_cpu_symbols);
-            return false;
-        }
 
         try
         {

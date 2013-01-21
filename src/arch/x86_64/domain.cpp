@@ -62,18 +62,9 @@ namespace x86_64
 
     bool Domain::parse_basic(const vaddr_t & domain_ptr)
     {
-        if ( required_domain_symbols != 0 )
-        {
-            LOG_ERROR("Missing required domain symbols. %#x\n",
-                      required_domain_symbols);
+        if ( ! ( REQ_CORE_XENSYMS(domain) &
+                 REQ_x86_64_XENSYMS(x86_64_domain) ))
             return false;
-        }
-        if ( required_x86_64_domain_symbols != 0 )
-        {
-            LOG_ERROR("Missing required x86_64 domain symbols. %#x\n",
-                      required_x86_64_domain_symbols);
-            return false;
-        }
 
         try
         {
@@ -222,12 +213,8 @@ namespace x86_64
     {
         int len = 0;
 
-        if ( required_domain_symbols != 0 )
-        {
-            LOG_ERROR("Missing required domain symbols. %#x\n",
-                      required_domain_symbols);
+        if ( ! REQ_CORE_XENSYMS(domain) )
             return len;
-        }
 
         len += FPRINTF(o, "Xen structures for Domain %"PRId16"\n\n", this->domain_id);
 

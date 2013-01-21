@@ -92,6 +92,25 @@ namespace xensyms
      * independent areas of Xen.
      */
     extern const struct xensym xensyms[];
+
+    /**
+     * Check whether all group xensyms are present.
+     *
+     * In the case that xensyms are missing, the xensym names are put in
+     * an error message.
+     * @param g Xensym group name
+     * @returns true if all symbols are present, or false if any are missing.
+     */
+#define REQ_CORE_XENSYMS(g) _required_xensyms(Abstract::xensyms::xensyms, \
+                                              &Abstract::xensyms::_##g##_xsg_)
+    /**
+     * Check whether all group xensyms are present.
+     *
+     * @param g Xensym group name
+     * @returns true if all symbols are present, or false if any are missing.
+     */
+#define HAVE_CORE_XENSYMS(g) (Abstract::xensyms::_##g##_xsg_ == 0ULL )
+
 }
 }
 

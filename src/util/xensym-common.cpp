@@ -49,3 +49,23 @@ void insert_xensym(const xensym_t * xensyms, const char * name, vaddr_t & value)
         break;
     }
 }
+
+bool _required_xensyms(const xensym_t * xensyms, const uint64_t * group)
+{
+    const xensym_t * sym;
+    bool ret = true;
+
+    /* In the common case that the group bitmask is 0, we are certain that
+     * group xensyms are present, so skip scanning the xensyms list. */
+    if ( ! *group )
+        return ret;
+
+    for ( sym = &xensyms[0]; sym->name; ++sym )
+        if ( ( group == sym->group ) && ( *group & sym->mask ) )
+        {
+            ret = false;
+            LOG_ERROR("Missing required xensym %s\n", sym->name);
+        }
+
+    return ret;
+}

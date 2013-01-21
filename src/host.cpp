@@ -211,12 +211,8 @@ bool Host::decode_xen()
 
     LOG_INFO("Decoding physical CPU information.  %d PCPUs\n", this->nr_pcpus);
 
-    if ( required_x86_64_per_cpu_symbols != 0 )
-    {
-        LOG_ERROR("  Missing required per_cpu symbols. %#x\n",
-                  required_x86_64_per_cpu_symbols);
+    if ( ! REQ_x86_64_XENSYMS(x86_64_per_cpu) )
         return false;
-    }
 
     try
     {
@@ -355,7 +351,7 @@ bool Host::print_xen(bool dump_structures)
 
         len += FPUTS("\n  Console Ring:\n", o);
 
-        if ( required_console_symbols == 0 )
+        if ( HAVE_CORE_XENSYMS(console) )
         {
             uint64_t conring_ptr,length;
             uint32_t tmp;
@@ -367,7 +363,7 @@ bool Host::print_xen(bool dump_structures)
             memory.read32_vaddr(xenpt, conring_size, tmp);
             length = tmp;
 
-            if ( required_consolepc_symbols == 0 )
+            if ( HAVE_CORE_XENSYMS(consolepc) )
             {
                 uint64_t prod,cons;
 
@@ -429,12 +425,8 @@ int Host::print_domains(bool dump_structures)
 
     LOG_INFO("Decoding Domains\n");
 
-    if ( required_domain_symbols != 0 )
-    {
-        LOG_ERROR("Missing required domain symbols. %#x\n",
-                  required_domain_symbols);
+    if ( ! REQ_CORE_XENSYMS(domain) )
         return success;
-    }
 
     if ( this->arch != Abstract::Elf::ELF_64 )
     {

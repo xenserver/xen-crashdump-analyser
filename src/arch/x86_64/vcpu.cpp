@@ -55,30 +55,11 @@ namespace x86_64
 
     bool VCPU::parse_basic(const vaddr_t & addr, const Abstract::PageTable & xenpt)
     {
-        if ( required_vcpu_symbols != 0 )
-        {
-            LOG_ERROR("Missing required vcpu symbols. %#x\n",
-                      required_vcpu_symbols);
+        if ( ! ( REQ_CORE_XENSYMS(domain) &
+                 REQ_CORE_XENSYMS(vcpu) &
+                 REQ_x86_64_XENSYMS(x86_64_domain) &
+                 REQ_x86_64_XENSYMS(x86_64_vcpu) ))
             return false;
-        }
-        if ( required_x86_64_vcpu_symbols != 0 )
-        {
-            LOG_ERROR("Missing required x86_64 vcpu symbols. %#x\n",
-                      required_x86_64_vcpu_symbols);
-            return false;
-        }
-        if ( required_domain_symbols != 0 )
-        {
-            LOG_ERROR("Missing required domain symbols. %#x\n",
-                      required_domain_symbols);
-            return false;
-        }
-        if ( required_x86_64_domain_symbols != 0 )
-        {
-            LOG_ERROR("Missing required x86_64 domain symbols. %#x\n",
-                      required_x86_64_domain_symbols);
-            return false;
-        }
 
         try
         {
@@ -472,12 +453,8 @@ namespace x86_64
     {
         int len = 0;
 
-        if ( required_vcpu_symbols != 0 )
-        {
-            LOG_ERROR("Missing required domain symbols. %#x\n",
-                      required_domain_symbols);
+        if ( ! ( REQ_CORE_XENSYMS(vcpu) ))
             return len;
-        }
 
         len += FPRINTF(o, "struct vcpu (0x%016"PRIx64") for vcpu %"PRId32"\n",
                        this->vcpu_ptr, this->vcpu_id);
