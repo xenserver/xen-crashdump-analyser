@@ -115,6 +115,7 @@ namespace x86_64
             std::memset(this->vcpus, 0, sizeof (Abstract::VCPU*) * this->max_cpus);
 
             LOG_INFO("    %"PRIu32" VCPUs\n", this->max_cpus);
+            bool vcpus_online = false;
 
             for ( uint32_t x = 0; x < this->max_cpus; ++x )
             {
@@ -123,10 +124,12 @@ namespace x86_64
                 memory.read64_vaddr(this->xenpt, this->vcpus_ptr + x * 8, vcpu_addr);
                 host.validate_xen_vaddr(vcpu_addr);
                 LOG_DEBUG("    Vcpu%"PRIu32" pointer = 0x%016"PRIx64"\n", x, vcpu_addr);
-                this->vcpus[x]->parse_basic(vcpu_addr, this->xenpt);
+                if ( this->vcpus[x]->parse_basic(vcpu_addr, this->xenpt) )
+                    vcpus_online = true;
             }
 
-            return true;
+            // If at least 1 vcpu is online, consider this successful
+            return vcpus_online;
         }
         catch ( const std::bad_alloc & )
         {
