@@ -510,7 +510,7 @@ int Host::print_domains(bool dump_structures)
                 {
                     LOG_DEBUG("    Dom%"PRIu16" vcpu%"PRIu32" was active on pcpu%u\n",
                               dom->domain_id, v, p);
-                    dom->vcpus[v]->parse_regs_from_active(this->active_vcpus[p].second);
+                    dom->vcpus[v]->copy_from_active(this->active_vcpus[p].second);
                 }
                 else
                 {

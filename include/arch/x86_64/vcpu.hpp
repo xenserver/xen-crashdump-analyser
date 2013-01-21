@@ -87,12 +87,12 @@ namespace x86_64
         virtual bool parse_regs_from_struct(const Abstract::PageTable & xenpt);
 
         /**
-         * Parse register information from other VCPU
+         * Copy VCPU state from active vcpu.
          *
-         * @param active Active VCPU with already-parsed registers.
+         * @param active An active VCPU which already has its complete state.
          * @return boolean indicating success or failure.
          */
-        virtual bool parse_regs_from_active(const Abstract::VCPU* active);
+        virtual bool copy_from_active(const Abstract::VCPU* active);
 
         /**
          * Is this VCPU online?

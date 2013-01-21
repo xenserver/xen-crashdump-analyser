@@ -191,7 +191,7 @@ namespace x86_64
         return this->parse_regs(regs, cr3, xenpt);
     }
 
-    bool VCPU::parse_regs_from_active(const Abstract::VCPU* active)
+    bool VCPU::copy_from_active(const Abstract::VCPU* active)
     {
         // Dangerous, but safe.  We will only actually be handed a 64bit vcpu;
         const VCPU * vcpu = reinterpret_cast<const VCPU *>(active);
