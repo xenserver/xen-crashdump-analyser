@@ -128,6 +128,8 @@ public:
         *xen_compiler,
     /// Xen compile date string.
         *xen_compile_date;
+    /// Is Xen a debug build?
+    bool debug_build;
 
 private:
     // @cond EXCLUDE

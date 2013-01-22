@@ -80,11 +80,15 @@ namespace xensyms
     /// Xen's idle_vcpu symbol.
     extern vaddr_t idle_vcpu;
 
+    /// In Xen a debug build?
+    extern vaddr_t XEN_DEBUG;
+
     /// @cond EXCLUDE
     DECLARE_XENSYM_GROUP(console);
     DECLARE_XENSYM_GROUP(consolepc);
     DECLARE_XENSYM_GROUP(vcpu);
     DECLARE_XENSYM_GROUP(domain);
+    DECLARE_XENSYM_GROUP(misc);
     /// @endcond
 
     /**

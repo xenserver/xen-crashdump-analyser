@@ -42,11 +42,14 @@ namespace xensyms
         DOMAIN_is_privileged, DOMAIN_vcpus, DOMAIN_handle;
     vaddr_t domain_list, idle_vcpu;
 
+    vaddr_t XEN_DEBUG;
+
     /// @cond EXCLUDE
     DEFINE_XENSYM_GROUP(console);
     DEFINE_XENSYM_GROUP(consolepc);
     DEFINE_XENSYM_GROUP(vcpu);
     DEFINE_XENSYM_GROUP(domain);
+    DEFINE_XENSYM_GROUP(misc);
     /// @endcond
 
     const struct xensym xensyms [] =
@@ -76,6 +79,8 @@ namespace xensyms
         XENSYM(domain, DOMAIN_handle),
         XENSYM(domain, domain_list),
         XENSYM(domain, idle_vcpu),
+
+        XENSYM(misc, XEN_DEBUG),
 
         XENSYM_NULL
     };

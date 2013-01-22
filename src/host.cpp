@@ -60,7 +60,7 @@ Host::Host():
     active_vcpus(),
     xen_major(0), xen_minor(0), xen_extra(NULL),
     xen_changeset(NULL), xen_compiler(NULL),
-    xen_compile_date(NULL)
+    xen_compile_date(NULL), debug_build(false)
 {}
 
 Host::~Host()
@@ -211,11 +211,17 @@ bool Host::decode_xen()
 
     LOG_INFO("Decoding physical CPU information.  %d PCPUs\n", this->nr_pcpus);
 
-    if ( ! REQ_x86_64_XENSYMS(x86_64_per_cpu) )
+    if ( ! ( REQ_x86_64_XENSYMS(x86_64_per_cpu) &
+             REQ_CORE_XENSYMS(misc) ))
         return false;
 
     try
     {
+        this->debug_build = XEN_DEBUG;
+
+        if ( this->debug_build )
+            LOG_DEBUG("Xen is a debug build.  Will adjust for poisoned registers.\n");
+
         if ( this->arch == Abstract::Elf::ELF_64 )
         {
             LOG_DEBUG("  Reading idle vcpus\n");
@@ -314,7 +320,8 @@ bool Host::print_xen(bool dump_structures)
         if ( this->xen_compile_date )
             len += FPRINTF(o, "Xen compile date: %s\n", this->xen_compile_date);
 
-        len += FPUTS("\n", o);
+        len += FPRINTF(o, "Debug build:      %s\n\n",
+                       this->debug_build ? "true" : "false");
 
         // Try to find and print the saved command line string
         const Symbol * cmdline_sym = this->symtab.find("saved_cmdline");
