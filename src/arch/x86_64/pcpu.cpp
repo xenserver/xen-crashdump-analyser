@@ -227,14 +227,11 @@ namespace x86_64
                 LOG_INFO("    Current vcpu is IDLE.  Guest context on stack.\n");
                 this->vcpu_state = CTX_IDLE;
                 // Load this->vcpu from per_cpu_current_vcpu_ptr, regs from stack
-                this->vcpu = new VCPU();
+                this->vcpu = new VCPU(Abstract::VCPU::RST_NONE);
                 if ( ! this->vcpu->parse_basic(
                          this->per_cpu_current_vcpu_ptr, *this->xenpt) ||
-                     ! this->vcpu->parse_regs_from_stack(
-                         cpu_info + CPUINFO_guest_cpu_user_regs,
-                         this->regs.cr3, *this->xenpt) )
+                     ! this->vcpu->parse_extended(*this->xenpt, &cpu_info) )
                     return false;
-                this->vcpu->runstate = Abstract::VCPU::RST_NONE;
             }
             else
             {
@@ -243,14 +240,11 @@ namespace x86_64
                     LOG_INFO("    Current vcpu was RUNNING.  Guest context on stack\n");
                     this->vcpu_state = CTX_RUNNING;
                     // Load this->vcpu from per_cpu_current_vcpu_ptr, regs on stack
-                    this->vcpu = new VCPU();
+                    this->vcpu = new VCPU(Abstract::VCPU::RST_RUNNING);
                     if ( ! this->vcpu->parse_basic(
                              this->per_cpu_current_vcpu_ptr, *this->xenpt) ||
-                         ! this->vcpu->parse_regs_from_stack(
-                             cpu_info + CPUINFO_guest_cpu_user_regs,
-                             this->regs.cr3, *this->xenpt) )
+                         ! this->vcpu->parse_extended(*this->xenpt, &cpu_info) )
                         return false;
-                    this->vcpu->runstate = Abstract::VCPU::RST_RUNNING;
                 }
                 else
                 {
@@ -259,18 +253,16 @@ namespace x86_64
                      * state.  ctx_to can find valid register state in its struct vcpu.
                      */
                     this->vcpu_state = CTX_SWITCH;
-                    this->ctx_from = new VCPU();
+                    this->ctx_from = new VCPU(Abstract::VCPU::RST_CTX_SWITCH);
                     if ( ! this->ctx_from->parse_basic(
                              this->per_cpu_current_vcpu_ptr, *this->xenpt) ||
-                         ! this->ctx_from->parse_regs_from_struct(*this->xenpt) )
+                         ! this->vcpu->parse_extended(*this->xenpt, &cpu_info) )
                         return false;
-                    this->ctx_from->runstate = Abstract::VCPU::RST_CTX_SWITCH;
 
-                    this->ctx_to = new VCPU();
+                    this->ctx_to = new VCPU(Abstract::VCPU::RST_NONE);
                     if ( ! this->ctx_to->parse_basic(
                              this->current_vcpu_ptr, *this->xenpt) )
                         return false;
-                    this->ctx_to->runstate = Abstract::VCPU::RST_NONE;
                 }
             }
 

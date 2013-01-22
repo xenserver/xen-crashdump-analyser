@@ -516,8 +516,8 @@ int Host::print_domains(bool dump_structures)
                 {
                     LOG_DEBUG("    Dom%"PRIu16" vcpu%"PRIu32" was not active\n",
                               dom->domain_id, v);
-                    dom->vcpus[v]->parse_regs_from_struct(xenpt);
                     dom->vcpus[v]->runstate = Abstract::VCPU::RST_NONE;
+                    dom->vcpus[v]->parse_extended(xenpt);
                 }
             }
 

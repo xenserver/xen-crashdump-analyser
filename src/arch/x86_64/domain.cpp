@@ -121,7 +121,7 @@ namespace x86_64
             for ( uint32_t x = 0; x < this->max_cpus; ++x )
             {
                 vaddr_t vcpu_addr;
-                this->vcpus[x] = new VCPU();
+                this->vcpus[x] = new VCPU(Abstract::VCPU::RST_UNKNOWN);
                 memory.read64_vaddr(this->xenpt, this->vcpus_ptr + x * 8, vcpu_addr);
                 host.validate_xen_vaddr(vcpu_addr);
                 LOG_DEBUG("    Vcpu%"PRIu32" pointer = 0x%016"PRIx64"\n", x, vcpu_addr);

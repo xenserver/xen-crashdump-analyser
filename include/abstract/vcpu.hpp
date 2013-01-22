@@ -42,10 +42,27 @@ namespace Abstract
     class VCPU
     {
     public:
-        /// Constructor.
-        VCPU():
+
+        /// VCPU Runstate.
+        enum VCPURunstate
+        {
+            /// Unknown runstate.
+            RST_UNKNOWN = 0,
+            /// VCPU was not running
+            RST_NONE,
+            /// VCPU was running.
+            RST_RUNNING,
+            /// VCPU was being context switched from.
+            RST_CTX_SWITCH
+        };
+
+        /**
+         * Constructor.
+         * @param rst VCPU Runstate.
+         */
+        VCPU(VCPURunstate rst):
             vcpu_ptr(0), domain_ptr(0), vcpu_id(-1), domid(-1), processor(0),
-            pause_flags(-1), flags(0), dompt(NULL), runstate(RST_UNKNOWN),
+            pause_flags(-1), flags(0), dompt(NULL), runstate(rst),
             paging_support(PAGING_UNKNOWN){};
 
         /// Destructor.
@@ -65,32 +82,20 @@ namespace Abstract
         virtual bool parse_basic(const vaddr_t & addr, const Abstract::PageTable & xenpt) = 0;
 
         /**
-         * Parse register information from a Xen per-cpu structure.
+         * Parse extended VCPU information, including registers.
          *
-         * This means that this particular VCPU had active register state on the Xen
-         * per-cpu stack, meaning that the register values stored in the struct vcpu
-         * are stale.  Control registers do not appear in the guest register section
-         * of the Xen per-cpu stack, so pass it in directly.
+         * The vcpu rustate should have already been set, so
+         * parse_extended() can work out exactly where to get its
+         * register information from.
          *
-         * @param addr Xen virtual address of the guest regs on the per-cpu stack.
-         * @param cr3 CR3 for this VCPU.
          * @param xenpt PageTable with which translations can be performed.
+         * @param cpuinfo Optional pointer to a xen address of the per-pcpu
+         * stack cpuinfo block.  This is only relevent for running vcpus at
+         * the time of crash.
          * @return boolean indicating success or failure.
          */
-        virtual bool parse_regs_from_stack(const vaddr_t & addr, const maddr_t & cr3,
-                                           const Abstract::PageTable & xenpt) = 0;
-
-        /**
-         * Parse register information from Xen's struct vcpu.
-         *
-         * This means that this particular VCPU was inactive at the time of crash,
-         * so register state in the struct vcpu is valid.  The vcpu pointer will
-         * already be available from parse_basic.
-         *
-         * @param xenpt PageTable with which pagetable lookups can be performed.
-         * @return boolean indicating success or failure.
-         */
-        virtual bool parse_regs_from_struct(const Abstract::PageTable & xenpt) = 0;
+        virtual bool parse_extended(const Abstract::PageTable & xenpt,
+                                    const vaddr_t * cpuinfo = NULL ) = 0;
 
         /**
          * Copy VCPU state from active vcpu
@@ -166,20 +171,8 @@ namespace Abstract
             CPU_HVM = 1<<3
         };
 
-        /// VCPU Runstate.
-        enum VCPURunstate
-        {
-            /// Unknown runstate.
-            RST_UNKNOWN = 0,
-            /// VCPU was not running
-            RST_NONE,
-            /// VCPU was running.
-            RST_RUNNING,
-            /// VCPU was being context switched from.
-            RST_CTX_SWITCH
-        }
         /// Runstate of this VCPU at the time of crash.
-            runstate;
+        VCPURunstate runstate;
 
         /// VCPU Paging mode.
         enum VCPUPagingSupport

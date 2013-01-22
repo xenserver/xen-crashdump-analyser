@@ -45,8 +45,8 @@ using namespace x86_64::xensyms;
 namespace x86_64
 {
 
-    VCPU::VCPU():
-        regs()
+    VCPU::VCPU(Abstract::VCPU::VCPURunstate rst):
+        Abstract::VCPU(rst), regs()
     {
         memset(&this->regs, 0, sizeof this->regs);
     }
@@ -110,27 +110,70 @@ namespace x86_64
         return false;
     }
 
-    bool VCPU::parse_regs(const vaddr_t & regs, const maddr_t & cr3,
-                                const Abstract::PageTable & xenpt)
+    bool VCPU::parse_extended(const Abstract::PageTable & xenpt,
+                              const vaddr_t * cpuinfo)
+    {
+        try
+        {
+            if ( this->regs.cr3 == 0ULL )
+            {
+                LOG_WARN("Got cr3 of 0 from guest registers - VCPU assumed down\n");
+                return false;
+            }
+
+            if ( this->flags & CPU_PV_COMPAT )
+                this->dompt = new x86_64::PT64Compat(this->regs.cr3);
+            else
+                this->dompt = new x86_64::PT64(this->regs.cr3);
+
+            this->flags |= CPU_EXTD_STATE;
+
+
+            switch ( this->runstate )
+            {
+            case RST_NONE:
+                this->parse_regs(this->vcpu_ptr + VCPU_user_regs, xenpt);
+                break;
+
+            case RST_RUNNING:
+            case RST_CTX_SWITCH:
+                if ( ! cpuinfo )
+                {
+                    LOG_ERROR("Needed Xen per-pcpu stack cpuinfo to parse "
+                              "d%"PRId16"v%"PRId32", but got NULL\n",
+                              this->domid, this->vcpu_id);
+                    return false;
+                }
+
+                this->parse_regs(*cpuinfo + CPUINFO_guest_cpu_user_regs, xenpt);
+                break;
+
+            case RST_UNKNOWN:
+            default:
+                LOG_ERROR("Bad vcpu runstate for parsing extended state\n");
+                return false;
+            }
+
+            return true;
+        }
+        catch ( const std::bad_alloc & )
+        {
+            LOG_ERROR("Bad alloc - out of memory\n");
+        }
+        catch ( const CommonError & e )
+        {
+            e.log();
+        }
+
+        return false;
+    }
+
+    bool VCPU::parse_regs(const vaddr_t & regs, const Abstract::PageTable & xenpt)
     {
         x86_64_cpu_user_regs * uregs = NULL;
 
-        if ( this->regs.cr3 == 0ULL )
-        {
-            LOG_WARN("Got cr3 of 0 from guest registers - VCPU assumed down\n");
-            return false;
-        }
-
-        this->regs.cr3 = cr3;
-        this->flags |= CPU_EXTD_STATE;
-
         try
         {
-            if ( this->flags & CPU_PV_COMPAT )
-                this->dompt = new x86_64::PT64Compat(cr3);
-            else
-                this->dompt = new x86_64::PT64(cr3);
-
             host.validate_xen_vaddr(regs);
             uregs = new x86_64_cpu_user_regs();
 
@@ -178,17 +221,6 @@ namespace x86_64
 
         SAFE_DELETE(uregs);
         return false;
-    }
-
-    bool VCPU::parse_regs_from_struct(const Abstract::PageTable & xenpt)
-    {
-        return this->parse_regs(this->vcpu_ptr + VCPU_user_regs, this->regs.cr3, xenpt);
-    }
-
-    bool VCPU::parse_regs_from_stack(const vaddr_t & regs, const maddr_t & cr3,
-                                           const Abstract::PageTable & xenpt)
-    {
-        return this->parse_regs(regs, cr3, xenpt);
     }
 
     bool VCPU::copy_from_active(const Abstract::VCPU* active)
