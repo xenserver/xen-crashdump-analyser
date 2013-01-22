@@ -171,11 +171,10 @@ bool SymbolTable::parse(const char * file, bool offsets)
     {
         nr_read = fscanf(fd, "%" SCNx64 " %c %127s", &addr, &type, name);
 
-        if ( feof(fd) )
-            break;
-
         if ( nr_read != 3 )
         {
+            if ( feof(fd) )
+                break;
             SAFE_FCLOSE(fd);
             return false;
         }
