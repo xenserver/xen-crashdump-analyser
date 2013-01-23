@@ -133,13 +133,26 @@ namespace x86_64
     protected:
 
         /**
-         * Common register parsing function.
+         * Parse General purpose registers.
+         *
+         * This grabs rax thru r15, as well as rflags, cs and ss.
          *
          * @param addr Xen virtual address of the guest regs.
          * @param xenpt PageTable with which translations can be performed.
          * @return boolean indicating success or failure.
          */
-        virtual bool parse_regs(const vaddr_t & addr, const Abstract::PageTable & xenpt);
+        virtual bool parse_gp_regs(const vaddr_t & addr, const Abstract::PageTable & xenpt);
+
+        /**
+         * Parse segment registers.
+         *
+         * This grabs ds thru gs.
+         *
+         * @param addr Xen virtual address of the guest regs.
+         * @param xenpt PageTable with which translations can be performed.
+         * @return boolean indicating success or failure.
+         */
+        virtual bool parse_seg_regs(const vaddr_t & addr, const Abstract::PageTable & xenpt);
 
         /// Register values
         x86_64regs regs;

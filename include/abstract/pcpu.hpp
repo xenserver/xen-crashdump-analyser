@@ -131,12 +131,14 @@ namespace Abstract
          */
         enum PCPUFlags
         {
-            /// Core registers are available.
-            CPU_CORE_STATE = 1<<0,
+            /// General purpose registers are available.
+            CPU_GP_REGS = 1<<0,
+            /// Segment registers are available.
+            CPU_SEG_REGS = 1<<1,
             /// Control registers are available.
-            CPU_EXTD_STATE = 1<<1,
+            CPU_CR_REGS = 1<<2,
             /// State from Xen's per-cpu stack is available.
-            CPU_STACK_STATE = 1<<2
+            CPU_STACK_STATE = 1<<3
         };
 
         /// VCPU State.

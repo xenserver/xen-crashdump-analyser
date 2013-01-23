@@ -126,13 +126,14 @@ namespace x86_64
             else
                 this->dompt = new x86_64::PT64(this->regs.cr3);
 
-            this->flags |= CPU_EXTD_STATE;
+            this->flags |= CPU_CR_REGS;
 
 
             switch ( this->runstate )
             {
             case RST_NONE:
-                this->parse_regs(this->vcpu_ptr + VCPU_user_regs, xenpt);
+                this->parse_gp_regs(this->vcpu_ptr + VCPU_user_regs, xenpt);
+                this->parse_seg_regs(this->vcpu_ptr + VCPU_user_regs, xenpt);
                 break;
 
             case RST_RUNNING:
@@ -145,7 +146,8 @@ namespace x86_64
                     return false;
                 }
 
-                this->parse_regs(*cpuinfo + CPUINFO_guest_cpu_user_regs, xenpt);
+                this->parse_gp_regs(*cpuinfo + CPUINFO_guest_cpu_user_regs, xenpt);
+                this->parse_seg_regs(this->vcpu_ptr + VCPU_user_regs, xenpt);
                 break;
 
             case RST_UNKNOWN:
@@ -168,7 +170,7 @@ namespace x86_64
         return false;
     }
 
-    bool VCPU::parse_regs(const vaddr_t & regs, const Abstract::PageTable & xenpt)
+    bool VCPU::parse_gp_regs(const vaddr_t & regs, const Abstract::PageTable & xenpt)
     {
         x86_64_cpu_user_regs * uregs = NULL;
 
@@ -198,13 +200,44 @@ namespace x86_64
             this->regs.cs = uregs->cs;
             this->regs.rflags = uregs->rflags;
             this->regs.rsp = uregs->rsp;
+            this->regs.ss = uregs->ss;
+
+            this->flags |= CPU_GP_REGS;
+
+            SAFE_DELETE(uregs);
+            return true;
+        }
+        catch ( const std::bad_alloc & )
+        {
+            LOG_ERROR("Bad alloc of %"PRIu64" bytes for parsing vcpu structure "
+                      "at 0x%016"PRIx64"\n", sizeof *uregs, this->vcpu_ptr);
+        }
+        catch ( const CommonError & e )
+        {
+            e.log();
+        }
+
+        SAFE_DELETE(uregs);
+        return false;
+    }
+
+    bool VCPU::parse_seg_regs(const vaddr_t & regs, const Abstract::PageTable & xenpt)
+    {
+        x86_64_cpu_user_regs * uregs = NULL;
+
+        try
+        {
+            host.validate_xen_vaddr(regs);
+            uregs = new x86_64_cpu_user_regs();
+
+            memory.read_block_vaddr(xenpt, regs, (char*)uregs, sizeof *uregs );
+
             this->regs.ds = uregs->ds;
             this->regs.es = uregs->es;
-            this->regs.ss = uregs->ss;
             this->regs.fs = uregs->fs;
             this->regs.gs = uregs->gs;
 
-            this->flags |= CPU_CORE_STATE;
+            this->flags |= CPU_SEG_REGS;
 
             SAFE_DELETE(uregs);
             return true;
@@ -271,7 +304,7 @@ namespace x86_64
         if ( this->flags & CPU_PV_COMPAT )
             return len + this->print_state_compat(o);
 
-        if ( this->flags & CPU_CORE_STATE )
+        if ( this->flags & CPU_GP_REGS )
         {
             len += FPRINTF(o, "\tRIP:    %04x:[<%016"PRIx64">] Ring %d\n",
                            this->regs.cs, this->regs.rip, this->regs.cs & 0x3);
@@ -293,20 +326,25 @@ namespace x86_64
                            this->regs.r15);
         }
 
-        if ( this->flags & CPU_EXTD_STATE )
+        if ( this->flags & CPU_CR_REGS )
         {
             len += FPUTS("\n", o);
             len += FPRINTF(o, "\tcr3: %016"PRIx64"\n", this->regs.cr3);
         }
 
-        if ( this->flags & CPU_CORE_STATE )
+        if ( this->flags & CPU_GP_REGS )
         {
             len += FPUTS("\n", o);
-            len += FPRINTF(o, "\tds: %04"PRIx16"   es: %04"PRIx16"   "
-                           "fs: %04"PRIx16"   gs: %04"PRIx16"   "
-                           "ss: %04"PRIx16"   cs: %04"PRIx16"\n",
-                           this->regs.ds, this->regs.es, this->regs.fs,
-                           this->regs.gs, this->regs.ss, this->regs.cs);
+
+            if ( this->flags & CPU_SEG_REGS )
+                len += FPRINTF(o, "\tds: %04"PRIx16"   es: %04"PRIx16"   "
+                               "fs: %04"PRIx16"   gs: %04"PRIx16"   "
+                               "ss: %04"PRIx16"   cs: %04"PRIx16"\n",
+                               this->regs.ds, this->regs.es, this->regs.fs,
+                               this->regs.gs, this->regs.ss, this->regs.cs);
+            else
+                len += FPRINTF(o, "\tss: %04"PRIx16"   cs: %04"PRIx16"\n",
+                               this->regs.ss, this->regs.cs);
         }
 
         len += FPUTS("\n", o);
@@ -334,8 +372,8 @@ namespace x86_64
 
         len += FPUTS("\n", o);
 
-        if ( this->flags & CPU_CORE_STATE &&
-             this->flags & CPU_EXTD_STATE &&
+        if ( this->flags & CPU_GP_REGS &&
+             this->flags & CPU_CR_REGS &&
              ( this->paging_support == VCPU::PAGING_NONE ||
                this->paging_support == VCPU::PAGING_SHADOW )
             )
@@ -381,7 +419,7 @@ namespace x86_64
     {
         int len = 0;
 
-        if ( this->flags & CPU_CORE_STATE )
+        if ( this->flags & CPU_GP_REGS )
         {
             len += FPRINTF(o, "\tEIP:    %04"PRIx16":[<%08"PRIx32">] Ring %d\n",
                            this->regs.cs, this->regs.eip, this->regs.cs & 0x3);
@@ -399,19 +437,24 @@ namespace x86_64
                            this->regs.ebp, this->regs.esp);
         }
 
-        if ( this->flags & CPU_EXTD_STATE )
+        if ( this->flags & CPU_CR_REGS )
         {
             len += FPRINTF(o, "\tcr3: %016"PRIx64"\n", this->regs.cr3);
         }
 
-        if ( this->flags & CPU_CORE_STATE )
+        if ( this->flags & CPU_GP_REGS )
         {
-            len += FPRINTF(o, "\tds: %04"PRIx16"   es: %04"PRIx16"   "
-                           "fs: %04"PRIx16"   gs: %04"PRIx16"   "
-                           "ss: %04"PRIx16"   cs: %04"PRIx16"\n",
-                           this->regs.ds, this->regs.es, this->regs.fs,
-                           this->regs.gs, this->regs.ss, this->regs.cs);
+            len += FPUTS("\n", o);
 
+            if ( this->flags & CPU_SEG_REGS )
+                len += FPRINTF(o, "\tds: %04"PRIx16"   es: %04"PRIx16"   "
+                               "fs: %04"PRIx16"   gs: %04"PRIx16"   "
+                               "ss: %04"PRIx16"   cs: %04"PRIx16"\n",
+                               this->regs.ds, this->regs.es, this->regs.fs,
+                               this->regs.gs, this->regs.ss, this->regs.cs);
+            else
+                len += FPRINTF(o, "\tss: %04"PRIx16"   cs: %04"PRIx16"\n",
+                               this->regs.ss, this->regs.cs);
         }
 
         len += FPUTS("\n", o);
@@ -439,8 +482,8 @@ namespace x86_64
 
         len += FPUTS("\n", o);
 
-        if ( this->flags & CPU_CORE_STATE &&
-             this->flags & CPU_EXTD_STATE )
+        if ( this->flags & CPU_GP_REGS &&
+             this->flags & CPU_CR_REGS )
         {
             len += FPRINTF(o, "\tStack at %08"PRIx32":", this->regs.esp);
             len += print_32bit_stack(o, *this->dompt, this->regs.rsp);

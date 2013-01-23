@@ -109,7 +109,7 @@ namespace x86_64
         this->regs.fs = ptr->pr_reg[PR_REG_fs];
         this->regs.gs = ptr->pr_reg[PR_REG_gs];
 
-        this->flags |= CPU_CORE_STATE;
+        this->flags |= ( CPU_GP_REGS | CPU_SEG_REGS );
         return true;
     }
 
@@ -153,7 +153,7 @@ namespace x86_64
             LOG_ERROR("Bad alloc for PCPU vcpus.  Kdump environment needs more memory\n");
         }
 
-        this->flags |= CPU_EXTD_STATE;
+        this->flags |= CPU_CR_REGS;
 
         return true;
     }
@@ -165,9 +165,9 @@ namespace x86_64
             LOG_ERROR("  This PCPU is not online\n");
             return false;
         }
-        if ( ! (this->flags & CPU_EXTD_STATE) )
+        if ( ! (this->flags & CPU_CR_REGS) )
         {
-            LOG_ERROR("  Missing required CPU_EXTD_STATE for this pcpu\n");
+            LOG_ERROR("  Missing required CPU_CR_REGS for this pcpu\n");
             return false;
         }
         if ( ! ( REQ_x86_64_XENSYMS(x86_64_cpuinfo) &
@@ -295,7 +295,7 @@ namespace x86_64
             return len + FPUTS("    PCPU Offline\n\n", o);
         }
 
-        if ( this->flags & CPU_CORE_STATE )
+        if ( this->flags & CPU_GP_REGS )
         {
             len += FPRINTF(o, "\tRIP:    %04x:[<%016"PRIx64">] Ring %d\n",
                            this->regs.cs, this->regs.rip, this->regs.cs & 0x3);
@@ -317,7 +317,7 @@ namespace x86_64
                            this->regs.r15);
         }
 
-        if ( this->flags & CPU_EXTD_STATE )
+        if ( this->flags & CPU_CR_REGS )
         {
             len += FPUTS("\n", o);
 
@@ -333,7 +333,7 @@ namespace x86_64
             len += FPUTS("\n", o);
         }
 
-        if ( this->flags & CPU_CORE_STATE )
+        if ( this->flags & CPU_GP_REGS )
         {
             len += FPUTS("\n", o);
             len += FPRINTF(o, "\tds: %04"PRIx16"   es: %04"PRIx16"   "

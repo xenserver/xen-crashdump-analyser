@@ -161,14 +161,16 @@ namespace Abstract
         enum VCPUFlags
         {
             /// Core registers are available.
-            CPU_CORE_STATE = 1<<0,
+            CPU_GP_REGS = 1<<0,
+            /// Segment registers are available.
+            CPU_SEG_REGS = 1<<1,
             /// Control registers are available.
-            CPU_EXTD_STATE = 1<<1,
+            CPU_CR_REGS = 1<<2,
 
             /// VCPU is running in PV Compatibility mode (a.k.a. 32bit mode on 64bit Xen)
-            CPU_PV_COMPAT = 1<<2,
+            CPU_PV_COMPAT = 1<<3,
             /// VCPU is an HVM VCPU
-            CPU_HVM = 1<<3
+            CPU_HVM = 1<<4
         };
 
         /// Runstate of this VCPU at the time of crash.
