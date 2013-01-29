@@ -90,20 +90,23 @@ int print_rflags(FILE * o, const uint64_t & reg)
     BIT(18, AC); // Alignment Check
     BIT(17, VM); // Virtual 8086 mode
     BIT(16, RF); // Resume
-
+    // Reserved 0
     BIT(14, NT); // Nested Task
-    len += FPRINTF(o, " IOPL%"PRIu64, reg & (3<<12));
-    BIT(8 , TF); // Trap
 
-    len += FPUTS("   ", o);
+    // Bits 12 and 13 are IOPL
+    len += FPRINTF(o, " IOPL%"PRIu64"  ", reg & (3<<12));
 
     BIT(11, OF); // Overflow flag
     BIT(10, DF); // Direction flag
     BIT(9 , IF); // Interrupt Enable
+    BIT(8 , TF); // Trap
     BIT(7 , SF); // Sign Flag
     BIT(6 , ZF); // Zero Flag
+    // Reserved 0
     BIT(4 , AF); // Adjust Flag
+    // Reserved 0
     BIT(2 , PF); // Parity Flag
+    // Reserved 1
     BIT(0 , CF); // Carry Flag
 
     return len;
