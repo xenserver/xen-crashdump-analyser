@@ -198,6 +198,7 @@ int print_console_ring(FILE * o, const PageTable & pt,
     {
         if ( cons == 0 && prod == 0 )
         {
+            LOG_DEBUG("Console ring: %"PRIu64" bytes at 0x%016"PRIx64"\n", length, ring);
             written = memory.write_block_vaddr_to_file(pt, ring, o, length);
             len += written;
 
@@ -207,6 +208,8 @@ int print_console_ring(FILE * o, const PageTable & pt,
         }
         else
         {
+            LOG_DEBUG("Console ring: %"PRIu64" bytes at 0x%016"PRIx64", prod %"PRId64", cons %"PRId64"\n",
+                      length, ring, prod, cons);
             if ( cons >= prod )
             {
                 written = memory.write_block_vaddr_to_file(pt, ring + cons,
