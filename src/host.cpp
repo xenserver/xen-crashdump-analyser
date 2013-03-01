@@ -207,8 +207,6 @@ bool Host::parse_crash_xen_info(const char * buff, const size_t len)
 
 bool Host::decode_xen()
 {
-    const Abstract::PageTable & xenpt = *this->pcpus[0]->xenpt;
-
     LOG_INFO("Decoding physical CPU information.  %d PCPUs\n", this->nr_pcpus);
 
     if ( ! ( REQ_x86_64_XENSYMS(x86_64_per_cpu) &
@@ -218,6 +216,7 @@ bool Host::decode_xen()
     try
     {
         this->debug_build = XEN_DEBUG;
+        const Abstract::PageTable & xenpt = this->get_xenpt();
 
         if ( this->debug_build )
             LOG_DEBUG("Xen is a debug build.  Will adjust for poisoned registers.\n");
@@ -292,7 +291,6 @@ bool Host::print_xen(bool dump_structures)
     static const char * xen_log_file = "xen.log";
     int len = 0;
     bool success = false;
-    const Abstract::PageTable & xenpt = *this->pcpus[0]->xenpt;
     char * cmdline = NULL;
     FILE * o = NULL;
 
@@ -309,6 +307,8 @@ bool Host::print_xen(bool dump_structures)
 
     try
     {
+        const Abstract::PageTable & xenpt = this->get_xenpt();
+
         // Print some header information for the host
         if ( this->xen_extra )
             len += FPRINTF(o, "Xen version:      %d.%d%s\n", this->xen_major,
@@ -608,6 +608,17 @@ bool Host::validate_xen_vaddr(const vaddr_t & vaddr, const bool except)
     if ( except )
         throw validate(vaddr, "Not in Xen Virtual Address regions.");
     return false;
+}
+
+const Abstract::PageTable & Host::get_xenpt() const
+{
+    if ( ! this->pcpus )
+        throw validate(0, "No suitable PCPUs.");
+
+    for ( int i = 0; i < this->nr_pcpus; ++i )
+        if ( this->pcpus[i] && this->pcpus[i]->xenpt )
+            return *this->pcpus[i]->xenpt;
+    throw validate(0, "No suitable PCPU Xen pagetables.");
 }
 
 /// Host container

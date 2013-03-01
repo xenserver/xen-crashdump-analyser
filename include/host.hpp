@@ -92,6 +92,13 @@ public:
      */
     bool validate_xen_vaddr(const vaddr_t & vaddr, const bool except = true);
 
+    /**
+     * Get a usable set of Xen pagetables.
+     * @throws Validate if no pcpus have suitable pagetables.
+     * @returns Pagetables.
+     */
+    const Abstract::PageTable & get_xenpt() const;
+
     /// Whether setup() has been called.
     bool once;
     /// Architecture of /proc/vmcore.
