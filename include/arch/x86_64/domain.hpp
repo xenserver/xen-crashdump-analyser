@@ -96,6 +96,13 @@ namespace x86_64
          */
         virtual int print_cmdline(FILE * stream) const;
 
+        /**
+         * Get a usable set of Domain pagetables.
+         * @throws Validate if no vcpus have suitable pagetables.
+         * @returns Pagetables.
+         */
+        virtual const Abstract::PageTable & get_dompt() const;
+
     };
 
 }

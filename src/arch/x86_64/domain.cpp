@@ -241,8 +241,6 @@ namespace x86_64
         if ( this->domain_id != 0 )
             return len;
 
-        const Abstract::PageTable & dompt = *this->vcpus[0]->dompt;
-
         const Symbol *log_end_sym, *log_buf_sym, *log_buf_len_sym;
 
         vaddr_t ring;
@@ -266,6 +264,8 @@ namespace x86_64
 
         try
         {
+            const Abstract::PageTable & dompt = this->get_dompt();
+
             if ( this->is_32bit_pv )
             {
                 memory.read32_vaddr(dompt, log_buf_sym->address, tmp);
@@ -309,8 +309,6 @@ namespace x86_64
         if ( this->domain_id != 0 )
             return len;
 
-        const Abstract::PageTable & dompt = *this->vcpus[0]->dompt;
-
         const Symbol * cmdline_sym = host.dom0_symtab.find("saved_command_line");
         if ( ! cmdline_sym )
             len += FPUTS("Missing symbol for command line\n", o);
@@ -318,6 +316,8 @@ namespace x86_64
         {
             try
             {
+                const Abstract::PageTable & dompt = this->get_dompt();
+
                 // Size hardcoded in dom0
                 cmdline = new char[2048];
                 union { uint32_t val32; uint64_t val64; } cmdline_vaddr = {0};
@@ -345,6 +345,17 @@ namespace x86_64
         len += FPUTS("\n", o);
         SAFE_DELETE_ARRAY(cmdline);
         return len;
+    }
+
+    const Abstract::PageTable & Domain::get_dompt() const
+    {
+        if ( ! this->vcpus )
+            throw validate(0, "No suitable VCPUs.");
+
+        for ( unsigned i = 0; i < this->max_cpus; ++i )
+            if ( this->vcpus[i] && this->vcpus[i]->dompt )
+                return *this->vcpus[i]->dompt;
+        throw validate(0, "No suitable VCPU Domain pagetables.");
     }
 
 }

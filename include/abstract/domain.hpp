@@ -106,6 +106,13 @@ namespace Abstract
          */
         virtual int print_cmdline(FILE * stream) const = 0;
 
+        /**
+         * Get a usable set of Domain pagetables.
+         * @throws Validate if no vcpus have suitable pagetables.
+         * @returns Pagetables.
+         */
+        virtual const Abstract::PageTable & get_dompt() const = 0;
+
         /// Xen pagetables for translations.
         const Abstract::PageTable & xenpt;
 
