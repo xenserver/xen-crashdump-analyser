@@ -102,9 +102,10 @@ namespace x86_64
          * Include extending parsing of interrupt stack tables.
          * @param stream Stream to write to.
          * @param stack Xen's per-cpu stack pointer.
+         * @param mask Bitmask of visited stack pages to avoid unbounded recursion.
          * @return Number of bytes written to stream.
          */
-        int print_stack(FILE * stream, const vaddr_t & stack) const;
+        int print_stack(FILE * stream, const vaddr_t & stack, unsigned mask) const;
 
     };
 

@@ -30,8 +30,11 @@
 
 /// These are structures taken from Xen header files.
 /// @cond EXCLUDE
-#define STACK_SIZE (4096<<3)
-#define PAGE_SIZE (4096)
+#define STACK_SHIFT 12ULL
+#define STACK_SIZE (4096ULL<<3)
+#define PAGE_SIZE (4096ULL)
+
+#define STACK_PAGE(x) (((x) >> STACK_SHIFT) & 7)
 
 
 #define XEN_ELFNOTE_CRASH_INFO 0x1000001U

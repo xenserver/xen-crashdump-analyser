@@ -405,7 +405,7 @@ namespace x86_64
         uint64_t val = this->regs.rip;
         len += host.symtab.print_symbol64(o, val, true);
 
-        this->print_stack(o, this->regs.rsp);
+        this->print_stack(o, this->regs.rsp, 0);
 
         len += FPUTS("\n", o);
 
@@ -419,18 +419,34 @@ namespace x86_64
         return len;
     }
 
-    int PCPU::print_stack(FILE * o, const vaddr_t & stack) const
+    int PCPU::print_stack(FILE * o, const vaddr_t & stack, unsigned mask) const
     {
+        static const char * stack_name[] = { "Double Fault", "NMI", "MCE", "Normal" };
+        uint64_t sp = stack;
         int len = 0;
 
-        uint64_t sp = stack;
-        uint64_t stack_top;
-        int stack_page = (int)((sp >> 12) & 7);
-        uint64_t val;
-        x86_64exception exp_regs;
+        // Stack frames 3 thru 7 form the normal Xen stack.  Stacks 0 thru 2 are special
+        const unsigned stack_page = STACK_PAGE(sp) < 3 ? STACK_PAGE(sp) : 3;
 
         try
         {
+            uint64_t stack_top, val;
+            x86_64exception exp_regs;
+
+            host.validate_xen_vaddr(stack);
+
+            if ( mask & (1U << stack_page) )
+            {
+                // Bail - we have already visited this stack
+                len += FPRINTF(o, "\t  Not recursing.  Already visited the %s stack "
+                               "(%u, mask %#x)\n", stack_name[stack_page],
+                               stack_page, mask);
+                return len;
+            }
+            else
+                // Mark this stack_page as having been visited
+                mask |= (1U << stack_page);
+
             if ( stack_page <= 2 )
                 // Entered this stack frame from NMI, MCE or Double Fault
                 stack_top = (sp | (PAGE_SIZE-1))+1 - sizeof exp_regs;
@@ -439,7 +455,6 @@ namespace x86_64
                 stack_top = this->regs.rsp;
                 stack_top &= ~(STACK_SIZE-1);
                 stack_top |= STACK_SIZE - CPUINFO_sizeof;
-
             }
 
             while ( sp < stack_top )
@@ -451,33 +466,23 @@ namespace x86_64
 
             if ( stack_page <= 2 )
             {
-                // Entered this stack frame from NMI, MCE or Double Fault
-                static const char * entry [] = { "Double Fault", "NMI", "MCE" };
+                // This hardware interrupt interrupted Xen - follow the exception frame
                 memory.read_block_vaddr(*this->xenpt, stack_top, (char*)&exp_regs, sizeof exp_regs);
 
                 len += FPRINTF(o, "\n\t      %s interrupted Code at %04"PRIx16":%016"PRIx64
                                " and Stack at %016"PRIx64"\n\n",
-                               entry[stack_page], exp_regs.cs,
+                               stack_name[stack_page], exp_regs.cs,
                                exp_regs.rip, exp_regs.rsp);
 
-                // Take some care not to accidentally recurse infinitely.
-                int next_stack_page = (int)((exp_regs.rsp >> 12) & 7);
+                if ( (stack_top & ~(STACK_SIZE-1)) != (exp_regs.rsp & ~(STACK_SIZE-1)) )
+                {
+                    LOG_WARN("Exception frame rsp (0x%016"PRIx64") moves off current stack "
+                             "(0x%016"PRIx64") - Not following\n", exp_regs.rsp, stack_top);
+                    return len;
+                }
 
-                // None of these interrupts can interrupt themselves.
-                if ( (stack_page != next_stack_page) &&
-                     // #DF can interrupt the others,
-                     ((stack_page == 0) ||
-                      // but neither #MCE or #NMI can
-                      (next_stack_page > 2)) )
-                {
-                    len += host.symtab.print_symbol64(o, exp_regs.rip, true);
-                    len += this->print_stack(o, exp_regs.rsp);
-                }
-                else
-                {
-                    len += FPRINTF(o, "\t  Not recursing.  Current stack page %d, next stack "
-                                   "page %d\n", stack_page, next_stack_page);
-                }
+                len += host.symtab.print_symbol64(o, exp_regs.rip, true);
+                len += this->print_stack(o, exp_regs.rsp, mask);
             }
         }
         catch ( const CommonError & e )
