@@ -466,13 +466,17 @@ namespace x86_64
 
             if ( stack_page <= 2 )
             {
-                // This hardware interrupt interrupted Xen - follow the exception frame
+                // This hardware interrupt interrupted something else, most likely Xen
                 memory.read_block_vaddr(*this->xenpt, stack_top, (char*)&exp_regs, sizeof exp_regs);
 
                 len += FPRINTF(o, "\n\t      %s interrupted Code at %04"PRIx16":%016"PRIx64
-                               " and Stack at %016"PRIx64"\n\n",
+                               " and Stack at %04"PRIx16":%016"PRIx64"\n\n",
                                stack_name[stack_page], exp_regs.cs,
-                               exp_regs.rip, exp_regs.rsp);
+                               exp_regs.rip, exp_regs.ss, exp_regs.rsp);
+
+                // Did we interrupt non-ring0 context? Perhaps we interrupted the VCPU
+                if ( (exp_regs.cs & 3) != 0 )
+                    return len + FPUTS("\t  Interrupted VCPU context\n", o);
 
                 if ( (stack_top & ~(STACK_SIZE-1)) != (exp_regs.rsp & ~(STACK_SIZE-1)) )
                 {
