@@ -489,6 +489,7 @@ int main(int argc, char ** argv)
             fputc('\n', logfd);
         }
 
+        LOG_INFO("Xen Crashdump Analyser version %s\n", version_str);
         LOG_DEBUG("Opened log file '%s'\n", log_path);
 
         // Log the output directory
