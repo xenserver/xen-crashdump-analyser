@@ -43,6 +43,9 @@ namespace xensyms
     /// Offset of guest_cpu_user_regs in Xen's struct cpuinfo.
     extern vaddr_t CPUINFO_guest_cpu_user_regs;
 
+    /// Size of the kernel subset of Xen's struct cpu_user_regs.
+    extern vaddr_t UREGS_kernel_sizeof;
+
     /// Offset of user_regs in Xen's struct arch_vcpu.
     extern vaddr_t VCPU_user_regs;
     /// Offset of cr3 in Xen's struct arch_vcpu.
@@ -60,6 +63,7 @@ namespace xensyms
 
     /// @cond EXCLUDE
     DECLARE_XENSYM_GROUP(x86_64_cpuinfo);
+    DECLARE_XENSYM_GROUP(x86_64_uregs);
     DECLARE_XENSYM_GROUP(x86_64_vcpu);
     DECLARE_XENSYM_GROUP(x86_64_domain);
     DECLARE_XENSYM_GROUP(x86_64_per_cpu);

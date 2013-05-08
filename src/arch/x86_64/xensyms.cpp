@@ -32,6 +32,8 @@ namespace xensyms
     vaddr_t CPUINFO_sizeof, CPUINFO_processor_id, CPUINFO_current_vcpu,
         CPUINFO_per_cpu_offset, CPUINFO_guest_cpu_user_regs;
 
+    vaddr_t UREGS_kernel_sizeof;
+
     vaddr_t VCPU_user_regs, VCPU_cr3;
 
     vaddr_t DOMAIN_paging_mode, DOMAIN_is_32bit_pv;
@@ -40,6 +42,7 @@ namespace xensyms
 
     /// @cond EXCLUDE
     DEFINE_XENSYM_GROUP(x86_64_cpuinfo);
+    DEFINE_XENSYM_GROUP(x86_64_uregs);
     DEFINE_XENSYM_GROUP(x86_64_vcpu);
     DEFINE_XENSYM_GROUP(x86_64_domain);
     DEFINE_XENSYM_GROUP(x86_64_per_cpu);
@@ -52,6 +55,8 @@ namespace xensyms
         XENSYM(x86_64_cpuinfo, CPUINFO_current_vcpu),
         XENSYM(x86_64_cpuinfo, CPUINFO_per_cpu_offset),
         XENSYM(x86_64_cpuinfo, CPUINFO_guest_cpu_user_regs),
+
+        XENSYM(x86_64_uregs, UREGS_kernel_sizeof),
 
         XENSYM(x86_64_vcpu, VCPU_user_regs),
         XENSYM(x86_64_vcpu, VCPU_cr3),

@@ -171,7 +171,8 @@ namespace x86_64
             return false;
         }
         if ( ! ( REQ_x86_64_XENSYMS(x86_64_cpuinfo) &
-                 REQ_x86_64_XENSYMS(x86_64_per_cpu) ))
+                 REQ_x86_64_XENSYMS(x86_64_per_cpu) &
+                 REQ_x86_64_XENSYMS(x86_64_uregs) ))
             return false;
 
         try
@@ -241,6 +242,25 @@ namespace x86_64
                     this->vcpu_state = CTX_RUNNING;
                     // Load this->vcpu from per_cpu_current_vcpu_ptr, regs on stack
                     this->vcpu = new VCPU(Abstract::VCPU::RST_RUNNING);
+
+                    /* If Xen is currently on an IST stack, consider an alternate location
+                     * for the guest GP registers. */
+                    if ( STACK_PAGE(this->regs.rsp) < 3 )
+                    {
+                        x86_64exception exp_regs;
+                        uint64_t stack_top = (this->regs.rsp | (PAGE_SIZE-1))+1 - sizeof exp_regs;
+                        memory.read_block_vaddr(*this->xenpt, stack_top,
+                                                (char*)&exp_regs, sizeof exp_regs);
+
+                        /* If we interrupted a PV guest, its GP state is here rather than
+                         * on the main stack. */
+                        if ( (exp_regs.cs & 0x3) != 0 )
+                        {
+                            LOG_INFO("      Running on IST with guest context at top\n");
+                            cpu_info = (this->regs.rsp | (PAGE_SIZE-1))+1 - UREGS_kernel_sizeof;
+                        }
+                    }
+
                     if ( ! this->vcpu->parse_basic(
                              this->per_cpu_current_vcpu_ptr, *this->xenpt) ||
                          ! this->vcpu->parse_extended(*this->xenpt, &cpu_info) )
