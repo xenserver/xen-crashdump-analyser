@@ -8,5 +8,6 @@ System.map-*
 vmcore
 xen-*.map
 xen-crashdump-analyser*
+!xen-crashdump-analyser.spec*
 doxygen/
 outdir/
