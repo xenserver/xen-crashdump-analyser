@@ -1,6 +1,8 @@
 # Name of the resulting executable
 APP-NAME := xen-crashdump-analyser
 APP-NAME-DEBUG := $(APP-NAME)-syms
+SOURCE-ARCHIVE-FORMAT=tar.gz
+SOURCE-ARCHIVE-NAME := $(APP-NAME).$(SOURCE-ARCHIVE-FORMAT)
 
 # Set the default action to build the program
 .PHONY: all
@@ -51,7 +53,7 @@ build: $(APP-NAME)
 # Clean the project directory
 .PHONY: clean
 clean:
-	rm -f $(OBJS) $(DEPS) $(APP-NAME) $(APP-NAME-DEBUG) dissasm
+	rm -f $(OBJS) $(DEPS) $(APP-NAME) $(APP-NAME-DEBUG) $(SOURCE-ARCHIVE-NAME) dissasm
 
 .PHONY: veryclean
 veryclean: clean
@@ -70,5 +72,9 @@ cscope:
 .PHONY: disasm
 dissasm: $(APP-NAME-DEBUG)
 	objdump -d $(APP-NAME-DEBUG) -Mintel > dissasm
+
+source-archive:
+	git archive --format=$(SOURCE-ARCHIVE-FORMAT) -o $(SOURCE-ARCHIVE-NAME) \
+		--prefix=$(APP-NAME)/ master
 
 -include Makefile.local
