@@ -1,0 +1,7 @@
+                      * Xen Crashdump Analyser *
+                   --------------------------------
+                   a tool for analysing Xen crashes
+                   --------------------------------
+
+See http://xenbits.xen.org/people/andrewcoop/ for detailed usage
+instructions, examples and more.
