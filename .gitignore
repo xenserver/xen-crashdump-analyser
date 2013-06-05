@@ -1,0 +1,12 @@
+*~
+.*.d
+*.e
+*.o
+Makefile.local
+cscope.*
+System.map-*
+vmcore
+xen-*.map
+xen-crashdump-analyser*
+doxygen/
+outdir/
