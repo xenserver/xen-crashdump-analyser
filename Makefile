@@ -73,8 +73,9 @@ cscope:
 dissasm: $(APP-NAME-DEBUG)
 	objdump -d $(APP-NAME-DEBUG) -Mintel > dissasm
 
+# Build a source archive from the current branch
 source-archive:
 	git archive --format=$(SOURCE-ARCHIVE-FORMAT) -o $(SOURCE-ARCHIVE-NAME) \
-		--prefix=$(APP-NAME)/ master
+		--prefix=$(APP-NAME)/ `git symbolic-ref HEAD | cut -d/ -f3-`
 
 -include Makefile.local
