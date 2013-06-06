@@ -7,4 +7,4 @@ rpm-build.
 3. Move xen-crashdump-analyser.tar.gz to /usr/src/redhat/SOURCES/
 4. Run `rpmbuild -ba xen-crashdump-analyser.spec` to build the RPMs
 5. Install using 
-   `rpm -ivh /usr/src/redhad/RPMs/i386/xen-crashdump-analyser*.rpm`
+   `rpm -ivh /usr/src/redhat/RPMs/i386/xen-crashdump-analyser*.rpm`
