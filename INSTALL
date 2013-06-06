@@ -1,10 +1,14 @@
-To install, follow these steps to build an RPM. These steps assume
-a CentOS 5.7 or similar distribution, with gcc, gcc-c++, make and
-rpm-build.
+To install, follow these steps to build and install an RPM. These
+steps assume a CentOS 5.7 or similar distribution, with git, gcc,
+gcc-c++, make and rpm-build.
 
 1. Clone the git repository to your local machine
-2. Run `make source-archive` to obtain a .tar.gz file
-3. Move xen-crashdump-analyser.tar.gz to /usr/src/redhat/SOURCES/
-4. Run `rpmbuild -ba xen-crashdump-analyser.spec` to build the RPMs
-5. Install using 
-   `rpm -ivh /usr/src/redhat/RPMs/i386/xen-crashdump-analyser*.rpm`
+2. Run `make rpm`
+3. Install with the following, where <arch> represents your machine
+   architecture:
+   `rpm -ivh /usr/src/redhat/RPMS/<arch>/xen-crashdump-analyser-*.rpm`
+
+The `make rpm` step generates a spec file from the spec.in and uses it
+to build source and binary RPMs. The source RPMs are output to
+/usr/src/redhat/SRPMS/ and the binary RPMs to
+/usr/src/redhat/RPMS/<arch>/
