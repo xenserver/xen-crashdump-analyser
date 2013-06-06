@@ -2,6 +2,8 @@
 APP-NAME := xen-crashdump-analyser
 APP-NAME-DEBUG := $(APP-NAME)-syms
 SOURCE-ARCHIVE-NAME := $(APP-NAME).tar.gz
+SPEC-FILE-INPUT := $(APP-NAME).spec.in
+SPEC-FILE := $(APP-NAME).spec
 
 # Set the default action to build the program
 .PHONY: all
@@ -52,7 +54,7 @@ build: $(APP-NAME)
 # Clean the project directory
 .PHONY: clean
 clean:
-	rm -f $(OBJS) $(DEPS) $(APP-NAME) $(APP-NAME-DEBUG) $(SOURCE-ARCHIVE-NAME) dissasm
+	rm -f $(OBJS) $(DEPS) $(APP-NAME) $(APP-NAME-DEBUG) $(SOURCE-ARCHIVE-NAME) dissasm $(SPEC-FILE)
 
 .PHONY: veryclean
 veryclean: clean
@@ -78,5 +80,18 @@ source-archive:
 		`git symbolic-ref HEAD | cut -d/ -f3-` \
 		| gzip > $(SOURCE-ARCHIVE-NAME)
 
+# Build a spec file from the spec.in file
+specfile: $(SPEC-FILE-INPUT)
+	cp $(SPEC-FILE-INPUT) $(SPEC-FILE)
+	sed -i -e "/@DESCRIPTION@/r README" -e "/@DESCRIPTION@/d" $(SPEC-FILE)
+
+# Build a source RPM
+srpm: specfile source-archive
+	cp $(SOURCE-ARCHIVE-NAME) /usr/src/redhat/SOURCES/
+	rpmbuild -bs $(SPEC-FILE)
+
+# Build a binary RPM
+rpm: srpm
+	rpmbuild -bb $(SPEC-FILE)
 
 -include Makefile.local

@@ -8,8 +8,7 @@ Source: xen-crashdump-analyser.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 #%define debug_package %{nil}
 %description
-A tool for analysing Xen crashes. See http://xenbits.xen.org/people/andrewcoop/
-for detailed usage information.
+@DESCRIPTION@
 
 %prep
 %setup -q -n %{name}
@@ -32,5 +31,3 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 %{_libdir}/xen/bin/xen-crashdump-analyser
-
-%changelog
