@@ -81,12 +81,12 @@ source-archive:
 		| gzip > $(SOURCE-ARCHIVE-NAME)
 
 # Build a spec file from the spec.in file
-specfile: $(SPEC-FILE-INPUT)
-	cp $(SPEC-FILE-INPUT) $(SPEC-FILE)
-	sed -i -e "/@DESCRIPTION@/r README" -e "/@DESCRIPTION@/d" $(SPEC-FILE)
+$(SPEC-FILE): $(SPEC-FILE-INPUT)
+	sed "/%description/ r README" < $< > $@.tmp
+	mv -f $@.tmp $@
 
 # Build a source RPM
-srpm: specfile source-archive
+srpm: $(SPEC-FILE) source-archive
 	cp $(SOURCE-ARCHIVE-NAME) /usr/src/redhat/SOURCES/
 	rpmbuild -bs $(SPEC-FILE)
 
