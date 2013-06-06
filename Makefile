@@ -1,8 +1,7 @@
 # Name of the resulting executable
 APP-NAME := xen-crashdump-analyser
 APP-NAME-DEBUG := $(APP-NAME)-syms
-SOURCE-ARCHIVE-FORMAT=tar.gz
-SOURCE-ARCHIVE-NAME := $(APP-NAME).$(SOURCE-ARCHIVE-FORMAT)
+SOURCE-ARCHIVE-NAME := $(APP-NAME).tar.gz
 
 # Set the default action to build the program
 .PHONY: all
@@ -75,7 +74,9 @@ dissasm: $(APP-NAME-DEBUG)
 
 # Build a source archive from the current branch
 source-archive:
-	git archive --format=$(SOURCE-ARCHIVE-FORMAT) -o $(SOURCE-ARCHIVE-NAME) \
-		--prefix=$(APP-NAME)/ `git symbolic-ref HEAD | cut -d/ -f3-`
+	git archive --format=tar --prefix=$(APP-NAME)/ \
+		`git symbolic-ref HEAD | cut -d/ -f3-` \
+		| gzip > $(SOURCE-ARCHIVE-NAME)
+
 
 -include Makefile.local
