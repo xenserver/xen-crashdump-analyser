@@ -31,7 +31,7 @@ $(SPECFILE): $(SPECFILE).in
 srpm: $(SPECFILE)
 	mkdir -p $(RPM_SOURCESDIR)
 	cd $(REPO) && git archive --format=tar --prefix=$(PACKAGE_NAME)/ \
-		`git symbolic-ref HEAD | cut -d/ -f3-` \
+		`cat .git/refs/heads/master` \
 		| gzip > $(RPM_SOURCESDIR)/$(PACKAGE_NAME)-$(XCA_VERSION).tar.gz
 	mkdir -p $(RPM_SRPMSDIR)
 	$(RPMBUILD) -bs $(SPECFILE)
