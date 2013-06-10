@@ -1,9 +1,6 @@
 # Name of the resulting executable
 APP-NAME := xen-crashdump-analyser
 APP-NAME-DEBUG := $(APP-NAME)-syms
-SOURCE-ARCHIVE-NAME := $(APP-NAME).tar.gz
-SPEC-FILE-INPUT := $(APP-NAME).spec.in
-SPEC-FILE := $(APP-NAME).spec
 
 # Set the default action to build the program
 .PHONY: all
@@ -74,24 +71,3 @@ cscope:
 dissasm: $(APP-NAME-DEBUG)
 	objdump -d $(APP-NAME-DEBUG) -Mintel > dissasm
 
-# Build a source archive from the current branch
-source-archive:
-	git archive --format=tar --prefix=$(APP-NAME)/ \
-		`git symbolic-ref HEAD | cut -d/ -f3-` \
-		| gzip > $(SOURCE-ARCHIVE-NAME)
-
-# Build a spec file from the spec.in file
-$(SPEC-FILE): $(SPEC-FILE-INPUT)
-	sed "/%description/ r README" < $< > $@.tmp
-	mv -f $@.tmp $@
-
-# Build a source RPM
-srpm: $(SPEC-FILE) source-archive
-	cp $(SOURCE-ARCHIVE-NAME) /usr/src/redhat/SOURCES/
-	rpmbuild -bs $(SPEC-FILE)
-
-# Build a binary RPM
-rpm: srpm
-	rpmbuild -bb $(SPEC-FILE)
-
--include Makefile.local

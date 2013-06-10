@@ -1,10 +1,10 @@
 Name: xen-crashdump-analyser
 Summary: Xen crashdump analyser
-Version: 2.4.1
-Release: 1
+Version: @XCA_VERSION@
+Release: @RPM_RELEASE@
 License: GPL
 Group: Applications/System
-Source: xen-crashdump-analyser.tar.gz
+Source: xen-crashdump-analyser-@XCA_VERSION@.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 #%define debug_package %{nil}
 %description
