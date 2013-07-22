@@ -80,6 +80,15 @@ namespace xensyms
     /// Xen's idle_vcpu symbol.
     extern vaddr_t idle_vcpu;
 
+    /// Xen's code/data/bss start.
+    extern vaddr_t VIRT_XEN_START;
+    /// Xen's code/data/bss end.
+    extern vaddr_t VIRT_XEN_END;
+    /// Xen's 1to1 mapping of physical memory start.
+    extern vaddr_t VIRT_DIRECTMAP_START;
+    /// Xen's 1to1 mapping of physical memory end.
+    extern vaddr_t VIRT_DIRECTMAP_END;
+
     /// In Xen a debug build?
     extern vaddr_t XEN_DEBUG;
 
@@ -89,6 +98,7 @@ namespace xensyms
     DECLARE_XENSYM_GROUP(vcpu);
     DECLARE_XENSYM_GROUP(domain);
     DECLARE_XENSYM_GROUP(misc);
+    DECLARE_XENSYM_GROUP(virt);
     /// @endcond
 
     /**

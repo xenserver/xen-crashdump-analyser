@@ -137,6 +137,8 @@ public:
         *xen_compile_date;
     /// Is Xen a debug build?
     bool debug_build;
+    /// Have we got the virtual address information from the symbol table?
+    bool can_validate_xen_vaddr;
 
 private:
     // @cond EXCLUDE

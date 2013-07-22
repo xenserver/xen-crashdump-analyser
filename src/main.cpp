@@ -24,6 +24,7 @@
 #include "memory.hpp"
 #include "system.hpp"
 #include "abstract/elf.hpp"
+#include "abstract/xensyms.hpp"
 
 #include <getopt.h>
 
@@ -518,6 +519,18 @@ int main(int argc, char ** argv)
         {
             LOG_ERROR("Failed to parse the Xen symbol table file\n");
             return EX_IOERR;
+        }
+
+        // Decide whether we are in a position to validate Xen addresses
+        if ( ! REQ_CORE_XENSYMS(virt) )
+        {
+            LOG_WARN("Unable to validate Xen pointers.  Will continue blindly\n");
+            host.can_validate_xen_vaddr = false;
+        }
+        else
+        {
+            LOG_DEBUG("Will validate Xen pointers\n");
+            host.can_validate_xen_vaddr = true;
         }
 
         // Log the dom0 symtab

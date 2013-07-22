@@ -42,6 +42,9 @@ namespace xensyms
         DOMAIN_is_privileged, DOMAIN_vcpus, DOMAIN_handle;
     vaddr_t domain_list, idle_vcpu;
 
+    vaddr_t VIRT_XEN_START, VIRT_XEN_END, VIRT_DIRECTMAP_START,
+        VIRT_DIRECTMAP_END;
+
     vaddr_t XEN_DEBUG;
 
     /// @cond EXCLUDE
@@ -50,6 +53,7 @@ namespace xensyms
     DEFINE_XENSYM_GROUP(vcpu);
     DEFINE_XENSYM_GROUP(domain);
     DEFINE_XENSYM_GROUP(misc);
+    DEFINE_XENSYM_GROUP(virt);
     /// @endcond
 
     const struct xensym xensyms [] =
@@ -81,6 +85,11 @@ namespace xensyms
         XENSYM(domain, idle_vcpu),
 
         XENSYM(misc, XEN_DEBUG),
+
+        XENSYM(virt, VIRT_XEN_START),
+        XENSYM(virt, VIRT_XEN_END),
+        XENSYM(virt, VIRT_DIRECTMAP_START),
+        XENSYM(virt, VIRT_DIRECTMAP_END),
 
         XENSYM_NULL
     };

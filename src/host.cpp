@@ -60,7 +60,8 @@ Host::Host():
     active_vcpus(),
     xen_major(0), xen_minor(0), xen_extra(NULL),
     xen_changeset(NULL), xen_compiler(NULL),
-    xen_compile_date(NULL), debug_build(false)
+    xen_compile_date(NULL), debug_build(false),
+    can_validate_xen_vaddr(false)
 {}
 
 Host::~Host()
@@ -591,19 +592,18 @@ int Host::print_domains(bool dump_structures)
 
 bool Host::validate_xen_vaddr(const vaddr_t & vaddr, const bool except)
 {
-    switch(this->arch)
-    {
-        // Values from xen/include/asm-x86/config.h
-    case Abstract::Elf::ELF_64:
-        // Xen .text, .bss etc (1GB)
-        if ( 0xffff82c480000000ULL <= vaddr && vaddr <= 0xffff82c4bfffffffULL )
-            return true;
-        // 1:1 direct mapping of physical memory (120TB)
-        else if ( 0xffff830000000000ULL <= vaddr && vaddr <= 0xffff87ffffffffffULL )
-            return true;
-    default:
-        break;
-    }
+    /* If we didn't find the information in the Xen symbol table, assume
+     * valid.  It is better than blindly failing. In main(), this is detected
+     * and a warning issued. */
+    if ( ! this->can_validate_xen_vaddr )
+        return true;
+
+    // Xen .text, .bss etc
+    if ( VIRT_XEN_START <= vaddr && vaddr < VIRT_XEN_END )
+        return true;
+    // 1:1 direct mapping of physical memory
+    else if ( VIRT_DIRECTMAP_START <= vaddr && vaddr < VIRT_DIRECTMAP_END )
+        return true;
 
     if ( except )
         throw validate(vaddr, "Not in Xen Virtual Address regions.");
