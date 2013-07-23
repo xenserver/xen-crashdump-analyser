@@ -524,12 +524,13 @@ int main(int argc, char ** argv)
         // Decide whether we are in a position to validate Xen addresses
         if ( ! REQ_CORE_XENSYMS(virt) )
         {
-            LOG_WARN("Unable to validate Xen pointers.  Will continue blindly\n");
+            LOG_WARN("Failed to get Xen virtual address information.  "
+                     "Unable to validate Xen pointers\n");
             host.can_validate_xen_vaddr = false;
         }
         else
         {
-            LOG_DEBUG("Will validate Xen pointers\n");
+            LOG_DEBUG("Got Xen virtual address information. Will validate Xen pointers\n");
             host.can_validate_xen_vaddr = true;
         }
 
