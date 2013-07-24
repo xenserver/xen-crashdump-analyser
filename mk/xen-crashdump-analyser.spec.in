@@ -1,10 +1,10 @@
 Name: xen-crashdump-analyser
 Summary: Xen crashdump analyser
 Version: @XCA_VERSION@
-Release: @RPM_RELEASE@
+Release: @XCA_RELEASE@
 License: GPL
 Group: Applications/System
-Source: xen-crashdump-analyser-@XCA_VERSION@.tar.gz
+Source: xen-crashdump-analyser-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 %description
 
@@ -29,3 +29,5 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 %{_libdir}/xen/bin/xen-crashdump-analyser
+
+%changelog

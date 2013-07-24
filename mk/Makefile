@@ -6,7 +6,7 @@ include $(B_BASE)/rpmbuild.mk
 XCA_RELEASE := 1
 XCA_VERSION := 2.4.1
 
-PACKAGE_NAME=xen-crashdump-analyser
+PACKAGE_NAME := xen-crashdump-analyser
 SPECFILE := $(PACKAGE_NAME).spec
 
 .PHONY: build
@@ -22,10 +22,13 @@ $(MY_SOURCES)/MANIFEST: $(MY_OUTPUT_DIR)/SRPMS
 REPO = $(call git_loc,$(PACKAGE_NAME))
 
 $(SPECFILE): $(SPECFILE).in
-	sed "/%description/ r ../README" < $< > $@.tmp
-	sed -i "s/@XCA_VERSION@/$(XCA_VERSION)/g" $@.tmp
-	sed -i "s/@RPM_RELEASE@/$(XCA_RELEASE)/g" $@.tmp
-	mv -f $@.tmp $@
+	{ set -e; sed \
+		-e "/%description/ r ../README" \
+		-e "/%changelog/ r ../ChangeLog" \
+		-e "s/@XCA_VERSION@/$(XCA_VERSION)/g" \
+		-e "s/@XCA_RELEASE@/$(XCA_RELEASE)/g" \
+		< $< > $@.tmp; \
+	mv -f $@.tmp $@; }
 
 .PHONY: srpm
 srpm: $(SPECFILE)
