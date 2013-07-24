@@ -1,6 +1,5 @@
 # Name of the resulting executable
 APP-NAME := xen-crashdump-analyser
-APP-NAME-DEBUG := $(APP-NAME)-syms
 
 # Set the default action to build the program
 .PHONY: all
@@ -37,12 +36,8 @@ OBJS := $(patsubst %.cpp, %.o, \
 DEPS := $(patsubst %.o, %.d, $(foreach obj, $(OBJS), $(dir $(obj)).$(notdir $(obj))))
 -include $(DEPS)
 
-$(APP-NAME-DEBUG): $(OBJS)
-	g++ -o $(APP-NAME-DEBUG) $(LDFLAGS) $(OBJS)
-
-$(APP-NAME) : $(APP-NAME-DEBUG)
-	cp $(APP-NAME-DEBUG) $@
-	#strip -s $@
+$(APP-NAME): $(OBJS)
+	g++ -o $@ $(LDFLAGS) $(OBJS)
 
 # The main build option
 .PHONY: build
