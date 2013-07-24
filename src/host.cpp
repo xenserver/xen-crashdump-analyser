@@ -428,7 +428,6 @@ bool Host::print_xen(bool dump_structures)
 
 int Host::print_domains(bool dump_structures)
 {
-    const Abstract::PageTable & xenpt = *this->pcpus[0]->xenpt;
     int success = 0;
 
     LOG_INFO("Decoding Domains\n");
@@ -450,6 +449,8 @@ int Host::print_domains(bool dump_structures)
 
     try
     {
+        const Abstract::PageTable & xenpt = this->get_xenpt();
+
         host.validate_xen_vaddr(domain_list);
         memory.read64_vaddr(xenpt, domain_list, dom_ptr);
         LOG_DEBUG("  Domain pointer = 0x%016"PRIx64"\n", dom_ptr);
