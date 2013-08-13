@@ -5,6 +5,8 @@ APP-NAME := xen-crashdump-analyser
 .PHONY: all
 all: $(APP-NAME)
 
+-include Makefile.local
+
 # Set up flags
 COMMON_FLAGS := -Iinclude -g -Os -Wall -Werror -Wextra
 CPPFLAGS := $(COMMON_FLAGS) -std=c++98 -fno-rtti -Weffc++
