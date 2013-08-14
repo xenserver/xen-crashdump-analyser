@@ -78,8 +78,9 @@ bool memread::outside_64GB() const throw() { return this->addr > (1ULL << 36); }
 
 
 
-pagefault::pagefault(const vaddr_t & vaddr, const uint64_t & cr3, const int level) throw():
-    vaddr(vaddr), cr3(cr3), level(level)
+pagefault::pagefault(const vaddr_t & vaddr, const uint64_t & cr3,
+                     const int level, const pagefault_reason reason) throw():
+    vaddr(vaddr), cr3(cr3), level(level), reason(reason)
 {}
 
 pagefault::~pagefault() throw () {}
@@ -91,9 +92,24 @@ const char * pagefault::what() const throw()
 
 void pagefault::log() const throw()
 {
-    LOG_WARN("paging error trying to follow 0x%016"PRIx64" - "
-             "level %d, cr3 %016"PRIx64"\n",
-             this->vaddr, this->level, this->cr3);
+    switch ( this->reason )
+    {
+    case FAULT_INVALID:
+        LOG_WARN("paging error for vaddr 0x%016"PRIx64" - "
+                 "level %d, cr3 %016"PRIx64" - Invalid\n",
+                 this->vaddr, this->level, this->cr3);
+        break;
+    case FAULT_NOTPRESENT:
+        LOG_WARN("paging error for vaddr 0x%016"PRIx64" - "
+                 "level %d not present\n",
+                 this->vaddr, this->level);
+        break;
+    default:
+        LOG_ERROR("unknown paging error for vaddr 0x%016"PRIx64" - "
+                  "level %d, cr3 %016"PRIx64"\n",
+                  this->vaddr, this->level, this->cr3);
+        break;
+    }
 }
 
 

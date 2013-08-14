@@ -153,13 +153,24 @@ public:
 class pagefault: public CommonError
 {
 public:
+    /// Reasons for pagefaults.
+    enum pagefault_reason
+    {
+        /// Invalid address.
+        FAULT_INVALID = 0,
+        /// Page not present.
+        FAULT_NOTPRESENT,
+    };
+
     /**
      * Constructor.
      * @param vaddr Faulting virtual address.
      * @param cr3 CR3 value used to start lookup.
      * @param level Which paging level caused the fault.
+     * @param reason Reason for the fault.
      */
-    pagefault(const vaddr_t & vaddr, const uint64_t & cr3, const int level) throw();
+    pagefault(const vaddr_t & vaddr, const uint64_t & cr3,
+              const int level, const enum pagefault_reason reason) throw();
 
     /// Destructor.
     virtual ~pagefault() throw();
@@ -181,6 +192,8 @@ public:
     uint64_t cr3;
     /// Faulting level.
     int level;
+    /// Faulting reason.
+    pagefault_reason reason;
 };
 
 /**

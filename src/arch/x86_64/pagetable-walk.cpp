@@ -85,14 +85,14 @@ void pagetable_walk_64(const maddr_t & cr3, const vaddr_t & vaddr,
      * parse a {P,V}CPU correctly.
      */
     if ( ! cr3 )
-        throw pagefault(vaddr, cr3, 5);
+        throw pagefault(vaddr, cr3, 5, pagefault::FAULT_INVALID);
 
     memory.read64((cr3 & addr_mask) + pm4l_offset(vaddr),
                   pml4_entry);
 
     // PDPT present?
     if ( ! present(pml4_entry) )
-        throw pagefault(vaddr, cr3, 4);
+        throw pagefault(vaddr, cr3, 4, pagefault::FAULT_NOTPRESENT);
 
     pdpt_base = pml4_entry & addr_mask;
 
@@ -110,7 +110,7 @@ void pagetable_walk_64(const maddr_t & cr3, const vaddr_t & vaddr,
 
     // PD present?
     if ( ! present(pdpt_entry) )
-        throw pagefault(vaddr, cr3, 3);
+        throw pagefault(vaddr, cr3, 3, pagefault::FAULT_NOTPRESENT);
 
     pd_base = pdpt_entry & addr_mask;
 
@@ -128,7 +128,7 @@ void pagetable_walk_64(const maddr_t & cr3, const vaddr_t & vaddr,
 
     // PT present?
     if ( ! present(pd_entry) )
-        throw pagefault(vaddr, cr3, 2);
+        throw pagefault(vaddr, cr3, 2, pagefault::FAULT_NOTPRESENT);
 
     pt_base = pd_entry & addr_mask;
 
@@ -146,7 +146,7 @@ void pagetable_walk_64(const maddr_t & cr3, const vaddr_t & vaddr,
 
     // Page present?
     if ( ! present(pt_entry) )
-        throw pagefault(vaddr, cr3, 1);
+        throw pagefault(vaddr, cr3, 1, pagefault::FAULT_NOTPRESENT);
 
     page = pt_entry & addr_mask;
     maddr = offset_4K(page, vaddr);
