@@ -439,6 +439,91 @@ namespace x86_64
         return len;
     }
 
+    int PCPU::dump_stack(FILE * o) const
+    {
+        static const char * stack_name[] = { "Double Fault", "NMI", "MCE", "Normal" };
+
+        vaddr_t stack_min = this->regs.rsp & ~(STACK_SIZE-1);
+        vaddr_t stack_max = stack_min | (STACK_SIZE-1);
+
+        int len = 0;
+
+        try
+        {
+            len += FPRINTF(o, "PCPU %d\n", this->processor_id);
+            len += FPRINTF(o, "  rsp 0x%016"PRIx64", min 0x%016"PRIx64", max 0x%016"PRIx64"\n\n",
+                           this->regs.rsp, stack_min, stack_max);
+
+            if ( !host.validate_xen_vaddr(stack_min, false) ||
+                 !host.validate_xen_vaddr(stack_max, false) )
+            {
+                len += FPRINTF(o, "Failed to validate stack ends.  Giving up.\n");
+                return len;
+            }
+
+            for ( int stack_page = 0; stack_page < 8; ++stack_page )
+            {
+                vaddr_t page_base = stack_min + stack_page * PAGE_SIZE;
+                vaddr_t page_max  = page_base | (PAGE_SIZE-1);
+
+                maddr_t frame;
+
+                len += FPRINTF(o, "Stack page %d, 0x%016"PRIx64"-0x%016"PRIx64" (%s stack)\n",
+                               stack_page, page_base, page_max, stack_name[std::min(stack_page,3)]);
+                try
+                {
+                    this->xenpt->walk(page_base, frame, NULL);
+                }
+                catch ( const pagefault & e )
+                {
+                    if ( e.level == 1 && e.reason == pagefault::FAULT_NOTPRESENT)
+                    {
+                        len += FPUTS("  Not present (Guard page?)\n\n", o);
+                        continue;
+                    }
+                    throw;
+                }
+
+                len += FPUTS("\n", o);
+
+                uint64_t val;
+                uint8_t zero_mask = 0x3f, zeroes = zero_mask;
+                bool printed_something = false;
+
+                for ( vaddr_t sp = page_base ; sp < page_max ; sp += 8, frame += 8 )
+                {
+                    memory.read64(frame, val);
+
+                    if ( zeroes == zero_mask )
+                    {
+                        if ( val == 0 )
+                            continue;
+                        else if ( sp != page_base )
+                            len += FPRINTF(o, "Truncating block of zeroes\n");
+                    }
+                    zeroes = (zeroes << 1 | !val) & zero_mask;
+
+                    len += FPRINTF(o, "  %016"PRIx64": %016"PRIx64"\n", sp, val);
+                    printed_something = true;
+                }
+
+                if ( !printed_something )
+                    len += FPUTS("Page was entirely zeroes\n", o);
+                else if ( zeroes == zero_mask )
+                    len += FPUTS("Truncating range of zeroes\n", o);
+
+                len += FPUTS("\n", o);
+            }
+        }
+        catch ( const CommonError & e )
+        {
+            e.log();
+        }
+
+        return len;
+    }
+
+
     int PCPU::print_stack(FILE * o, const vaddr_t & stack, unsigned mask) const
     {
         static const char * stack_name[] = { "Double Fault", "NMI", "MCE", "Normal" };

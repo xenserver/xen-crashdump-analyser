@@ -92,6 +92,16 @@ namespace x86_64
          */
         virtual int print_state(FILE * stream) const;
 
+        /**
+         * Dump entire stack contents.
+         *
+         * Designed for power users to interpret
+         *
+         * @param stream Stream to write to.
+         * @return Number of bytes written to stream.
+         */
+        virtual int dump_stack(FILE * stream) const;
+
     protected:
         /// PCPU Registers
         x86_64regs regs;

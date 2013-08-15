@@ -409,19 +409,29 @@ bool Host::print_xen(bool dump_structures)
     if ( ! dump_structures )
         return success;
 
-#if 0 // No Xen structures to dump at the moment, but leave the code here for the future
-
-    // Try to open the xen.structures.log file
-    if ( NULL == (o = fopen_in_outdir("xen.structures.log", "w")))
+    for (int x=0; x < nr_pcpus; ++x)
     {
-        LOG_ERROR("Unable to open xen.structures.log in output directory: %s\n",
-                  strerror(errno));
-        return false;
-    }
-    LOG_INFO("Opened xen.structures.log\n");
+        char filename[32];
+        FILE * file;
 
-    SAFE_FCLOSE(o);
-#endif
+        if ( !this->pcpus[x]->is_online() || this->pcpus[x]->processor_id != x )
+            continue;
+
+        if ( snprintf(filename, sizeof filename, "xen.pcpu%d.stack.log", x) < 0 )
+            continue;
+
+        if ( NULL == (file = fopen_in_outdir(filename, "w")) )
+        {
+            LOG_ERROR("Unable to open %s in output directory: %s\n",
+                      filename, strerror(errno));
+            continue;
+        }
+
+        set_additional_log(file);
+        this->pcpus[x]->dump_stack(file);
+        set_additional_log(NULL);
+        SAFE_FCLOSE(file);
+    }
 
     return success;
 }
