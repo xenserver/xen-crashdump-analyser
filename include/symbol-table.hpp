@@ -89,6 +89,22 @@ public:
      */
     int print_symbol64(FILE * stream, const vaddr_t & addr, bool brackets = false) const;
 
+    /**
+     * Print the text part of a symbol only.
+     *
+     * @param stream Stream to print to.
+     * @param addr Address of symbol.
+     * @returns number of bytes written to stream.
+     */
+    int print_text_symbol(FILE * stream, const vaddr_t & addr) const;
+
+    /**
+     * Is the address within the text region.
+     * @param addr Address to check.
+     * @return boolean.
+     */
+    bool is_text_symbol(const vaddr_t & addr) const;
+
     /// Whether this symbol table can print symbols.
     bool can_print;
     /// Whether this symbol table can decode hypercall pages.
@@ -101,13 +117,6 @@ protected:
      * @param sym Symbol to insert.
      */
     void insert(Symbol * sym);
-
-    /**
-     * Is the address within the text region.
-     * @param addr Address to check.
-     * @return boolean.
-     */
-    bool is_text_symbol(const vaddr_t & addr) const;
 
     /**
      * Private wrapper around std::strcmp.

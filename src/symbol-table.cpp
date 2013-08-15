@@ -324,6 +324,39 @@ int SymbolTable::print_symbol32(FILE * o, const vaddr_t & addr, bool brackets) c
     return len;
 }
 
+int SymbolTable::print_text_symbol(FILE * o, const vaddr_t & addr) const
+{
+    int len = 0;
+
+    if ( ! this->can_print )
+        return 0;
+
+    if ( ! this->is_text_symbol(addr) )
+        return 0;
+
+    SymbolTable::const_list_iter after
+        = std::upper_bound(this->symbols.begin(), this->symbols.end(), addr, &SymbolTable::symcmp);
+
+    if ( after == this->symbols.begin() ||
+         after == this->symbols.end() )
+        return 0;
+
+    SymbolTable::const_list_iter before = after;
+    before--;
+
+    if ( (*before)->address <= addr && (*after)->address > addr )
+    {
+        len += FPRINTF(o, "%s+%#"PRIx64"/%#"PRIx64,
+                       (*before)->name,
+                       addr - (*before)->address,
+                       (*after)->address - (*before)->address );
+    }
+    else
+        LOG_WARN("Strange resulting iterators printing symbol 0x%016"PRIx64"\n", addr);
+
+    return len;
+}
+
 bool SymbolTable::is_text_symbol(const vaddr_t & addr) const
 {
     if ( ! this->can_print )
