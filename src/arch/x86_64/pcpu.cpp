@@ -503,7 +503,19 @@ namespace x86_64
                     }
                     zeroes = (zeroes << 1 | !val) & zero_mask;
 
-                    len += FPRINTF(o, "  %016"PRIx64": %016"PRIx64"\n", sp, val);
+                    len += FPRINTF(o, "  %016"PRIx64": %016"PRIx64, sp, val);
+
+                    if ( val >= stack_min && val <= stack_max )
+                        len += FPRINTF(o, " .%+d\n", (int)(val - sp));
+                    else if ( host.symtab.is_text_symbol(val) )
+                    {
+                        len += FPUTS(" ", o);
+                        len += host.symtab.print_text_symbol(o, val);
+                        len += FPUTS("\n", o);
+                    }
+                    else
+                        len += FPUTS("\n", o);
+
                     printed_something = true;
                 }
 
