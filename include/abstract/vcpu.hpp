@@ -62,8 +62,8 @@ namespace Abstract
          */
         VCPU(VCPURunstate rst):
             vcpu_ptr(0), domain_ptr(0), vcpu_id(-1), domid(-1), processor(0),
-            pause_flags(-1), flags(0), dompt(NULL), runstate(rst),
-            paging_support(PAGING_UNKNOWN){};
+            pause_flags(-1), pause_count(-1), flags(0), dompt(NULL),
+            runstate(rst), paging_support(PAGING_UNKNOWN){};
 
         /// Destructor.
         virtual ~VCPU()
@@ -146,6 +146,8 @@ namespace Abstract
         uint32_t processor;
         /// Vcpu pause flags, from struct vcpu.
         uint32_t pause_flags;
+        /// Vcpu pause count, from struct vcpu.
+        uint32_t pause_count;
 
         /// Parsing flags.  Will be made up of VCPU::VCPUFlags.
         uint32_t flags;

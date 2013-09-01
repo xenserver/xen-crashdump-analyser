@@ -85,6 +85,8 @@ namespace x86_64
             memory.read32_vaddr(this->xenpt, this->domain_ptr + DOMAIN_max_pages, this->max_pages);
             memory.read32_vaddr(this->xenpt, this->domain_ptr + DOMAIN_shr_pages, (uint32_t&)this->shr_pages);
 
+            memory.read32_vaddr(this->xenpt, this->domain_ptr + DOMAIN_pause_count, this->pause_count);
+
             memory.read_block_vaddr(this->xenpt, this->domain_ptr + DOMAIN_handle,
                                     (char*)this->handle, sizeof this->handle);
 
@@ -151,11 +153,23 @@ namespace x86_64
 
         len += FPRINTF(o, "Domain %"PRIu16": (%d vcpus)\n", this->domain_id, this->max_cpus);
 
-        len += FPRINTF(o, "  Flags:%s%s%s\n",
-                       this->is_privileged ? " PRIVILEGED" : "",
-                       this->is_32bit_pv ? " 32BIT-PV" : "",
-                       this->is_hvm ? " HVM" : ""
-            );
+        len += FPUTS("  Flags:", o);
+
+        if ( this->is_privileged )
+            len += FPUTS(" PRIVILEGED", o);
+
+        if ( this->is_32bit_pv )
+            len += FPUTS(" 32BIT-PV", o);
+
+        if ( this->is_hvm )
+            len += FPUTS(" HVM", o);
+
+        if ( this->pause_count )
+            len += FPRINTF(o, " PAUSED(count %"PRId32")", this->pause_count);
+        else
+            len += FPUTS(" UNPAUSED", o);
+
+        len += FPUTS("\n", o);
 
         len += FPUTS("  Paging assistance: ", o);
         len += print_paging_mode(o, this->paging_mode);

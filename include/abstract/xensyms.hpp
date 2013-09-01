@@ -52,6 +52,8 @@ namespace xensyms
     extern vaddr_t VCPU_domain;
     /// Offset of pause_flags in Xen's struct vcpu.
     extern vaddr_t VCPU_pause_flags;
+    /// Offset of pause_count in Xen's struct vcpu.
+    extern vaddr_t VCPU_pause_count;
 
     /// Size of Xen's struct domain.
     extern vaddr_t DOMAIN_sizeof;
@@ -73,6 +75,8 @@ namespace xensyms
     extern vaddr_t DOMAIN_is_privileged;
     /// Offset of vcpus in Xen's struct domain.
     extern vaddr_t DOMAIN_vcpus;
+    /// Offset of pause_count in Xen's struct domain.
+    extern vaddr_t DOMAIN_pause_count;
     /// Offset of handle in Xen's struct domain.
     extern vaddr_t DOMAIN_handle;
     /// Xen's domain_list symbol.

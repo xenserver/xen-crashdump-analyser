@@ -35,11 +35,11 @@ namespace xensyms
     vaddr_t conringp, conringc;
 
     vaddr_t VCPU_sizeof, VCPU_vcpu_id, VCPU_processor, VCPU_domain,
-        VCPU_pause_flags;
+        VCPU_pause_flags, VCPU_pause_count;
 
     vaddr_t DOMAIN_sizeof, DOMAIN_id, DOMAIN_max_vcpus, DOMAIN_tot_pages,
         DOMAIN_max_pages, DOMAIN_shr_pages, DOMAIN_next, DOMAIN_is_hvm,
-        DOMAIN_is_privileged, DOMAIN_vcpus, DOMAIN_handle;
+        DOMAIN_is_privileged, DOMAIN_vcpus, DOMAIN_pause_count, DOMAIN_handle;
     vaddr_t domain_list, idle_vcpu;
 
     vaddr_t VIRT_XEN_START, VIRT_XEN_END, VIRT_DIRECTMAP_START,
@@ -69,6 +69,7 @@ namespace xensyms
         XENSYM(vcpu, VCPU_processor),
         XENSYM(vcpu, VCPU_domain),
         XENSYM(vcpu, VCPU_pause_flags),
+        XENSYM(vcpu, VCPU_pause_count),
 
         XENSYM(domain, DOMAIN_sizeof),
         XENSYM(domain, DOMAIN_id),
@@ -80,6 +81,7 @@ namespace xensyms
         XENSYM(domain, DOMAIN_is_hvm),
         XENSYM(domain, DOMAIN_is_privileged),
         XENSYM(domain, DOMAIN_vcpus),
+        XENSYM(domain, DOMAIN_pause_count),
         XENSYM(domain, DOMAIN_handle),
         XENSYM(domain, domain_list),
         XENSYM(domain, idle_vcpu),

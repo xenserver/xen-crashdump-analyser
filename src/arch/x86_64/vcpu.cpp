@@ -96,6 +96,8 @@ namespace x86_64
 
             memory.read32_vaddr(xenpt, this->vcpu_ptr + VCPU_pause_flags,
                                 this->pause_flags);
+            memory.read32_vaddr(xenpt, this->vcpu_ptr + VCPU_pause_count,
+                                this->pause_count);
 
             memory.read64_vaddr(xenpt, this->vcpu_ptr + VCPU_cr3,
                                 this->regs.cr3);
@@ -349,7 +351,8 @@ namespace x86_64
 
         len += FPUTS("\n", o);
 
-        len += FPRINTF(o, "\tPause Flags: 0x%"PRIx32" ", this->pause_flags);
+        len += FPRINTF(o, "\tPause Count: %"PRId32", Flags: 0x%"PRIx32" ",
+                       this->pause_count, this->pause_flags);
         len += print_pause_flags(o, this->pause_flags);
         len += FPUTS("\n", o);
 
@@ -459,7 +462,8 @@ namespace x86_64
 
         len += FPUTS("\n", o);
 
-        len += FPRINTF(o, "\tPause Flags: 0x%"PRIx32" ", this->pause_flags);
+        len += FPRINTF(o, "\tPause Count: %"PRId32", Flags: 0x%"PRIx32" ",
+                       this->pause_count, this->pause_flags);
         len += print_pause_flags(o, this->pause_flags);
         len += FPUTS("\n", o);
 
