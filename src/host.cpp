@@ -357,6 +357,15 @@ bool Host::print_xen(bool dump_structures)
 
         len += FPUTS("\n", o);
 
+        // Dump the Xen vmcoreinfo, if set
+        if ( this->xen_vmcoreinfo.vmcoreinfoData() != NULL )
+        {
+            len += FPRINTF(o, "VMCOREINFO:\n%s",
+                    this->xen_vmcoreinfo.vmcoreinfoData());
+            this->xen_vmcoreinfo.destroy(); // Don't need it any more
+            len += FPUTS("\n", o);
+        }
+
         for (int x=0; x < nr_pcpus; ++x)
             len += this->pcpus[x]->print_state(o);
 

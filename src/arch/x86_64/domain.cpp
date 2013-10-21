@@ -198,7 +198,16 @@ namespace x86_64
         len += FPUTS("\n", o);
 
         if ( this->domain_id == 0 )
+        {
             this->print_cmdline(o);
+            if ( host.dom0_vmcoreinfo.vmcoreinfoData() != NULL )
+            {
+                len += FPRINTF(o, "VMCOREINFO:\n%s",
+                        host.dom0_vmcoreinfo.vmcoreinfoData());
+                host.dom0_vmcoreinfo.destroy(); // Don't need it any more
+                len += FPUTS("\n", o);
+            }
+        }
 
         for ( uint32_t x = 0; x < this->max_cpus; ++ x )
             if ( this->vcpus[x] )
