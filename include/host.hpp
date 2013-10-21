@@ -28,6 +28,7 @@
 
 #include <vector>
 
+#include "coreinfo.hpp"
 #include "symbol-table.hpp"
 #include "abstract/pcpu.hpp"
 #include "abstract/elf.hpp"
@@ -99,6 +100,13 @@ public:
      */
     const Abstract::PageTable & get_xenpt() const;
 
+    /**
+     * Parse a VMCOREINFO ELF note.
+     * @param note The ELF note to parse.
+     * @returns boolean indicating success or failure
+     */
+    bool parse_vmcoreinfo(const ElfNote& note);
+
     /// Whether setup() has been called.
     bool once;
     /// Architecture of /proc/vmcore.
@@ -139,6 +147,12 @@ public:
     bool debug_build;
     /// Have we got the virtual address information from the symbol table?
     bool can_validate_xen_vaddr;
+
+    /// Xen vmcoreinfo
+    CoreInfo xen_vmcoreinfo;
+
+    /// dom0 vmcoreinfo
+    CoreInfo dom0_vmcoreinfo;
 
 private:
     // @cond EXCLUDE

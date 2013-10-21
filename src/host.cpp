@@ -61,7 +61,7 @@ Host::Host():
     xen_major(0), xen_minor(0), xen_extra(NULL),
     xen_changeset(NULL), xen_compiler(NULL),
     xen_compile_date(NULL), debug_build(false),
-    can_validate_xen_vaddr(false)
+    can_validate_xen_vaddr(false), xen_vmcoreinfo(), dom0_vmcoreinfo()
 {}
 
 Host::~Host()
@@ -135,6 +135,9 @@ bool Host::setup(const Abstract::Elf * elf)
             this->pcpus[xen_core_index]->parse_xen_crash_core(
                 elf->notes[x].desc, elf->notes[x].desc_size, xen_core_index);
             ++xen_core_index;
+            break;
+        case XEN_ELFNOTE_VMCOREINFO:
+            this->parse_vmcoreinfo(elf->notes[x]);
             break;
         default:
             break;
@@ -630,6 +633,47 @@ const Abstract::PageTable & Host::get_xenpt() const
         if ( this->pcpus[i] && this->pcpus[i]->xenpt )
             return *this->pcpus[i]->xenpt;
     throw validate(0, "No suitable PCPU Xen pagetables.");
+}
+
+bool Host::parse_vmcoreinfo(const ElfNote& note)
+{
+    /* N.B. Both Xen and dom0 vmcoreinfo ELF notes use the same
+     * note type. The difference is encoded in the note name:
+     * VMCOREINFO     : dom0
+     * VMCOREINFO_XEN : Xen
+     *
+     * The note name can be taken as the note.name_size bytes
+     * starting from note.name
+     *
+     * The note data to be copied is only the relevant part of
+     * note.desc, which will end either with a null character
+     * (from the ELF section padding) or be at the end of the
+     * note itself. Since vmcoreinfo data is newline-separated,
+     * this can be checked by testing the last byte of note.desc
+     * for '\0'. If it is, strlen is safe to use. Otherwise,
+     * assume the data occupies the whole note.
+     */
+    size_t data_size = 0;
+    if ( note.desc[note.desc_size-1] == '\0' )
+        data_size = strlen(note.desc);
+    else
+        data_size = note.desc_size;
+
+    try
+    {
+        CoreInfo info(note.name, note.name_size, note.desc, data_size);
+        // search for XEN in note name to see which vmcoreinfo we have
+        if ( strcmp(info.vmcoreinfoName(), "VMCOREINFO_XEN") == 0 )
+            this->xen_vmcoreinfo.transferOwnershipFrom(info);
+        else
+            this->dom0_vmcoreinfo.transferOwnershipFrom(info);
+        return true;
+    }
+    catch ( const std::bad_alloc & )
+    {
+        LOG_ERROR("Bad alloc for VMCOREINFO. Out of memory.\n");
+        return false;
+    }
 }
 
 /// Host container
