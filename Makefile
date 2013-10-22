@@ -7,11 +7,15 @@ all: $(APP-NAME)
 
 -include Makefile.local
 
+# Set up compiler
+CXX := g++
+
 # Set up flags
 COMMON_FLAGS := -Iinclude -g -Os -Wall -Werror -Wextra
 CPPFLAGS := $(COMMON_FLAGS) -std=c++98 -fno-rtti -Weffc++
 CFLAGS := $(COMMON_FLAGS) -std=c99
 LDFLAGS := -g
+CLANG_STATIC_ANALYSER_FLAGS := -maxloop 10 -analyze-headers
 
 # List of all the source files.  It gets filled by including Makefile's from subdirectories
 SRC :=
@@ -24,13 +28,13 @@ OBJS := $(patsubst %.cpp, %.o, \
 
 # Build individual object files from source files
 %.o: %.cpp
-	g++ $(CPPFLAGS) -c $< -o $@
+	$(CXX) $(CPPFLAGS) -c $< -o $@
 
 # Ask g{cc,++} to generate depedencies for each source file.
 # This has to be regenerated every single run, else changing a header file included in a header file
 # included by a source file causes a broken build to occur.
 .%.d:
-	@g++ -MM -MP $(CPPFLAGS) $*.cpp 2>/dev/null | sed -e 's@^\(.*\)\.o:@$(dir $*.cpp).\1.d $(dir $*.cpp)\1.o:@' > $@
+	@$(CXX) -MM -MP $(CPPFLAGS) $*.cpp 2>/dev/null | sed -e 's@^\(.*\)\.o:@$(dir $*.cpp).\1.d $(dir $*.cpp)\1.o:@' > $@
 
 # Include all dependency files.  This generates a complete dependency graph
 # Reason for the hacky foreach is because I cant find a nice way to transform a list of
@@ -39,7 +43,7 @@ DEPS := $(patsubst %.o, %.d, $(foreach obj, $(OBJS), $(dir $(obj)).$(notdir $(ob
 -include $(DEPS)
 
 $(APP-NAME): $(OBJS)
-	g++ -o $@ $(LDFLAGS) $(OBJS)
+	$(CXX) -o $@ $(LDFLAGS) $(OBJS)
 
 # The main build option
 .PHONY: build
@@ -68,3 +72,6 @@ cscope:
 dissasm: $(APP-NAME-DEBUG)
 	objdump -d $(APP-NAME-DEBUG) -Mintel > dissasm
 
+# Check the program with the clang static analyser
+check: clean
+	scan-build $(CLANG_STATIC_ANALYSER_FLAGS) make $(APP-NAME)
