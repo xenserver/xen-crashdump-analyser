@@ -146,6 +146,58 @@ namespace x86_64
         return false;
     }
 
+    int Domain::print_vmcoreinfo(FILE * o) const
+    {
+        if ( this->domain_id != 0 )
+            return 0;
+        /*
+         * Find vmcoreinfo_note data:
+         *  0           4           8           12
+         *  _________________________________________________
+         *  | name_len  | data_len  | note_type | V M C O   |
+         *  | R E I N   | F O \0 \0 | ......... | ......... |
+         *  | ......... | ......... | ......... | ......... |
+         */
+        const Symbol * note_sym = host.dom0_symtab.find("vmcoreinfo_note");
+        if ( ! note_sym )
+            return 0;
+
+        const Abstract::PageTable & dompt = this->get_dompt();
+        uint32_t note_name_len(0), note_data_len(0), note_type(0);
+        uint32_t max_data_size = 4096 - 24; // 1 page, minus (header + name)
+        char name[12] = {0};
+        int len = 0;
+
+        try
+        {
+            memory.read32_vaddr(dompt, note_sym->address, note_name_len);
+            memory.read32_vaddr(dompt, note_sym->address+4, note_data_len);
+            memory.read32_vaddr(dompt, note_sym->address+8, note_type);
+
+            // Validate the note header
+            if ( note_name_len == 11 && note_data_len <= max_data_size
+                 && note_type == 0 )
+            {
+                memory.read_str_vaddr(dompt, note_sym->address+12, name, 11);
+                if (strncmp("VMCOREINFO", name, 10) == 0)
+                {
+                    len += FPUTS("VMCOREINFO:\n", o);
+                    len += memory.write_block_vaddr_to_file(dompt,
+                            note_sym->address+24, o, note_data_len);
+                    len += FPUTS("\n", o);
+                }
+            }
+        }
+        catch ( const memread & e )
+        {
+            e.log();
+        }
+        catch ( const memseek & e )
+        {
+            e.log();
+        }
+        return len;
+    }
 
     int Domain::print_state(FILE * o) const
     {
@@ -199,14 +251,8 @@ namespace x86_64
 
         if ( this->domain_id == 0 )
         {
-            this->print_cmdline(o);
-            if ( host.dom0_vmcoreinfo.vmcoreinfoData() != NULL )
-            {
-                len += FPRINTF(o, "VMCOREINFO:\n%s",
-                        host.dom0_vmcoreinfo.vmcoreinfoData());
-                host.dom0_vmcoreinfo.destroy(); // Don't need it any more
-                len += FPUTS("\n", o);
-            }
+            len += this->print_cmdline(o);
+            len += this->print_vmcoreinfo(o);
         }
 
         for ( uint32_t x = 0; x < this->max_cpus; ++ x )
