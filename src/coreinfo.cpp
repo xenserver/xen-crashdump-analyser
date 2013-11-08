@@ -42,7 +42,7 @@ CoreInfo::CoreInfo(const char * note_name, const size_t name_size,
 
     data = new char[data_size + 1];
     memcpy(data, note_data, data_size);
-    name[data_size] = '\0';
+    data[data_size] = '\0';
 }
 
 CoreInfo::~CoreInfo()
