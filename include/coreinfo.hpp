@@ -44,6 +44,7 @@ class CoreInfo {
          * Copy assignment operator.
          * Copy assignment operator is private to prevent unwanted
          * copying.
+         * @returns this
          */
         CoreInfo& operator=(const CoreInfo&);
 
@@ -71,7 +72,7 @@ class CoreInfo {
         /// Destructor
         ~CoreInfo();
 
-        /*
+        /**
          * Destroy the data owned by this CoreInfo object
          */
         void destroy();
