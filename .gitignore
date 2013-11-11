@@ -11,3 +11,4 @@ xen-crashdump-analyser*
 !xen-crashdump-analyser.spec.in
 doxygen/
 outdir/
+tags
