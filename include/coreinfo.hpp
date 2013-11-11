@@ -28,6 +28,8 @@
 
 #include <cstring>
 
+#include "types.hpp"
+
 /**
  * Wrapper class for storing vmcoreinfo strings,
  * supporting RAII semantics.
@@ -53,6 +55,13 @@ class CoreInfo {
 
         /// ELF note data, with trailing '\0' to behave like a C-string
         char * data;
+
+        /**
+         * Search for key and return pointer to beginning of value
+         * @param key the key to search for
+         * @returns pointer to beginning of value
+         */
+        const char * locate_key_value(const char * key) const;
 
     public:
         /// Constructor
@@ -102,6 +111,56 @@ class CoreInfo {
          * @param other The object to transfer ownership from
          */
         void transferOwnershipFrom(CoreInfo& other);
+
+        /**
+         * Search vmcoreinfo for a particular key, writing the associated
+         * value into str as a C-string.
+         *
+         * If the key is not found, or is not associated with a value,
+         * the function returns false and sets chars_required to 0.
+         *
+         * If the key was found but the destination buffer is not large
+         * enough to hold the value, the function returns false and sets
+         * chars_required to the buffer size that would be needed.
+         *
+         * Otherwise, the function writes the value into the buffer and
+         * returns true. In this case, chars_required is not changed.
+         *
+         * @param key the key to search for.
+         * @param str the destination buffer.
+         * @param chars_required buffer size required if insufficient
+         * @returns boolean indicating success or failure
+         */
+        bool lookup_key_string(
+                const char * key, char * str,
+                const size_t max, size_t & chars_required) const;
+
+        /**
+         * Search vmcoreinfo for a particular key, writing the associated
+         * value into vaddr as a virtual address.
+         * @param key the key to search for.
+         * @param vaddr destination for value.
+         * @returns boolean indicating success or failure.
+         */
+        bool lookup_key_vaddr(const char * key, vaddr_t& vaddr) const;
+
+        /**
+         * Search vmcoreinfo for a particular key, treating the associated
+         * value as a decimal 16-bit integer.
+         * @param key the key to search for.
+         * @param value destination for value.
+         * @returns boolean indicating success or failure.
+         */
+        bool lookup_key_dec_u16(const char * key, uint16_t& value) const;
+
+        /**
+         * Search vmcoreinfo for a particular key, treating the associated
+         * value as a decimal 32-bit integer.
+         * @param key the key to search for.
+         * @param value destination for value.
+         * @returns boolean indicating success or failure.
+         */
+        bool lookup_key_dec_u32(const char * key, uint32_t& value) const;
 };
 
 #endif

@@ -78,6 +78,86 @@ void CoreInfo::transferOwnershipFrom(CoreInfo& other)
     other.data = NULL;
 }
 
+const char * CoreInfo::locate_key_value(const char * key) const
+{
+    if ( this->data == NULL )
+        return NULL;
+
+    const char * kbegin = strstr(this->data, key);
+    if ( kbegin == NULL )
+        return NULL;
+
+    const char * value = strchr(kbegin, '=');
+    if ( value == NULL )
+        return NULL;
+    else
+        return ++value;
+}
+
+bool CoreInfo::lookup_key_string(
+        const char * key, char * str,
+        const size_t max, size_t & chars_required) const
+{
+    const char * idx = locate_key_value(key);
+    if ( idx == NULL )
+    {
+        chars_required = 0;
+        return false;
+    }
+
+    const char * idx2 = strchr(idx, '\n');
+    if ( idx2 == NULL )
+    {
+        chars_required = 0;
+        return false;
+    }
+
+    // Value is now between [idx,idx2)
+    size_t chars_to_copy = idx2 - idx;
+    if ( chars_to_copy > max - 1)
+    {
+        chars_required = chars_to_copy + 1;
+        return false;
+    }
+
+    memset(str, 0, max);
+    strncpy(str, idx, chars_to_copy);
+    return true;
+}
+
+bool CoreInfo::lookup_key_vaddr(const char * key, vaddr_t& vaddr) const
+{
+    const char * valstr = locate_key_value(key);
+    if ( valstr == NULL )
+        return false;
+
+    if ( sscanf(valstr, "%" SCNx64, &vaddr) != 1 )
+        return false;
+    return true;
+}
+
+bool CoreInfo::lookup_key_dec_u16(const char * key, uint16_t& value) const
+{
+    const char * valstr = locate_key_value(key);
+    if ( valstr == NULL )
+        return false;
+
+    if ( sscanf(valstr, "%" SCNu16, &value) != 1 )
+        return false;
+    return true;
+}
+
+bool CoreInfo::lookup_key_dec_u32(const char * key, uint32_t& value) const
+{
+    const char * valstr = locate_key_value(key);
+    if ( valstr == NULL )
+        return false;
+
+    if ( sscanf(valstr, "%" SCNu32, &value) != 1 )
+        return false;
+    return true;
+}
+
 /*
  * Local variables:
  * mode: C++
