@@ -45,6 +45,16 @@ CoreInfo::CoreInfo(const char * note_name, const size_t name_size,
     data[data_size] = '\0';
 }
 
+CoreInfo::CoreInfo(const size_t name_size, const size_t data_size)
+    : name(NULL), data(NULL)
+{
+    name = new char[name_size + 1];
+    memset(name, 0, name_size + 1);
+
+    data = new char[data_size + 1];
+    memset(data, 0, data_size + 1);
+}
+
 CoreInfo::~CoreInfo()
 {
     this->destroy();

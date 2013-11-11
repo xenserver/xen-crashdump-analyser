@@ -69,6 +69,14 @@ class CoreInfo {
         CoreInfo(const char * note_name, const size_t name_size,
                  const char * note_data, const size_t data_size);
 
+        /**
+         * Constructor - reserve space for data to be written later
+         * @param name_size length of name (excluding NULL terminator)
+         * @param data_size length of data (excluding NULL terminator)
+         * @throws std::bad_alloc in the case of insufficient memory
+         */
+        CoreInfo(const size_t name_size, const size_t data_size);
+
         /// Destructor
         ~CoreInfo();
 
@@ -81,13 +89,13 @@ class CoreInfo {
          * Retrieve vmcoreinfo ELF note name.
          * @return C-string of name, or NULL.
          */
-        const char * vmcoreinfoName() const { return name; }
+        char * vmcoreinfoName() { return name; }
 
         /**
          * Retrieve vmcoreinfo ELF note data.
          * @return C-string of newline-separated key=value pairs, or NULL.
          */
-        const char * vmcoreinfoData() const { return data; }
+        char * vmcoreinfoData() { return data; }
 
         /**
          * Transfer ownership of vmcoreinfo into this object from another.

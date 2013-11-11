@@ -97,12 +97,21 @@ namespace x86_64
         virtual int print_cmdline(FILE * stream) const;
 
         /**
+         * Read vmcoreinfo data by resolving the vmcoreinfo_note
+         * symbol.
+         *
+         * @param dest CoreInfo object that will hold the data.
+         */
+        virtual bool read_vmcoreinfo(CoreInfo & dest) const;
+
+        /**
          * Print vmcoreinfo data
          *
          * @param stream Stream to write to
+         * @param info CoreInfo object containing dom0 vmcoreinfo data.
          * @return Number of bytes written to stream
          */
-        virtual int print_vmcoreinfo(FILE * stream) const;
+        virtual int print_vmcoreinfo(FILE * stream, CoreInfo & info) const;
 
         /**
          * Get a usable set of Domain pagetables.

@@ -31,6 +31,7 @@
 
 #include "abstract/pagetable.hpp"
 #include "abstract/vcpu.hpp"
+#include "coreinfo.hpp"
 
 namespace Abstract
 {
@@ -107,12 +108,21 @@ namespace Abstract
         virtual int print_cmdline(FILE * stream) const = 0;
 
         /**
+         * Read vmcoreinfo data by resolving the vmcoreinfo_note
+         * symbol.
+         *
+         * @param dest CoreInfo object that will hold the data.
+         */
+        virtual bool read_vmcoreinfo(CoreInfo & dest) const = 0;
+
+        /**
          * Print vmcoreinfo data
          *
          * @param stream Stream to write to.
+         * @param info CoreInfo object containing dom0 vmcoreinfo data.
          * @return Number of bytes written to stream
          */
-        virtual int print_vmcoreinfo(FILE * stream) const = 0;
+        virtual int print_vmcoreinfo(FILE * stream, CoreInfo & info) const = 0;
 
         /**
          * Get a usable set of Domain pagetables.
