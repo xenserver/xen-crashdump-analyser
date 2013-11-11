@@ -166,6 +166,170 @@ int print_code(FILE * o, const PageTable & pt, const vaddr_t & rip)
     return len;
 }
 
+/**
+ * Get log record by index.
+ * idx must point to a valid message.
+ *
+ * @param pt Page table to use for vaddr lookup
+ * @param idx Index of log record to get
+ * @param log_buf vaddr of log buffer
+ * @returns vaddr of log record associated with index idx.
+ */
+static vaddr_t log_from_idx(const PageTable & pt, uint64_t idx, vaddr_t log_buf)
+{
+    vaddr_t log_ptr = log_buf + idx;
+    vaddr_t msglen_addr = log_ptr + 8; // &log.len
+    uint16_t msglen;
+
+    memory.read16_vaddr(pt, msglen_addr, msglen);
+
+    /*
+     * A length == 0 record is the end of buffer marker.
+     * Wrap around and return the message at the start of
+     * the buffer.
+     */
+    if ( !msglen )
+        log_ptr = log_buf;
+
+    return log_ptr;
+}
+
+/**
+ * Get next record index.
+ * idx must point to a valid message.
+ *
+ * @param pt Page table to use for vaddr lookup.
+ * @param idx Index of current log record.
+ * @param log_buf vaddr of log buffer.
+ * @returns Index of next log record.
+ */
+static uint64_t log_next(const PageTable & pt, uint64_t idx, vaddr_t log_buf)
+{
+    vaddr_t log_ptr = log_buf + idx;
+    vaddr_t msglen_addr = log_ptr + 8; // &log.len
+    uint16_t msglen;
+
+    memory.read16_vaddr(pt, msglen_addr, msglen);
+    /*
+     * A length == 0 record is the end of buffer marker. Wrap around and
+     * read the message at the start of the buffer as *this* one, and
+     * return the one after that.
+     */
+    if ( !msglen ) {
+        msglen_addr = log_buf + 8; // &log.len
+        memory.read16_vaddr(pt, msglen_addr, msglen);
+        return msglen;
+    }
+
+    return idx + msglen;
+}
+
+/**
+ * Convert log level into a string.
+ * 
+ * @param level kernel printk log level.
+ * @returns C-string of human readable error level.
+ */
+static const char * log_level_str(uint8_t level)
+{
+    switch ( level )
+    {
+        case 0:
+            return " EMERG";
+        case 1:
+            return " ALERT";
+        case 2:
+            return "  CRIT";
+        case 3:
+            return "   ERR";
+        case 4:
+            return "  WARN";
+        case 5:
+            return "NOTICE";
+        case 6:
+            return "  INFO";
+        case 7:
+            return " DEBUG";
+        default:
+            return "";
+    }
+}
+
+int print_console_ring_3x(FILE * o, const PageTable & pt,
+                          const vaddr_t log_buf, const uint64_t log_buf_len,
+                          const uint64_t log_first_idx, const uint64_t log_next_idx)
+{
+    /*
+     * struct log {
+     *    [0] u64 ts_nsec;
+     *    [8] u16 len;
+     *   [10] u16 text_len;
+     *   [12] u16 dict_len;
+     *   [14] u8 facility;
+     *   [15] u8 flags : 5;
+     *   [15] u8 level : 3;
+     * };
+     * SIZE: 16
+     */
+    int len(0);
+    uint64_t idx = log_first_idx;
+    ssize_t written(0);
+    uint16_t txtlen(0);
+    int64_t text_length(0);
+    uint64_t ts_nsec(0);
+    uint64_t ts_sec(0), ts_frac(0);
+
+    union {
+        struct flags_t {
+            uint8_t flags : 5;
+            uint8_t level : 3;
+        } flag_struct;
+
+        uint8_t flag_int;
+    } flags;
+
+    try
+    {
+        while ( idx != log_next_idx )
+        {
+            vaddr_t logptr = log_from_idx(pt, idx, log_buf);
+            vaddr_t txtlen_addr = logptr + 10; // &log.text_len
+            vaddr_t text_addr = logptr + 16;
+
+            memory.read64_vaddr(pt, logptr, ts_nsec);
+            memory.read8_vaddr(pt, logptr + 15, flags.flag_int);
+            ts_sec = ts_nsec / 1000000000;
+            ts_frac = (ts_nsec % 1000000000) / 1000; /* microseconds */
+            len += FPRINTF(o, "[%7"PRIu64".%.6"PRIu64"] %s: ", ts_sec, ts_frac,
+                           log_level_str(flags.flag_struct.level));
+
+            memory.read16_vaddr(pt, txtlen_addr, txtlen);
+            text_length = txtlen;
+            written = memory.write_block_vaddr_to_file(pt, text_addr, o, text_length);
+            len += written;
+            len += FPUTS("\n", o);
+
+            if ( written != text_length )
+                LOG_INFO("Mismatch writing console ring to file. Written %zu bytes "
+                         "of %"PRIu64"\n", written, text_length);
+
+            idx = log_next(pt, idx, log_buf);
+            if ( idx >= log_buf_len )
+            {
+                len += FPRINTF(o, "\tidx of 0x%"PRIx64" bad. >= 0x%"PRIx64".\n",
+                               idx, log_buf_len);
+                break;
+            }
+        }
+    }
+    catch ( const CommonError & e )
+    {
+        e.log();
+    }
+
+    return len;
+}
+
 int print_console_ring(FILE * o, const PageTable & pt,
                        const vaddr_t & ring, const uint64_t & _length,
                        const uint64_t & producer, const uint64_t & consumer)

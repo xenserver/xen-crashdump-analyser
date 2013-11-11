@@ -95,9 +95,10 @@ namespace Abstract
          * Print the console ring.
          *
          * @param stream Stream to write to.
+         * @param info CoreInfo object containing dom0 vmcoreinfo data.
          * @return Number of bytes written to stream.
          */
-        virtual int print_console(FILE * stream) const = 0;
+        virtual int print_console(FILE * stream, CoreInfo& info) const = 0;
 
         /**
          * Print the command line.

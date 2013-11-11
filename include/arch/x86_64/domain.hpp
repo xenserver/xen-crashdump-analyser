@@ -84,9 +84,10 @@ namespace x86_64
          * Print the console ring.
          *
          * @param stream Stream to write to.
+         * @param info CoreInfo object containing dom0 vmcoreinfo data.
          * @return Number of bytes written to stream.
          */
-        virtual int print_console(FILE * stream) const;
+        virtual int print_console(FILE * stream, CoreInfo& info) const;
 
         /**
          * Print the command line.
@@ -119,6 +120,17 @@ namespace x86_64
          * @returns Pagetables.
          */
         virtual const Abstract::PageTable & get_dompt() const;
+
+    private:
+
+        /**
+         * Print the console ring for a 3.x kernel
+         *
+         * @param stream Stream to write to.
+         * @param info CoreInfo object containing dom0 vmcoreinfo data.
+         * @return Number of bytes written to stream.
+         */
+        int print_console_3x(FILE * stream, CoreInfo& info) const;
 
     };
 

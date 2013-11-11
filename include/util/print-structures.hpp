@@ -76,6 +76,22 @@ int print_console_ring(FILE * stream, const PageTable & pt, const vaddr_t & ring
                        const uint64_t & cons);
 
 /**
+ * Print a console ring from a 3.x kernel.
+ * @param stream Stream to print to.
+ * @param pt PageTable to do a pagetable lookup with.
+ * @param log_buf Virtual address of the console log buffer.
+ * @param log_buf_len Total length of log buffer.
+ * @param log_first_idx Offset in log buffer to the first log record.
+ * @param log_next_idx Offset in log buffer to the next log record (i.e. one after the last)
+ * @return Number of bytes written.
+ */
+int print_console_ring_3x(FILE * stream, const PageTable & pt,
+                          const vaddr_t log_buf,
+                          const uint64_t log_buf_len,
+                          const uint64_t log_first_idx,
+                          const uint64_t log_next_idx);
+
+/**
  * Dump a data region.
  * @param stream Stream to print to.
  * @param word_size Size of words (4 or 8) in bytes.

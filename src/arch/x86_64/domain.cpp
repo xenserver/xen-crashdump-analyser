@@ -278,7 +278,7 @@ namespace x86_64
         len += FPUTS("\n  Console Ring:\n", o);
 
         if ( this->domain_id == 0 )
-            this->print_console(o);
+            this->print_console(o, vmcoreinfo);
         else
             len += FPUTS("    No Symbol Table\n", o);
 
@@ -313,7 +313,7 @@ namespace x86_64
         return len;
     }
 
-    int Domain::print_console(FILE * o) const
+    int Domain::print_console(FILE * o, CoreInfo& info) const
     {
         int len = 0;
 
@@ -334,11 +334,20 @@ namespace x86_64
         if ( log_end_sym == NULL ||
              log_buf_sym == NULL || log_buf_len_sym == NULL )
         {
-            len += FPUTS("\tUnavailable, the following symbols are not available:\n", o);
-            len += FPRINTF(o, "  %s%s%s.\n\n",
-                           log_end_sym     == NULL ? " log_end"     : "",
-                           log_buf_sym     == NULL ? " log_buf"     : "",
-                           log_buf_len_sym == NULL ? " log_buf_len" : "");
+            if ( info.vmcoreinfoData() != NULL )
+            {
+                // Try to parse a linux 3.x log buffer
+                len += print_console_3x(o, info);
+            }
+
+            if ( len == 0 )
+            {
+                len += FPUTS("\tUnavailable, the following symbols are not available:\n", o);
+                len += FPRINTF(o, "  %s%s%s.\n\n",
+                               log_end_sym     == NULL ? " log_end"     : "",
+                               log_buf_sym     == NULL ? " log_buf"     : "",
+                               log_buf_len_sym == NULL ? " log_buf_len" : "");
+            }
             return len;
         }
 
@@ -360,7 +369,6 @@ namespace x86_64
             memory.read32_vaddr(dompt, log_buf_len_sym->address, tmp);
             length = tmp;
 
-
             if ( length > (1<<21) )
             {
                 len += FPRINTF(o, "\tLength of 0x%"PRIx64" looks abnormally long.  Truncating to"
@@ -371,6 +379,57 @@ namespace x86_64
             consumer = producer > length ? producer - length : 0;
 
             len += print_console_ring(o, dompt, ring, length, producer, consumer);
+        }
+        catch ( const CommonError & e )
+        {
+            e.log();
+        }
+
+        return len;
+    }
+
+    int Domain::print_console_3x(FILE * o, CoreInfo& info) const
+    {
+        int len(0);
+        vaddr_t log_buf_addr_addr, log_buf_len_addr;
+        vaddr_t log_first_idx_addr, log_next_idx_addr;
+
+        if ( ! info.lookup_key_vaddr("SYMBOL(log_buf)", log_buf_addr_addr) ||
+             ! info.lookup_key_vaddr("SYMBOL(log_buf_len)", log_buf_len_addr) ||
+             ! info.lookup_key_vaddr("SYMBOL(log_first_idx)", log_first_idx_addr) ||
+             ! info.lookup_key_vaddr("SYMBOL(log_next_idx)", log_next_idx_addr) )
+            return 0;
+
+        try
+        {
+            const Abstract::PageTable & dompt = this->get_dompt();
+
+            uint64_t log_buf_len(0), log_buf_addr(0);
+            uint64_t log_first_idx(0), log_next_idx(0);
+
+            if ( this->is_32bit_pv )
+            {
+                uint32_t tmp(0);
+                memory.read32_vaddr(dompt, log_buf_len_addr, tmp);
+                log_buf_len = tmp;
+                memory.read32_vaddr(dompt, log_buf_addr_addr, tmp);
+                log_buf_addr = tmp;
+                memory.read32_vaddr(dompt, log_first_idx_addr, tmp);
+                log_first_idx = tmp;
+                memory.read32_vaddr(dompt, log_next_idx_addr, tmp);
+                log_next_idx = tmp;
+            }
+            else
+            {
+                memory.read64_vaddr(dompt, log_buf_len_addr, log_buf_len);
+                memory.read64_vaddr(dompt, log_buf_addr_addr, log_buf_addr);
+                memory.read64_vaddr(dompt, log_first_idx_addr, log_first_idx);
+                memory.read64_vaddr(dompt, log_next_idx_addr, log_next_idx);
+            }
+
+            vaddr_t log_buf = log_buf_addr;
+            len += print_console_ring_3x(o, dompt, log_buf, log_buf_len,
+                                  log_first_idx, log_next_idx);
         }
         catch ( const CommonError & e )
         {
