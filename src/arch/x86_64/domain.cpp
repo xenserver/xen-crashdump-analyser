@@ -406,25 +406,23 @@ namespace x86_64
 
             uint64_t log_buf_len(0), log_buf_addr(0);
             uint64_t log_first_idx(0), log_next_idx(0);
+            uint32_t tmp(0);
+
+            memory.read32_vaddr(dompt, log_buf_len_addr, tmp);
+            log_buf_len = tmp;
+            memory.read32_vaddr(dompt, log_first_idx_addr, tmp);
+            log_first_idx = tmp;
+            memory.read32_vaddr(dompt, log_next_idx_addr, tmp);
+            log_next_idx = tmp;
 
             if ( this->is_32bit_pv )
             {
-                uint32_t tmp(0);
-                memory.read32_vaddr(dompt, log_buf_len_addr, tmp);
-                log_buf_len = tmp;
                 memory.read32_vaddr(dompt, log_buf_addr_addr, tmp);
                 log_buf_addr = tmp;
-                memory.read32_vaddr(dompt, log_first_idx_addr, tmp);
-                log_first_idx = tmp;
-                memory.read32_vaddr(dompt, log_next_idx_addr, tmp);
-                log_next_idx = tmp;
             }
             else
             {
-                memory.read64_vaddr(dompt, log_buf_len_addr, log_buf_len);
                 memory.read64_vaddr(dompt, log_buf_addr_addr, log_buf_addr);
-                memory.read64_vaddr(dompt, log_first_idx_addr, log_first_idx);
-                memory.read64_vaddr(dompt, log_next_idx_addr, log_next_idx);
             }
 
             vaddr_t log_buf = log_buf_addr;
