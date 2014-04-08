@@ -276,7 +276,7 @@ namespace x86_64
                     this->ctx_from = new VCPU(Abstract::VCPU::RST_CTX_SWITCH);
                     if ( ! this->ctx_from->parse_basic(
                              this->per_cpu_current_vcpu_ptr, *this->xenpt) ||
-                         ! this->vcpu->parse_extended(*this->xenpt, &cpu_info) )
+                         ! this->ctx_from->parse_extended(*this->xenpt, &cpu_info) )
                         return false;
 
                     this->ctx_to = new VCPU(Abstract::VCPU::RST_NONE);
