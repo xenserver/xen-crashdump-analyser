@@ -34,7 +34,8 @@ namespace xensyms
 
     vaddr_t UREGS_kernel_sizeof;
 
-    vaddr_t VCPU_user_regs, VCPU_cr3;
+    vaddr_t VCPU_user_regs, VCPU_flags, VCPU_guest_table_user,
+        VCPU_guest_table, VCPU_cr3;
 
     vaddr_t DOMAIN_paging_mode, DOMAIN_is_32bit_pv;
 
@@ -59,6 +60,9 @@ namespace xensyms
         XENSYM(x86_64_uregs, UREGS_kernel_sizeof),
 
         XENSYM(x86_64_vcpu, VCPU_user_regs),
+        XENSYM(x86_64_vcpu, VCPU_flags),
+        XENSYM(x86_64_vcpu, VCPU_guest_table_user),
+        XENSYM(x86_64_vcpu, VCPU_guest_table),
         XENSYM(x86_64_vcpu, VCPU_cr3),
 
         XENSYM(x86_64_domain, DOMAIN_paging_mode),

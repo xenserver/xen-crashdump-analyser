@@ -154,6 +154,10 @@ namespace x86_64
          */
         virtual bool parse_seg_regs(const vaddr_t & addr, const Abstract::PageTable & xenpt);
 
+        uint64_t arch_flags;
+        maddr_t guest_table_user;
+        maddr_t guest_table;
+
         /// Register values
         x86_64regs regs;
     };

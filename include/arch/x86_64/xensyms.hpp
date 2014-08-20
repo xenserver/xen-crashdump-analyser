@@ -48,6 +48,12 @@ namespace xensyms
 
     /// Offset of user_regs in Xen's struct arch_vcpu.
     extern vaddr_t VCPU_user_regs;
+    /// Offset of flags in Xen's struct arch_vcpu.
+    extern vaddr_t VCPU_flags;
+    /// Offset of guest_table_user in Xen's struct arch_vcpu.
+    extern vaddr_t VCPU_guest_table_user;
+    /// Offset of guest_table in Xen's struct arch_vcpu.
+    extern vaddr_t VCPU_guest_table;
     /// Offset of cr3 in Xen's struct arch_vcpu.
     extern vaddr_t VCPU_cr3;
 

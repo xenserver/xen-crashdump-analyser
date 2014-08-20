@@ -30,11 +30,16 @@
 
 /// These are structures taken from Xen header files.
 /// @cond EXCLUDE
-#define STACK_SHIFT 12ULL
+#define PAGE_SHIFT 12ULL
+#define STACK_SHIFT PAGE_SHIFT
 #define STACK_SIZE (4096ULL<<3)
 #define PAGE_SIZE (4096ULL)
 
 #define STACK_PAGE(x) (((x) >> STACK_SHIFT) & 7)
+
+/* 'arch_vcpu' flags values */
+#define _TF_kernel_mode        0
+#define TF_kernel_mode         (1<<_TF_kernel_mode)
 
 
 #define XEN_ELFNOTE_VMCOREINFO 0U

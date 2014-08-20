@@ -46,7 +46,8 @@ namespace x86_64
 {
 
     VCPU::VCPU(Abstract::VCPU::VCPURunstate rst):
-        Abstract::VCPU(rst), regs()
+        Abstract::VCPU(rst), arch_flags(0), guest_table_user(0),
+        guest_table(0), regs()
     {
         memset(&this->regs, 0, sizeof this->regs);
     }
@@ -99,6 +100,14 @@ namespace x86_64
             memory.read32_vaddr(xenpt, this->vcpu_ptr + VCPU_pause_count,
                                 this->pause_count);
 
+            memory.read64_vaddr(xenpt, this->vcpu_ptr + VCPU_flags,
+                                this->arch_flags);
+            memory.read64_vaddr(xenpt, this->vcpu_ptr + VCPU_guest_table_user,
+                                this->guest_table_user);
+            this->guest_table_user = this->guest_table_user << PAGE_SHIFT;
+            memory.read64_vaddr(xenpt, this->vcpu_ptr + VCPU_guest_table,
+                                this->guest_table);
+            this->guest_table = this->guest_table << PAGE_SHIFT;
             memory.read64_vaddr(xenpt, this->vcpu_ptr + VCPU_cr3,
                                 this->regs.cr3);
 
@@ -117,16 +126,16 @@ namespace x86_64
     {
         try
         {
-            if ( this->regs.cr3 == 0ULL )
+            if ( this->guest_table == 0ULL )
             {
-                LOG_WARN("Got cr3 of 0 from guest registers - VCPU assumed down\n");
+                LOG_WARN("Cannot get kernel page table address - VCPU assumed down\n");
                 return false;
             }
 
             if ( this->flags & CPU_PV_COMPAT )
-                this->dompt = new x86_64::PT64Compat(this->regs.cr3);
+                this->dompt = new x86_64::PT64Compat(this->guest_table);
             else
-                this->dompt = new x86_64::PT64(this->regs.cr3);
+                this->dompt = new x86_64::PT64(this->guest_table);
 
             this->flags |= CPU_CR_REGS;
 
@@ -265,16 +274,16 @@ namespace x86_64
 
         try
         {
-            if ( vcpu->regs.cr3 == 0ULL )
+            if ( vcpu->guest_table == 0ULL )
             {
-                LOG_ERROR("Got cr3 of 0 from active VCPU\n");
+                LOG_ERROR("Cannot get kernel page table address from active VCPU\n");
                 return false;
             }
 
             if ( this->flags & CPU_PV_COMPAT )
-                this->dompt = new x86_64::PT64Compat(vcpu->regs.cr3);
+                this->dompt = new x86_64::PT64Compat(vcpu->guest_table);
             else
-                this->dompt = new x86_64::PT64(vcpu->regs.cr3);
+                this->dompt = new x86_64::PT64(vcpu->guest_table);
         }
         catch ( const std::bad_alloc & )
         {
@@ -290,6 +299,9 @@ namespace x86_64
         this->flags = vcpu->flags;
         this->regs = vcpu->regs;
         this->runstate = vcpu->runstate;
+        this->arch_flags = vcpu->arch_flags;
+        this->guest_table_user = vcpu->guest_table_user;
+        this->guest_table = vcpu->guest_table;
         return true;
     }
 
@@ -330,8 +342,11 @@ namespace x86_64
 
         if ( this->flags & CPU_CR_REGS )
         {
-            len += FPUTS("\n", o);
-            len += FPRINTF(o, "\tcr3: %016"PRIx64"\n", this->regs.cr3);
+            len += FPRINTF(o, "\n\tguest_table_user: %016"PRIx64"\n",
+                           this->guest_table_user);
+            len += FPRINTF(o, "\tguest_table: %016"PRIx64"\n",
+                           this->guest_table);
+            len += FPRINTF(o, "\tHW cr3: %016"PRIx64"\n", this->regs.cr3);
         }
 
         if ( this->flags & CPU_GP_REGS )
@@ -372,11 +387,14 @@ namespace x86_64
             break;
         }
         len += FPRINTF(o, "\tStruct vcpu at %016"PRIx64"\n", this->vcpu_ptr);
+        len += FPRINTF(o, "\tVCPU in %s mode\n",
+                       this->arch_flags & TF_kernel_mode ? "kernel" : "user");
 
         len += FPUTS("\n", o);
 
         if ( this->flags & CPU_GP_REGS &&
              this->flags & CPU_CR_REGS &&
+             this->arch_flags & TF_kernel_mode &&
              ( this->paging_support == VCPU::PAGING_NONE ||
                this->paging_support == VCPU::PAGING_SHADOW )
             )
@@ -442,7 +460,11 @@ namespace x86_64
 
         if ( this->flags & CPU_CR_REGS )
         {
-            len += FPRINTF(o, "\tcr3: %016"PRIx64"\n", this->regs.cr3);
+            len += FPRINTF(o, "\n\tguest_table_user: %016"PRIx64"\n",
+                           this->guest_table_user);
+            len += FPRINTF(o, "\tguest_table: %016"PRIx64"\n",
+                           this->guest_table);
+            len += FPRINTF(o, "\tHW cr3: %016"PRIx64"\n", this->regs.cr3);
         }
 
         if ( this->flags & CPU_GP_REGS )
@@ -483,11 +505,14 @@ namespace x86_64
             break;
         }
         len += FPRINTF(o, "\tStruct vcpu at %016"PRIx64"\n", this->vcpu_ptr);
+        len += FPRINTF(o, "\tVCPU in %s mode\n",
+                       this->arch_flags & TF_kernel_mode ? "kernel" : "user");
 
         len += FPUTS("\n", o);
 
         if ( this->flags & CPU_GP_REGS &&
-             this->flags & CPU_CR_REGS )
+             this->flags & CPU_CR_REGS &&
+             this->arch_flags & TF_kernel_mode)
         {
             len += FPRINTF(o, "\tStack at %08"PRIx32":", this->regs.esp);
             len += print_32bit_stack(o, *this->dompt, this->regs.rsp);
