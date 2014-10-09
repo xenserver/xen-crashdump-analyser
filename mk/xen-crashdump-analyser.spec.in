@@ -12,7 +12,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 %setup -q -n %{name}
 
 %build
-make
+%{?cov_wrap} make
 
 %install
 rm -rf $RPM_BUILD_ROOT
