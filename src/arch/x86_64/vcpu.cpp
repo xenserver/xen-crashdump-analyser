@@ -111,6 +111,8 @@ namespace x86_64
             memory.read64_vaddr(xenpt, this->vcpu_ptr + VCPU_cr3,
                                 this->regs.cr3);
 
+            this->flags |= CPU_CR_REGS;
+
             return true;
         }
         catch ( const CommonError & e )
@@ -136,9 +138,6 @@ namespace x86_64
                 this->dompt = new x86_64::PT64Compat(this->guest_table);
             else
                 this->dompt = new x86_64::PT64(this->guest_table);
-
-            this->flags |= CPU_CR_REGS;
-
 
             switch ( this->runstate )
             {
