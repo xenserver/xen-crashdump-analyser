@@ -39,7 +39,7 @@ namespace xensyms
 
     vaddr_t DOMAIN_paging_mode, DOMAIN_is_32bit_pv;
 
-    vaddr_t per_cpu__curr_vcpu, __per_cpu_offset;
+    vaddr_t per_cpu__curr_vcpu, __per_cpu_offset, stack_base;
 
     /// @cond EXCLUDE
     DEFINE_XENSYM_GROUP(x86_64_cpuinfo);
@@ -70,6 +70,7 @@ namespace xensyms
 
         XENSYM(x86_64_per_cpu, per_cpu__curr_vcpu),
         XENSYM(x86_64_per_cpu, __per_cpu_offset),
+        XENSYM(x86_64_per_cpu, stack_base),
 
         XENSYM_NULL
     };

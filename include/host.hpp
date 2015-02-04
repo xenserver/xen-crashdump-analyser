@@ -117,6 +117,8 @@ public:
     Abstract::PCPU ** pcpus;
     /// Idle VCPU addresses
     vaddr_t * idle_vcpus;
+    /// PCPU stack base addresses
+    vaddr_t * pcpu_stacks;
 
     /// Xen Symbol table.
     SymbolTable symtab;

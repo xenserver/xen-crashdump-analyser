@@ -66,6 +66,8 @@ namespace xensyms
     extern vaddr_t per_cpu__curr_vcpu;
     /// Xen's __per_cpu_offset symbol
     extern vaddr_t __per_cpu_offset;
+    /// Xen's stack_base symbol.
+    extern vaddr_t stack_base;
 
     /// @cond EXCLUDE
     DECLARE_XENSYM_GROUP(x86_64_cpuinfo);

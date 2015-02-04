@@ -55,7 +55,7 @@ using namespace x86_64::xensyms;
 
 Host::Host():
     once(false), arch(Abstract::Elf::ELF_Unknown), nr_pcpus(0),
-    pcpus(NULL), idle_vcpus(NULL),
+    pcpus(NULL), idle_vcpus(NULL), pcpu_stacks(NULL),
     symtab(), dom0_symtab(),
     active_vcpus(),
     xen_major(0), xen_minor(0), xen_extra(NULL),
@@ -75,6 +75,7 @@ Host::~Host()
     }
 
     SAFE_DELETE_ARRAY(this->idle_vcpus);
+    SAFE_DELETE_ARRAY(this->pcpu_stacks);
     SAFE_DELETE_ARRAY(this->xen_extra);
     SAFE_DELETE_ARRAY(this->xen_changeset);
     SAFE_DELETE_ARRAY(this->xen_compiler);
@@ -109,9 +110,10 @@ bool Host::setup(const Abstract::Elf * elf)
             }
 
         this->idle_vcpus = new vaddr_t[nr_pcpus];
+        this->pcpu_stacks = new vaddr_t[nr_pcpus];
 
         for ( int x = 0; x < nr_pcpus; ++x )
-            this->idle_vcpus[x] = -((vaddr_t)1);
+            this->idle_vcpus[x] = this->pcpu_stacks[x] = -((vaddr_t)1);
     }
     catch ( const std::bad_alloc & )
     {
@@ -227,12 +229,16 @@ bool Host::decode_xen()
 
         if ( this->arch == Abstract::Elf::ELF_64 )
         {
-            LOG_DEBUG("  Reading idle vcpus\n");
+            LOG_DEBUG("  Reading per-pcpu information\n");
             for ( int x = 0; x < this->nr_pcpus; ++x )
             {
                 vaddr_t idle = idle_vcpu + (x * sizeof(uint64_t) );
                 host.validate_xen_vaddr(idle);
                 memory.read64_vaddr(xenpt, idle, this->idle_vcpus[x]);
+
+                vaddr_t stack = stack_base + (x * sizeof(uint64_t));
+                host.validate_xen_vaddr(stack);
+                memory.read64_vaddr(xenpt, stack, this->pcpu_stacks[x]);
             }
         }
         else
