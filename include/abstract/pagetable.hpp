@@ -58,6 +58,12 @@ namespace Abstract
          */
         virtual void walk(const vaddr_t & vaddr, maddr_t & maddr,
                           vaddr_t * page_end = NULL) const = 0;
+
+        /**
+         * Retrieve the root of this set of pagetables.
+         * @returns cr3 equivalent for this set of pagetables.
+         */
+        virtual uint64_t root() const = 0;
     };
 }
 

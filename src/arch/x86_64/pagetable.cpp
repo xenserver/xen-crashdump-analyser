@@ -45,6 +45,7 @@ namespace x86_64
         pagetable_walk_64(this->cr3, vaddr, maddr, page_end);
     }
 
+    uint64_t PT64::root() const { return this->cr3; }
 
     PT64Compat::PT64Compat(const uint64_t & cr3):cr3(cr3) {};
     PT64Compat::~PT64Compat() {};
@@ -59,6 +60,8 @@ namespace x86_64
 
         pagetable_walk_64(this->cr3, vaddr, maddr, page_end);
     }
+
+    uint64_t PT64Compat::root() const { return this->cr3; }
 }
 
 /*

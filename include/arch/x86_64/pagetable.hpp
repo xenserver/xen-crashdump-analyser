@@ -54,6 +54,12 @@ namespace x86_64
         virtual void walk(const vaddr_t & vaddr, maddr_t & maddr,
                           vaddr_t * page_end = NULL) const;
 
+        /**
+         * Retrieve the root of this set of pagetables.
+         * @returns cr3 equivalent for this set of pagetables.
+         */
+        virtual uint64_t root() const;
+
     private:
         /// Control Register 3
         uint64_t cr3;
@@ -86,6 +92,12 @@ namespace x86_64
          */
         virtual void walk(const vaddr_t & vaddr, maddr_t & maddr,
                           vaddr_t * page_end = NULL) const;
+
+        /**
+         * Retrieve the root of this set of pagetables.
+         * @returns cr3 equivalent for this set of pagetables.
+         */
+        virtual uint64_t root() const;
 
     private:
         /// Control Register 3
