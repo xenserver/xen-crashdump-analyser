@@ -151,6 +151,7 @@ namespace x86_64
         catch ( const std::bad_alloc & )
         {
             LOG_ERROR("Bad alloc for PCPU vcpus.  Kdump environment needs more memory\n");
+            return false;
         }
 
         this->flags |= CPU_CR_REGS;
