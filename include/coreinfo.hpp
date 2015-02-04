@@ -128,6 +128,7 @@ class CoreInfo {
          *
          * @param key the key to search for.
          * @param str the destination buffer.
+         * @param max size of str.
          * @param chars_required buffer size required if insufficient
          * @returns boolean indicating success or failure
          */

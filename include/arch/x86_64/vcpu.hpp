@@ -154,8 +154,11 @@ namespace x86_64
          */
         virtual bool parse_seg_regs(const vaddr_t & addr, const Abstract::PageTable & xenpt);
 
+        /// struct arch_vcpu.flags
         uint64_t arch_flags;
+        /// struct arch_vcpu.guest_table_user
         maddr_t guest_table_user;
+        /// struct arch_vcpu.guest_table
         maddr_t guest_table;
 
         /// Register values

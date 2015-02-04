@@ -113,6 +113,7 @@ namespace Abstract
          * symbol.
          *
          * @param dest CoreInfo object that will hold the data.
+         * @return boolean indicating success or failure.
          */
         virtual bool read_vmcoreinfo(CoreInfo & dest) const = 0;
 
