@@ -45,7 +45,8 @@ namespace Abstract
         /// Constructor.
         PCPU():flags(0),processor_id(-1),per_cpu_offset(0),current_vcpu_ptr(0),
                per_cpu_current_vcpu_ptr(0),ctx_from(NULL),ctx_to(NULL),vcpu(NULL),
-               online(true),xenpt(NULL),vcpu_state(CTX_UNKNOWN)
+               xenpt(NULL),vcpu_state(CTX_UNKNOWN),
+               online(false)
         {};
 
         /// Destructor.
@@ -86,6 +87,11 @@ namespace Abstract
          * @returns boolean
          */
         virtual bool is_online() const = 0;
+
+        /**
+         * Try to declare the PCPU online, if sufficient state is available.
+         */
+        virtual void try_online() = 0;
 
         /**
          * Print the information about this vcpu to the provided stream.
@@ -129,9 +135,6 @@ namespace Abstract
         /// VCPU active or idle on this PCPU.  Possibly NULL.
             *vcpu;
 
-        /// Is this PCPU online?
-        bool online;
-
         /// Pagetable for the context of Xen.
         Abstract::PageTable * xenpt;
 
@@ -167,6 +170,10 @@ namespace Abstract
         }
         /// VCPU state on this PCPU at the time of crash.
             vcpu_state;
+
+    protected:
+        /// Is this PCPU online?
+        bool online;
 
     private:
         // @cond EXCLUDE

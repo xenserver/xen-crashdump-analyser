@@ -79,6 +79,11 @@ namespace x86_64
         virtual bool is_online() const;
 
         /**
+         * Try to declare the PCPU online, if sufficient state is available.
+         */
+        virtual void try_online();
+
+        /**
          * Print the information about this vcpu to the provided stream.
          * Information includes (where relevant).
          * - Core registers

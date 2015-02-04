@@ -70,7 +70,6 @@ namespace x86_64
 
         if ( len != sizeof *ptr )
         {
-            this->online = false;
             LOG_WARN("Wrong size for pr_status note %d.  Expected %zu, got %zu\n",
                      index, sizeof *ptr, len);
             return false;
@@ -78,7 +77,6 @@ namespace x86_64
 
         if ( is_zeroes(buff, len) )
         {
-            this->online = false;
             LOG_WARN("Got zeros for pr_status note %d - PCPU assumed down\n", index);
             return false;
         }
@@ -110,6 +108,8 @@ namespace x86_64
         this->regs.gs = ptr->pr_reg[PR_REG_gs];
 
         this->flags |= ( CPU_GP_REGS | CPU_SEG_REGS );
+
+        this->try_online();
         return true;
     }
 
@@ -119,7 +119,6 @@ namespace x86_64
 
         if ( len != sizeof *ptr )
         {
-            this->online = false;
             LOG_WARN("Wrong size for crash_xen_core note %d.  Expected %zu, got %zu\n",
                      index, sizeof *ptr, len);
             return false;
@@ -127,7 +126,6 @@ namespace x86_64
 
         if ( is_zeroes(buff, len) )
         {
-            this->online = false;
             LOG_WARN("Got zeros for xen_crash_core note %d - PCPU assumed down\n", index);
             return false;
         }
@@ -139,7 +137,6 @@ namespace x86_64
 
         if ( this->regs.cr3 == 0ULL )
         {
-            this->online = false;
             LOG_WARN("Got cr3 of 0 from xen_crash_core note %d - PCPU assumed down\n", index);
             return false;
         }
@@ -156,6 +153,7 @@ namespace x86_64
 
         this->flags |= CPU_CR_REGS;
 
+        this->try_online();
         return true;
     }
 
@@ -303,6 +301,14 @@ namespace x86_64
     }
 
     bool PCPU::is_online() const { return this->online; }
+
+    void PCPU::try_online()
+    {
+        uint32_t required = (CPU_GP_REGS|CPU_SEG_REGS|CPU_CR_REGS);
+
+        if ( (this->flags & required) == required )
+            this->online = true;
+    }
 
     int PCPU::print_state(FILE * o) const
     {
