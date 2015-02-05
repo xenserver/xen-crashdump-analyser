@@ -425,26 +425,29 @@ namespace x86_64
 
         len += FPUTS("\n", o);
 
-        len += FPRINTF(o, "\tStack at %016"PRIx64":", this->regs.rsp);
-        len += print_64bit_stack(o, *this->xenpt, this->regs.rsp);
-
-        len += FPUTS("\n\tCode:\n", o);
-        len += print_code(o, *this->xenpt, this->regs.rip);
-
-        len += FPUTS("\n\tCall Trace:\n", o);
-
-        uint64_t val = this->regs.rip;
-        len += host.symtab.print_symbol64(o, val, true);
-
-        this->print_stack(o, this->regs.rsp, 0);
-
-        len += FPUTS("\n", o);
-
-        if ( vcpu_to_print )
+        if ( this->flags & CPU_GP_REGS )
         {
-            len += FPRINTF(o, "  PCPU %"PRIu32" Guest state (DOM%"PRIu16" VCPU%"PRIu32"):\n",
-                           vcpu_to_print->processor, vcpu_to_print->domid, vcpu_to_print->vcpu_id);
-            len += vcpu_to_print->print_state(o);
+            len += FPRINTF(o, "\tStack at %016"PRIx64":", this->regs.rsp);
+            len += print_64bit_stack(o, *this->xenpt, this->regs.rsp);
+
+            len += FPUTS("\n\tCode:\n", o);
+            len += print_code(o, *this->xenpt, this->regs.rip);
+
+            len += FPUTS("\n\tCall Trace:\n", o);
+
+            uint64_t val = this->regs.rip;
+            len += host.symtab.print_symbol64(o, val, true);
+
+            this->print_stack(o, this->regs.rsp, 0);
+
+            len += FPUTS("\n", o);
+
+            if ( vcpu_to_print )
+            {
+                len += FPRINTF(o, "  PCPU %"PRIu32" Guest state (DOM%"PRIu16" VCPU%"PRIu32"):\n",
+                               vcpu_to_print->processor, vcpu_to_print->domid, vcpu_to_print->vcpu_id);
+                len += vcpu_to_print->print_state(o);
+            }
         }
 
         return len;
