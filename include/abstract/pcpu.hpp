@@ -168,6 +168,8 @@ namespace Abstract
             CTX_IDLE,
             /// VCPU was running.
             CTX_RUNNING,
+            /// VCPU was running, but active register state lost.
+            CTX_RUNNING_LOST,
             /// Context switch occurring.
             CTX_SWITCH
         }

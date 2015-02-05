@@ -266,6 +266,7 @@ bool Host::decode_xen()
             {
             case Abstract::PCPU::CTX_IDLE:
             case Abstract::PCPU::CTX_RUNNING:
+            case Abstract::PCPU::CTX_RUNNING_LOST:
                 this->active_vcpus.push_back(
                     vcpu_pair(this->pcpus[x]->vcpu->vcpu_ptr,
                               this->pcpus[x]->vcpu));

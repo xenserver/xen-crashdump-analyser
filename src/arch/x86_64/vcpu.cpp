@@ -160,6 +160,10 @@ namespace x86_64
                 this->parse_seg_regs(this->vcpu_ptr + VCPU_user_regs, xenpt);
                 break;
 
+            case RST_RUNNING_LOST:
+                LOG_ERROR("Cannot parse extended state if registers have been lost\n");
+                return false;
+
             case RST_UNKNOWN:
                 LOG_ERROR("Bad vcpu runstate for parsing extended state\n");
                 return false;
@@ -377,6 +381,9 @@ namespace x86_64
             break;
         case RST_RUNNING:
             len += FPRINTF(o, "\tCurrently running on PCPU%"PRIu32"\n", this->processor);
+            break;
+        case RST_RUNNING_LOST:
+            len += FPRINTF(o, "\tCurrently running on PCPU%"PRIu32" but state lost\n", this->processor);
             break;
         case RST_CTX_SWITCH:
             len += FPUTS("\tBeing Context Switched:  State unreliable\n", o);

@@ -52,6 +52,8 @@ namespace Abstract
             RST_NONE,
             /// VCPU was running.
             RST_RUNNING,
+            /// VCPU was running but active register state lost.
+            RST_RUNNING_LOST,
             /// VCPU was being context switched from.
             RST_CTX_SWITCH
         };

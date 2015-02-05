@@ -233,9 +233,9 @@ namespace x86_64
                      ! this->vcpu->parse_extended(*this->xenpt, &cpu_info) )
                     return false;
             }
-            else
+            else if ( this->current_vcpu_ptr == this->per_cpu_current_vcpu_ptr )
             {
-                if ( this->current_vcpu_ptr == this->per_cpu_current_vcpu_ptr )
+                if ( this->flags & CPU_GP_REGS )
                 {
                     LOG_INFO("    Current vcpu was RUNNING.  Guest context on stack\n");
                     this->vcpu_state = CTX_RUNNING;
@@ -267,22 +267,31 @@ namespace x86_64
                 }
                 else
                 {
-                    LOG_INFO("    Xen was context switching.  Guest context inaccurate\n");
-                    /* Context switch was occurring.  ctx_from has indeterminate register
-                     * state.  ctx_to can find valid register state in its struct vcpu.
-                     */
-                    this->vcpu_state = CTX_SWITCH;
-                    this->ctx_from = new VCPU(Abstract::VCPU::RST_CTX_SWITCH);
-                    if ( ! this->ctx_from->parse_basic(
-                             this->per_cpu_current_vcpu_ptr, *this->xenpt) ||
-                         ! this->ctx_from->parse_extended(*this->xenpt, &cpu_info) )
-                        return false;
-
-                    this->ctx_to = new VCPU(Abstract::VCPU::RST_NONE);
-                    if ( ! this->ctx_to->parse_basic(
-                             this->current_vcpu_ptr, *this->xenpt) )
+                    LOG_INFO("    Current vcpu was RUNNING.  Guest context lost on stack\n");
+                    this->vcpu_state = CTX_RUNNING_LOST;
+                    this->vcpu = new VCPU(Abstract::VCPU::RST_RUNNING_LOST);
+                    if ( ! this->vcpu->parse_basic(
+                             this->per_cpu_current_vcpu_ptr, *this->xenpt) )
                         return false;
                 }
+            }
+            else
+            {
+                LOG_INFO("    Xen was context switching.  Guest context inaccurate\n");
+                /* Context switch was occurring.  ctx_from has indeterminate register
+                 * state.  ctx_to can find valid register state in its struct vcpu.
+                 */
+                this->vcpu_state = CTX_SWITCH;
+                this->ctx_from = new VCPU(Abstract::VCPU::RST_CTX_SWITCH);
+                if ( ! this->ctx_from->parse_basic(
+                         this->per_cpu_current_vcpu_ptr, *this->xenpt) ||
+                     ! this->ctx_from->parse_extended(*this->xenpt, &cpu_info) )
+                    return false;
+
+                this->ctx_to = new VCPU(Abstract::VCPU::RST_NONE);
+                if ( ! this->ctx_to->parse_basic(
+                         this->current_vcpu_ptr, *this->xenpt) )
+                    return false;
             }
 
             this->flags |= CPU_STACK_STATE;
@@ -395,12 +404,18 @@ namespace x86_64
                 break;
 
             case CTX_RUNNING:
+            case CTX_RUNNING_LOST:
                 len += FPRINTF(o, "\tstack current VCPU  %016"PRIx64" DOM%"PRIu16" VCPU%"PRIu32"\n",
                                this->current_vcpu_ptr, this->vcpu->domid, this->vcpu->vcpu_id);
                 len += FPRINTF(o, "\tpercpu current VCPU %016"PRIx64" DOM%"PRIu16" VCPU%"PRIu32"\n",
                                this->per_cpu_current_vcpu_ptr, this->vcpu->domid, this->vcpu->vcpu_id);
-                len += FPUTS("\tVCPU was RUNNING\n", o);
-                vcpu_to_print = this->vcpu;
+                if ( this->vcpu_state == CTX_RUNNING )
+                {
+                    len += FPUTS("\tVCPU was RUNNING\n", o);
+	                vcpu_to_print = this->vcpu;
+                }
+                else
+                    len += FPUTS("\tVCPU was RUNNING but register state was lost\n", o);
                 break;
 
             case CTX_SWITCH:
