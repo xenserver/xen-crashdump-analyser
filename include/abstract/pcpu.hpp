@@ -44,7 +44,8 @@ namespace Abstract
     public:
         /// Constructor.
         PCPU():flags(0),processor_id(-1),per_cpu_offset(0),current_vcpu_ptr(0),
-               per_cpu_current_vcpu_ptr(0),ctx_from(NULL),ctx_to(NULL),vcpu(NULL),
+               per_cpu_current_vcpu_ptr(0),stack_base(0),
+               ctx_from(NULL),ctx_to(NULL),vcpu(NULL),
                xenpt(NULL),vcpu_state(CTX_UNKNOWN),
                online(false)
         {};
@@ -127,6 +128,8 @@ namespace Abstract
         uint64_t current_vcpu_ptr;
         /// Current VCPU pointer from Xen per-cpu area.
         uint64_t per_cpu_current_vcpu_ptr;
+        /// Base address of the CPU stack.
+        vaddr_t stack_base;
 
         /// VCPU being context-switched from on this PCPU.  Usually NULL.
         Abstract::VCPU *ctx_from,

@@ -109,6 +109,8 @@ namespace x86_64
 
         this->flags |= ( CPU_GP_REGS | CPU_SEG_REGS );
 
+        this->stack_base = this->regs.rsp & ~(STACK_SIZE-1);
+
         this->try_online();
         return true;
     }
@@ -176,9 +178,7 @@ namespace x86_64
 
         try
         {
-            vaddr_t cpu_info = this->regs.rsp;
-            cpu_info &= ~(STACK_SIZE-1);
-            cpu_info |= STACK_SIZE - CPUINFO_sizeof;
+            vaddr_t cpu_info = this->stack_base + (STACK_SIZE - CPUINFO_sizeof);
 
             host.validate_xen_vaddr(cpu_info);
 
