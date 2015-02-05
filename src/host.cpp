@@ -251,8 +251,13 @@ bool Host::decode_xen()
         {
             if ( ! this->pcpus[x]->is_online() )
             {
-                LOG_DEBUG("  Skipping pcpu%d - offline\n", x);
-                continue;
+                LOG_DEBUG("  pcpu%d offline - probing stack\n", x);
+                if ( !this->pcpus[x]->probe_xen_stack(
+                         xenpt.root(), this->pcpu_stacks[x]) )
+                {
+                    LOG_DEBUG("    Probe failed - skipping\n");
+                    continue;
+                }
             }
             if ( ! this->pcpus[x]->decode_extended_state() )
                 LOG_WARN("  Failed to decode extended state for pcpu%d\n", x);

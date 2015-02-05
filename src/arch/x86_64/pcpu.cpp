@@ -159,18 +159,50 @@ namespace x86_64
         return true;
     }
 
+    bool PCPU::probe_xen_stack(uint64_t cr3, vaddr_t stack_base)
+    {
+        try
+        {
+            this->xenpt = new PT64(cr3);
+
+            if ( stack_base == 0 )
+            {
+                LOG_DEBUG("    No stack - pcpu was likely legitimately offline\n");
+                return false;
+            }
+
+            if ( stack_base & (STACK_SIZE - 1) )
+            {
+                LOG_WARN("stack base 0x%016"PRIx64" not appropriately aligned - skipping\n",
+                         stack_base);
+                return false;
+            }
+
+            host.validate_xen_vaddr(stack_base);
+            this->stack_base = stack_base;
+
+            return true;
+        }
+        catch ( const std::bad_alloc & )
+        {
+            LOG_ERROR("Bad alloc for PCPU vcpus.  Kdump environment needs more memory\n");
+        }
+        catch ( const CommonError & e )
+        {
+            e.log();
+        }
+
+        return false;
+    }
+
     bool PCPU::decode_extended_state()
     {
-        if ( ! this->online )
+        if ( !this->xenpt || this->stack_base == 0ULL )
         {
-            LOG_ERROR("  This PCPU is not online\n");
+            LOG_ERROR("  Missing sufficient information to decode this cpu\n");
             return false;
         }
-        if ( ! (this->flags & CPU_CR_REGS) )
-        {
-            LOG_ERROR("  Missing required CPU_CR_REGS for this pcpu\n");
-            return false;
-        }
+
         if ( ! ( REQ_x86_64_XENSYMS(x86_64_cpuinfo) &
                  REQ_x86_64_XENSYMS(x86_64_per_cpu) &
                  REQ_x86_64_XENSYMS(x86_64_uregs) ))
@@ -328,7 +360,7 @@ namespace x86_64
 
         if ( !this->online )
         {
-            return len + FPUTS("    PCPU Offline\n\n", o);
+            len += FPUTS("    PCPU Offline\n", o);
         }
 
         if ( this->flags & CPU_GP_REGS )
@@ -387,6 +419,8 @@ namespace x86_64
 
         if ( this->flags & CPU_STACK_STATE )
         {
+            len += FPUTS("\n", o);
+
             switch ( this->vcpu_state )
             {
             case CTX_NONE:

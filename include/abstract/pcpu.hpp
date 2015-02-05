@@ -77,6 +77,15 @@ namespace Abstract
         virtual bool parse_xen_crash_core(const char * buff, const size_t len, int index) = 0;
 
         /**
+         * Probe a stack looking for Xen information.
+         *
+         * @param cr3 Any cr3 which can viably used to parse Xen state
+         * @param stack_base Base of the area suspected to be a Xen stack
+         * @return boolean indicating success or failure.
+         */
+        virtual bool probe_xen_stack(uint64_t cr3, vaddr_t stack_base) = 0;
+
+        /**
          * Decode extended state, given information obtained from PR_STATUS and
          * Xen crash core notes.
          * @return boolean indicating success or failure.
