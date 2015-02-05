@@ -262,25 +262,22 @@ bool Host::decode_xen()
         LOG_DEBUG("  Generating active vcpu list\n");
 
         for (int x=0; x < nr_pcpus; ++x)
-            if ( this->pcpus[x]->is_online() )
+            switch ( this->pcpus[x]->vcpu_state )
             {
-                switch(this->pcpus[x]->vcpu_state)
-                {
-                case Abstract::PCPU::CTX_IDLE:
-                case Abstract::PCPU::CTX_RUNNING:
-                    this->active_vcpus.push_back(
-                        vcpu_pair(this->pcpus[x]->vcpu->vcpu_ptr,
-                                  this->pcpus[x]->vcpu));
-                    break;
-                case Abstract::PCPU::CTX_SWITCH:
-                    this->active_vcpus.push_back(
-                        vcpu_pair(this->pcpus[x]->ctx_from->vcpu_ptr,
-                                  this->pcpus[x]->ctx_from));
-                    break;
-                case Abstract::PCPU::CTX_UNKNOWN:
-                case Abstract::PCPU::CTX_NONE:
-                    break;
-                }
+            case Abstract::PCPU::CTX_IDLE:
+            case Abstract::PCPU::CTX_RUNNING:
+                this->active_vcpus.push_back(
+                    vcpu_pair(this->pcpus[x]->vcpu->vcpu_ptr,
+                              this->pcpus[x]->vcpu));
+                break;
+            case Abstract::PCPU::CTX_SWITCH:
+                this->active_vcpus.push_back(
+                    vcpu_pair(this->pcpus[x]->ctx_from->vcpu_ptr,
+                              this->pcpus[x]->ctx_from));
+                break;
+            case Abstract::PCPU::CTX_UNKNOWN:
+            case Abstract::PCPU::CTX_NONE:
+                break;
             }
 
         return true;
