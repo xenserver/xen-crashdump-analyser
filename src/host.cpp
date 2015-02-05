@@ -277,7 +277,8 @@ bool Host::decode_xen()
                         vcpu_pair(this->pcpus[x]->ctx_from->vcpu_ptr,
                                   this->pcpus[x]->ctx_from));
                     break;
-                default:
+                case Abstract::PCPU::CTX_UNKNOWN:
+                case Abstract::PCPU::CTX_NONE:
                     break;
                 }
             }

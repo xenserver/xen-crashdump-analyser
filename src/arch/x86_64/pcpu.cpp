@@ -417,7 +417,6 @@ namespace x86_64
                 break;
 
             case CTX_UNKNOWN:
-            default:
                 len += FPUTS("\tUnable to parse stack information\n", o);
                 break;
             }

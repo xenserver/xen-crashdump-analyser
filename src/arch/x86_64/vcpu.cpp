@@ -161,7 +161,6 @@ namespace x86_64
                 break;
 
             case RST_UNKNOWN:
-            default:
                 LOG_ERROR("Bad vcpu runstate for parsing extended state\n");
                 return false;
             }
@@ -382,7 +381,7 @@ namespace x86_64
         case RST_CTX_SWITCH:
             len += FPUTS("\tBeing Context Switched:  State unreliable\n", o);
             break;
-        default:
+        case RST_UNKNOWN:
             len += FPUTS("\tUnknown runstate\n", o);
             break;
         }
