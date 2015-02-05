@@ -348,7 +348,8 @@ namespace x86_64
             len += FPRINTF(o, "\tHW cr3: %016"PRIx64"\n", this->regs.cr3);
         }
 
-        if ( this->flags & CPU_GP_REGS )
+        if ( (this->flags & CPU_CR_REGS) &&
+             (this->flags & CPU_SEG_REGS) )
         {
             len += FPUTS("\n", o);
 
@@ -466,7 +467,8 @@ namespace x86_64
             len += FPRINTF(o, "\tHW cr3: %016"PRIx64"\n", this->regs.cr3);
         }
 
-        if ( this->flags & CPU_GP_REGS )
+        if ( (this->flags & CPU_CR_REGS) &&
+             (this->flags & CPU_SEG_REGS) )
         {
             len += FPUTS("\n", o);
 

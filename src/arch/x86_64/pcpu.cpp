@@ -360,17 +360,21 @@ namespace x86_64
             len += FPUTS("\n", o);
         }
 
-        if ( this->flags & CPU_GP_REGS )
+        if ( (this->flags & CPU_CR_REGS) &&
+             (this->flags & CPU_SEG_REGS) )
         {
             len += FPUTS("\n", o);
-            len += FPRINTF(o, "\tds: %04"PRIx16"   es: %04"PRIx16"   "
-                           "fs: %04"PRIx16"   gs: %04"PRIx16"   "
-                           "ss: %04"PRIx16"   cs: %04"PRIx16"\n",
-                           this->regs.ds, this->regs.es, this->regs.fs,
-                           this->regs.gs, this->regs.ss, this->regs.cs);
-        }
 
-        len += FPUTS("\n", o);
+            if ( this->flags & CPU_SEG_REGS )
+                len += FPRINTF(o, "\tds: %04"PRIx16"   es: %04"PRIx16"   "
+                               "fs: %04"PRIx16"   gs: %04"PRIx16"   "
+                               "ss: %04"PRIx16"   cs: %04"PRIx16"\n",
+                               this->regs.ds, this->regs.es, this->regs.fs,
+                               this->regs.gs, this->regs.ss, this->regs.cs);
+            else
+                len += FPRINTF(o, "\tss: %04"PRIx16"   cs: %04"PRIx16"\n",
+                               this->regs.ss, this->regs.cs);
+        }
 
         if ( this->flags & CPU_STACK_STATE )
         {
