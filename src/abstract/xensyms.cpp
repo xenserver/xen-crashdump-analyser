@@ -47,6 +47,29 @@ namespace xensyms
 
     vaddr_t XEN_DEBUG;
 
+    vaddr_t LIST_HEAD_next;
+
+    vaddr_t LIVEPATCH_payload_name,
+            LIVEPATCH_payload_name_max_len,
+            LIVEPATCH_payload_state,
+            LIVEPATCH_payload_rc,
+            LIVEPATCH_payload_buildid,
+            LIVEPATCH_payload_buildid_len,
+            LIVEPATCH_payload_text_addr,
+            LIVEPATCH_payload_text_size,
+            LIVEPATCH_payload_rw_addr,
+            LIVEPATCH_payload_rw_size,
+            LIVEPATCH_payload_ro_addr,
+            LIVEPATCH_payload_ro_size,
+            LIVEPATCH_payload_list,
+            LIVEPATCH_payload_applied_list,
+            LIVEPATCH_payload_symtab,
+            LIVEPATCH_payload_nsyms,
+            LIVEPATCH_symbol_name,
+            LIVEPATCH_symbol_value,
+            LIVEPATCH_symbol_sizeof,
+            LIVEPATCH_symbol_max_len;
+
     /// @cond EXCLUDE
     DEFINE_XENSYM_GROUP(console);
     DEFINE_XENSYM_GROUP(consolepc);
@@ -54,6 +77,7 @@ namespace xensyms
     DEFINE_XENSYM_GROUP(domain);
     DEFINE_XENSYM_GROUP(misc);
     DEFINE_XENSYM_GROUP(virt);
+    DEFINE_XENSYM_GROUP(livepatch);
     /// @endcond
 
     const struct xensym xensyms [] =
@@ -87,11 +111,33 @@ namespace xensyms
         XENSYM(domain, idle_vcpu),
 
         XENSYM(misc, XEN_DEBUG),
+        XENSYM(misc, LIST_HEAD_next),
 
         XENSYM(virt, VIRT_XEN_START),
         XENSYM(virt, VIRT_XEN_END),
         XENSYM(virt, VIRT_DIRECTMAP_START),
         XENSYM(virt, VIRT_DIRECTMAP_END),
+
+        XENSYM(livepatch, LIVEPATCH_payload_name),
+        XENSYM(livepatch, LIVEPATCH_payload_name_max_len),
+        XENSYM(livepatch, LIVEPATCH_payload_state),
+        XENSYM(livepatch, LIVEPATCH_payload_rc),
+        XENSYM(livepatch, LIVEPATCH_payload_buildid),
+        XENSYM(livepatch, LIVEPATCH_payload_buildid_len),
+        XENSYM(livepatch, LIVEPATCH_payload_text_addr),
+        XENSYM(livepatch, LIVEPATCH_payload_text_size),
+        XENSYM(livepatch, LIVEPATCH_payload_rw_addr),
+        XENSYM(livepatch, LIVEPATCH_payload_rw_size),
+        XENSYM(livepatch, LIVEPATCH_payload_ro_addr),
+        XENSYM(livepatch, LIVEPATCH_payload_ro_size),
+        XENSYM(livepatch, LIVEPATCH_payload_list),
+        XENSYM(livepatch, LIVEPATCH_payload_applied_list),
+        XENSYM(livepatch, LIVEPATCH_payload_symtab),
+        XENSYM(livepatch, LIVEPATCH_payload_nsyms),
+        XENSYM(livepatch, LIVEPATCH_symbol_name),
+        XENSYM(livepatch, LIVEPATCH_symbol_value),
+        XENSYM(livepatch, LIVEPATCH_symbol_sizeof),
+        XENSYM(livepatch, LIVEPATCH_symbol_max_len),
 
         XENSYM_NULL
     };

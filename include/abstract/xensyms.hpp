@@ -95,6 +95,49 @@ namespace xensyms
 
     /// In Xen a debug build?
     extern vaddr_t XEN_DEBUG;
+    /// Next pointer in a linked list.
+    extern vaddr_t LIST_HEAD_next;
+
+    /// The name of a LivePatch payload.
+    extern vaddr_t LIVEPATCH_payload_name;
+    /// The maximum length of a LivePatch payload name.
+    extern vaddr_t LIVEPATCH_payload_name_max_len;
+    /// The state of a LivePatch payload.
+    extern vaddr_t LIVEPATCH_payload_state;
+    /// The rc of a LivePatch payload.
+    extern vaddr_t LIVEPATCH_payload_rc;
+    /// The buildid of a LivePatch payload.
+    extern vaddr_t LIVEPATCH_payload_buildid;
+    /// The buildid length of a LivePatch payload.
+    extern vaddr_t LIVEPATCH_payload_buildid_len;
+    /// A pointer to the functions contained in a LivePatch payload.
+    extern vaddr_t LIVEPATCH_payload_text_addr;
+    /// The size of the functions in a LivePatch payload.
+    extern vaddr_t LIVEPATCH_payload_text_size;
+    /// A pointer to the data contained in a LivePatch payload.
+    extern vaddr_t LIVEPATCH_payload_rw_addr;
+    /// The size of the data in a LivePatch payload.
+    extern vaddr_t LIVEPATCH_payload_rw_size;
+    /// A pointer to the read-only data contained in a LivePatch payload.
+    extern vaddr_t LIVEPATCH_payload_ro_addr;
+    /// The size of the read-only data in a LivePatch payload.
+    extern vaddr_t LIVEPATCH_payload_ro_size;
+    /// A pointer to the list head embedded in a LivePatch payload.
+    extern vaddr_t LIVEPATCH_payload_list;
+    /// A pointer to the applied list head embedded in a LivePatch payload.
+    extern vaddr_t LIVEPATCH_payload_applied_list;
+    /// A pointer to the symbol table for a LivePatch payload.
+    extern vaddr_t LIVEPATCH_payload_symtab;
+    /// The number of symbols in a LivePatch payload's symbol table.
+    extern vaddr_t LIVEPATCH_payload_nsyms;
+    /// The name of a LivePatch symbol.
+    extern vaddr_t LIVEPATCH_symbol_name;
+    /// The address of a LivePatch symbol.
+    extern vaddr_t LIVEPATCH_symbol_value;
+    /// The size of a struct livepatch_symbol.
+    extern vaddr_t LIVEPATCH_symbol_sizeof;
+    /// The maximum length of a struct livepatch_symbol name.
+    extern vaddr_t LIVEPATCH_symbol_max_len;
 
     /// @cond EXCLUDE
     DECLARE_XENSYM_GROUP(console);
@@ -103,6 +146,7 @@ namespace xensyms
     DECLARE_XENSYM_GROUP(domain);
     DECLARE_XENSYM_GROUP(misc);
     DECLARE_XENSYM_GROUP(virt);
+    DECLARE_XENSYM_GROUP(livepatch);
     /// @endcond
 
     /**
