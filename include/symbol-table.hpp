@@ -29,6 +29,7 @@
 #include "util/symbol.hpp"
 #include <map>
 #include <list>
+#include <utility>
 
 #include <cstdio>
 
@@ -99,24 +100,38 @@ public:
     int print_text_symbol(FILE * stream, const vaddr_t & addr) const;
 
     /**
-     * Is the address within the text region.
+     * Is the address within one of the text regions.
      * @param addr Address to check.
      * @return boolean.
      */
     bool is_text_symbol(const vaddr_t & addr) const;
 
-    /// Whether this symbol table can print symbols.
-    bool can_print;
-    /// Whether this symbol table can decode hypercall pages.
-    bool has_hypercall;
-
-protected:
+    /**
+     * Add a new text region to the virtual address space.
+     *
+     * @param start Start address of the text region.
+     * @param end End address of the text + 1.
+     */
+    void add_text_region(vaddr_t start, vaddr_t end);
 
     /**
      * Insert a new Symbol into the tables.
      * @param sym Symbol to insert.
      */
     void insert(Symbol * sym);
+
+    /**
+     * Sort the symbol table.
+     * The symbol table must be sorted after inserting a symbol.
+     */
+    void sort();
+
+protected:
+
+    /// Whether this symbol table can print symbols.
+    bool can_print;
+    /// Whether this symbol table can decode hypercall pages.
+    bool has_hypercall;
 
     /**
      * Private wrapper around std::strcmp.
@@ -145,21 +160,16 @@ protected:
      */
     static bool symcmp(const vaddr_t & addr, const Symbol * sym);
 
-    /// value of '_stext' symbol.
-    vaddr_t text_start,
-    /// value of '_etext' symbol.
-        text_end,
-    /// value of '_sinittext' symbol.
-        init_start,
-    /// value of '_einittext' symbol.
-        init_end,
     /// value of 'hypercall_page' symbol.
-        hypercall_page;
+    vaddr_t hypercall_page;
 
     /// Multimap of Symbol name -> Symbol
     std::multimap<const char *, Symbol *, bool(*)(const char*, const char*)> names;
     /// List of code symbols, for stack traces.
     std::list<Symbol*> symbols;
+
+    /// List of text regions in the form of (start_addr, end_addr).
+    std::list< std::pair<vaddr_t, vaddr_t> > text_regions;
 
     /// List iterator
     typedef std::list<Symbol*>::iterator list_iter;
@@ -171,6 +181,9 @@ protected:
 
     /// Multimap const iterator
     typedef std::multimap<const char *, Symbol *, bool(*)(const char*, const char*)>::const_iterator name_iter;
+
+    /// Text region const iterator
+    typedef std::list< std::pair<vaddr_t, vaddr_t> >::const_iterator text_region_iter;
 };
 
 #endif

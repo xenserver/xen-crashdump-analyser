@@ -108,8 +108,8 @@ static const char * hypercall_name(const unsigned int nr)
 }
 
 SymbolTable::SymbolTable():
-    can_print(false), has_hypercall(false), text_start(0), text_end(0), init_start(0),
-    init_end(0), hypercall_page(0), names(&SymbolTable::strcmp), symbols()
+    can_print(false), has_hypercall(false),
+    hypercall_page(0), names(&SymbolTable::strcmp), symbols(), text_regions()
 {}
 
 SymbolTable::~SymbolTable()
@@ -123,17 +123,6 @@ SymbolTable::~SymbolTable()
 
 void SymbolTable::insert(Symbol * sym)
 {
-    if ( ! std::strcmp(sym->name, "_stext") )
-        this->text_start = sym->address;
-    else if ( ! std::strcmp(sym->name, "_etext") )
-        this->text_end = sym->address;
-    else if ( ! std::strcmp(sym->name, "_sinittext") )
-        this->init_start = sym->address;
-    else if ( ! std::strcmp(sym->name, "_einittext") )
-        this->init_end = sym->address;
-    else if ( ! std::strcmp(sym->name, "hypercall_page") )
-        this->hypercall_page = sym->address;
-
     if ( sym->type == 'T' ||
          sym->type == 't' ||
          sym->type == 'W' ||
@@ -141,6 +130,11 @@ void SymbolTable::insert(Symbol * sym)
         this->symbols.push_back(sym);
 
     this->names.insert(name_pair(sym->name, sym));
+}
+
+void SymbolTable::sort()
+{
+    this->symbols.sort(&SymbolTable::addrcmp);
 }
 
 const Symbol * SymbolTable::find(const char * name) const
@@ -163,6 +157,7 @@ bool SymbolTable::parse(const char * file, bool offsets)
     char type;
     char name[128];
     int nr_read;
+    vaddr_t text_start = 0, text_end = 0, init_start = 0, init_end = 0;
 
     if ( NULL == (fd = fopen(file, "r")) )
         return false;
@@ -194,28 +189,43 @@ bool SymbolTable::parse(const char * file, bool offsets)
                 insert_xensym(Abstract::xensyms::xensyms, name, addr);
                 insert_xensym(x86_64::xensyms::xensyms, name, addr);
             }
+
+            if ( ! std::strcmp(name, "_stext") )
+                text_start = addr;
+            else if ( ! std::strcmp(name, "_etext") )
+                text_end = addr;
+            else if ( ! std::strcmp(name, "_sinittext") )
+                init_start = addr;
+            else if ( ! std::strcmp(name, "_einittext") )
+                init_end = addr;
+            else if ( ! std::strcmp(name, "hypercall_page") )
+                this->hypercall_page = addr;
+
             this->insert( new Symbol(addr, type, name) );
         }
     }
 
     SAFE_FCLOSE(fd);
 
-    this->symbols.sort(&SymbolTable::addrcmp);
+    sort();
 
-    if ( this->text_start == 0 ||
-         this->text_end == 0 ||
-         this->init_start == 0 ||
-         this->init_end == 0 )
+    if ( text_start == 0 ||
+         text_end == 0 ||
+         init_start == 0 ||
+         init_end == 0 )
     {
         LOG_INFO("Failed to obtain text section limits\n");
         this->can_print = false;
     }
     else
     {
+        add_text_region(text_start, text_end);
+        add_text_region(init_start, init_end);
+
         LOG_DEBUG("  text section limits: 0x%016"PRIx64"->0x%016"PRIx64"\n",
-                  this->text_start, this->text_end);
+                  text_start, text_end);
         LOG_DEBUG("  init section limits: 0x%016"PRIx64"->0x%016"PRIx64"\n",
-                  this->init_start, this->init_end);
+                  init_start, init_end);
         this->can_print = true;
     }
 
@@ -362,18 +372,17 @@ bool SymbolTable::is_text_symbol(const vaddr_t & addr) const
     if ( ! this->can_print )
         return false;
 
-    if ( addr >= this->text_start &&
-         addr <= this->text_end )
-        return true;
-
-    if ( addr >= this->init_start &&
-         addr <= this->init_end )
-        return true;
-
     if ( this->has_hypercall &&
          addr >= this->hypercall_page &&
          addr <= this->hypercall_page + 4096ULL )
         return true;
+
+    for ( text_region_iter itt = text_regions.begin();
+          itt != text_regions.end(); ++itt )
+    {
+        if ( addr >= itt->first && addr < itt->second )
+            return true;
+    }
 
     return false;
 }
@@ -391,6 +400,11 @@ bool SymbolTable::addrcmp(const Symbol * lhs, const Symbol * rhs)
 bool SymbolTable::symcmp(const vaddr_t & addr, const Symbol * sym)
 {
     return addr < sym->address;
+}
+
+void SymbolTable::add_text_region(vaddr_t start, vaddr_t end)
+{
+    text_regions.push_back(std::pair<vaddr_t, vaddr_t>(start, end));
 }
 
 /*
