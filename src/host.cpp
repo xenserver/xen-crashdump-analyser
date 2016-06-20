@@ -33,6 +33,7 @@
 #include "arch/x86_64/pcpu.hpp"
 #include "arch/x86_64/domain.hpp"
 #include "arch/x86_64/xensyms.hpp"
+#include "arch/x86_64/payload.hpp"
 
 #include "util/print-structures.hpp"
 #include "util/log.hpp"
@@ -61,7 +62,8 @@ Host::Host():
     xen_major(0), xen_minor(0), xen_extra(NULL),
     xen_changeset(NULL), xen_compiler(NULL),
     xen_compile_date(NULL), debug_build(false),
-    can_validate_xen_vaddr(false), xen_vmcoreinfo(), dom0_vmcoreinfo()
+    can_validate_xen_vaddr(false), xen_vmcoreinfo(), dom0_vmcoreinfo(),
+    payloads(), applied_payloads()
 {}
 
 Host::~Host()
@@ -73,6 +75,13 @@ Host::~Host()
         delete [] this -> pcpus;
         this -> pcpus = NULL;
     }
+
+    for ( payload_iter itt = payloads.begin(); itt != payloads.end(); ++itt )
+        SAFE_DELETE(*itt);
+
+    for ( payload_iter itt = applied_payloads.begin();
+          itt != applied_payloads.end(); ++itt )
+        SAFE_DELETE(*itt);
 
     SAFE_DELETE_ARRAY(this->idle_vcpus);
     SAFE_DELETE_ARRAY(this->pcpu_stacks);
@@ -286,7 +295,7 @@ bool Host::decode_xen()
                 break;
             }
 
-        return true;
+        return decode_payloads();
     }
     catch ( const std::bad_alloc & )
     {
@@ -298,6 +307,125 @@ bool Host::decode_xen()
     }
 
     return false;
+}
+
+bool Host::decode_payloads()
+{
+    const Abstract::PageTable & xenpt = this->get_xenpt();
+
+    if ( this->arch != Abstract::Elf::ELF_64 )
+    {
+        // Implement if necessary
+        LOG_ERROR("TODO - implement decoding for non-64bit Xen\n");
+        return false;
+    }
+
+    if ( !REQ_CORE_XENSYMS(livepatch) )
+    {
+        LOG_ERROR("Missing symbols for livepatch\n");
+        return false;
+    }
+
+    const Symbol *payload_sym = this->symtab.find("payload_list");
+    const Symbol *applied_sym = this->symtab.find("applied_list");
+    if ( !payload_sym || !applied_sym )
+    {
+        LOG_ERROR("Missing symbols for livepatch\n");
+        return false;
+    }
+
+    try
+    {
+        uint64_t list_ptr, payload_ptr;
+        int i;
+
+        /* Iterate over list of payloads. */
+
+        host.validate_xen_vaddr(payload_sym->address);
+        memory.read64_vaddr(xenpt, payload_sym->address + LIST_HEAD_next,
+                            list_ptr);
+
+        i = 0;
+        while ( list_ptr != payload_sym->address && i++ < 1024 )
+        {
+            Abstract::Payload *payload;
+
+            payload_ptr = list_ptr - LIVEPATCH_payload_list;
+
+            host.validate_xen_vaddr(payload_ptr);
+            payload = new x86_64::Payload(xenpt, payload_ptr);
+            payload->decode_state();
+
+            // Failure to decode the symbol table is not a critical error.
+            payload->decode_symbol_table(symtab);
+
+            payloads.push_back(payload);
+
+            memory.read64_vaddr(xenpt, list_ptr + LIST_HEAD_next, list_ptr);
+        }
+        if ( i >= 1024 )
+        {
+            LOG_ERROR("Too many payloads\n");
+            return false;
+        }
+        this->symtab.sort();
+
+        /* Iterate over list of applied payloads. */
+
+        host.validate_xen_vaddr(applied_sym->address);
+        memory.read64_vaddr(xenpt, applied_sym->address + LIST_HEAD_next,
+                            list_ptr);
+
+        i = 0;
+        while ( list_ptr != applied_sym->address && i++ < 1024 )
+        {
+            Abstract::Payload *payload;
+
+            payload_ptr = list_ptr - LIVEPATCH_payload_applied_list;
+
+            host.validate_xen_vaddr(payload_ptr);
+            payload = new x86_64::Payload(xenpt, payload_ptr);
+            payload->decode_state();
+            applied_payloads.push_back(payload);
+
+            memory.read64_vaddr(xenpt, list_ptr + LIST_HEAD_next, list_ptr);
+        }
+        if ( i >= 1024 )
+        {
+            LOG_ERROR("Too many applied payloads\n");
+            return false;
+        }
+
+        return true;
+    }
+    catch ( const std::bad_alloc & )
+    {
+        LOG_ERROR("Bad Alloc exception.  Out of memory\n");
+    }
+    catch ( const CommonError & e )
+    {
+        e.log();
+    }
+
+    return false;
+}
+
+int Host::print_payloads(FILE *o)
+{
+    int len = 0;
+
+    len += FPUTS("Loaded payloads:\n", o);
+
+    for ( payload_iter itt = payloads.begin(); itt != payloads.end(); ++itt )
+        len += (*itt)->print_state(o);
+
+    len += FPUTS("Applied payloads:\n", o);
+
+    for ( payload_iter itt = applied_payloads.begin();
+          itt != applied_payloads.end(); ++itt )
+        len += (*itt)->print_name(o);
+
+    return len;
 }
 
 bool Host::print_xen(bool dump_structures)
@@ -364,6 +492,10 @@ bool Host::print_xen(bool dump_structures)
             }
             SAFE_DELETE_ARRAY(cmdline);
         }
+
+        len += FPUTS("\n", o);
+
+        print_payloads(o);
 
         len += FPUTS("\n", o);
 

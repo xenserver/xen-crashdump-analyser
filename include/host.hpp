@@ -32,6 +32,7 @@
 #include "symbol-table.hpp"
 #include "abstract/pcpu.hpp"
 #include "abstract/elf.hpp"
+#include "abstract/payload.hpp"
 #include "arch/x86_64/structures.hpp"
 
 /**
@@ -155,6 +156,14 @@ public:
 
     /// dom0 vmcoreinfo
     CoreInfo dom0_vmcoreinfo;
+
+protected:
+    bool decode_payloads();
+    int print_payloads(FILE *o);
+
+    std::list<Abstract::Payload *> payloads;
+    std::list<Abstract::Payload *> applied_payloads;
+    typedef std::list<Abstract::Payload *>::iterator payload_iter;
 
 private:
     // @cond EXCLUDE
