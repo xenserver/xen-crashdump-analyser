@@ -374,7 +374,7 @@ bool SymbolTable::is_text_symbol(const vaddr_t & addr) const
 
     if ( this->has_hypercall &&
          addr >= this->hypercall_page &&
-         addr <= this->hypercall_page + 4096ULL )
+         addr < this->hypercall_page + 4096ULL )
         return true;
 
     for ( text_region_iter itt = text_regions.begin();
