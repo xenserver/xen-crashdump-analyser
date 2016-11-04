@@ -1,6 +1,6 @@
 # Name of the resulting executable
 APP-NAME := xen-crashdump-analyser
-VERSION := 2.5.0
+VERSION := 2.5.1
 
 # Set the default action to build the program
 .PHONY: all
