@@ -11,7 +11,7 @@ all: $(APP-NAME)
 CXX := g++
 
 # Set up flags
-COMMON_FLAGS := -Iinclude -g -Os -Wall -Werror -Wextra
+COMMON_FLAGS := -Iinclude -g -Os -Wall -Werror -Wextra '-DVERSION=$(VERSION)'
 CPPFLAGS := $(COMMON_FLAGS) -std=c++98 -fno-rtti -Weffc++
 CFLAGS := $(COMMON_FLAGS) -std=c99
 LDFLAGS := -g

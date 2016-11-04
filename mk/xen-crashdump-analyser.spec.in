@@ -13,7 +13,7 @@ BuildRequires: gcc-c++
 %setup -q -n %{name}
 
 %build
-%{?cov_wrap} %{__make}
+%{?cov_wrap} %{__make} VERSION=\"%{version}\"
 
 %install
 %{__rm} -rf %{buildroot}
