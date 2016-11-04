@@ -1,5 +1,6 @@
 # Name of the resulting executable
 APP-NAME := xen-crashdump-analyser
+VERSION := 2.5.0
 
 # Set the default action to build the program
 .PHONY: all
@@ -11,7 +12,7 @@ all: $(APP-NAME)
 CXX := g++
 
 # Set up flags
-COMMON_FLAGS := -Iinclude -g -Os -Wall -Werror -Wextra '-DVERSION=$(VERSION)'
+COMMON_FLAGS := -Iinclude -g -Os -Wall -Werror -Wextra -DVERSION=\"$(VERSION)\"
 CPPFLAGS := $(COMMON_FLAGS) -std=c++98 -fno-rtti -Weffc++
 CFLAGS := $(COMMON_FLAGS) -std=c99
 LDFLAGS := -g
